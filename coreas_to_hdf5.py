@@ -162,6 +162,70 @@ def read_longitudinal_profile(hdf5_file, long_file):
     long_file.close()
 
 
+def calculate_and_write_ge_ce(f_h5):
+    antennas = f_h5['/CoREAS/observers']
+    antennas_pos = f_h5['/highlevel/obsplane_na_na_vB_vvB']['antenna_position']
+    traces = f_h5['CoREAS'].create_group('ge_ce')
+    for index, label in enumerate(antennas.keys()):
+        if label[:3] != 'pos':
+            continue
+        x_el, y_el, _ = antennas_pos[index]
+        #x_el, y_el, _ = antennas[label].attrs['position']
+        phi = rdhelp.get_normalized_angle(np.arctan2(y_el, x_el))
+        sin = np.sin(phi)
+        cotg = np.cos(phi) / np.sin(phi)
+        print(phi, sin, cotg)
+        trace_vB = antennas[label]  # 0,1,2,3: t, vxB, vxvxB, v
+        trace_ce = trace_vB[:,2] / sin
+        trace_geo = trace_vB[:,1] - trace_vB[:,2] * cotg
+        trace_geo_ce = np.array([trace_vB[:,0],trace_geo, trace_ce,
+                                 np.zeros_like(
+            trace_vB[:,3])])  # 0,1,2, 3: t, geo, ce, zeros
+
+        data_set = traces.create_dataset(label, trace_geo_ce.T.shape,
+                                        dtype=float)
+        data_set[...] = trace_geo_ce.T
+        data_set.attrs['comment'] = "Geomagnetic and Charge excess traces"
+    return f_h5
+
+def read_height2X_from_C7log(f_h5, log_file):
+    X_steps = len(f_h5["atmosphere"]["EnergyDeposit"])
+    if not isinstance(log_file, io.IOBase):
+        log_file = open(log_file, "r")
+
+    lines = [item for item in log_file.readlines() if item != "\n"]  # skip  empty lines
+    lines = np.array([item for item in lines if not item.startswith("#")])  # skip comments
+    log_file.close()
+
+    start = False
+    count = 0
+    shower_dev = np.zeros((X_steps + 1, 3))
+    for line in lines:
+        ll = line.strip().split()
+        if not start and len(ll) == 4 and \
+                ll[0] == '(I)' and ll[1] == "HLONG(I)" and \
+                ll[2] == "THCKRL(I)" and ll[3] == "RLONG(I)":
+            start = True
+            continue
+
+        if not start and len(ll) == 4 and ll[0] == str(count):
+                start = True
+
+        if start:
+            if len(ll) != 4 or (len(ll) != 0 and ll[0] != str(count)):
+                start = False
+                continue
+            shower_dev[count] = float(ll[1]), float(ll[2]), float(ll[3])
+            count = count +1
+
+    atmos = f_h5['atmosphere']
+    data_set = atmos.create_dataset("Atmosphere", shower_dev.shape,
+                                    dtype=float)
+    data_set[...] = shower_dev
+    data_set.attrs['comment'] = "Shower development to convert height to " \
+                                "grammage"
+    return f_h5
+
 def read_antenna_data(hdf5_file, list_file, antenna_folder):
 
     if not isinstance(list_file, io.IOBase):
@@ -223,6 +287,11 @@ def write_coreas_hdf5_file(reas_filename, output_filename, f_h5=None):
     antenna_folder = os.path.join(os.path.dirname(reas_filename), "SIM%s_coreas" % number)
     read_antenna_data(f_h5['CoREAS'], listfile, antenna_folder)
 
+    # read atmos data
+    log_filename = os.path.splitext(os.path.basename(inp_filename))[0] + ".log"
+    log_filename = os.path.join(os.path.dirname(reas_filename), log_filename)
+    log_file = open(log_filename, "r")
+    read_height2X_from_C7log(f_h5, log_file)
     return f_h5
 
 
@@ -270,23 +339,10 @@ def write_highlevel_attributes(f_h5_hl, f_h5):
     f_h5_hl.attrs["gaisser_hillas_dEdX"] = popt
 
 
-def write_coreas_highlevel_file(output_filename, f_h5, args, f_h5_sephl=None):
+def write_coreas_highlevel_info(f_h5, args):
 
     # create file
-    if f_h5_sephl is None:
-        f_h5_sephl = h5py.File(output_filename, "w", driver="core")
-
-    # Copy CoREAS information into highlevel file (only attributes)
-    f_h5_hl_coreas = f_h5_sephl.create_group("CoREAS")
-    for (attr, value) in f_h5['CoREAS'].attrs.items():
-        f_h5_hl_coreas.attrs[attr] = value
-
-    # Copy input information into highlevel file (only attributes)
-    f_h5_hl_inputs = f_h5_sephl.create_group("inputs")
-    for (attr, value) in f_h5['inputs'].attrs.items():
-        f_h5_hl_inputs.attrs[attr] = value
-
-    f_h5_hl = f_h5_sephl.create_group("highlevel")
+    f_h5_hl = f_h5.create_group("highlevel")
     write_highlevel_attributes(f_h5_hl, f_h5)
     f_h5_inputs = f_h5['inputs']
     Bx, Bz = f_h5_inputs.attrs["MAGNET"]
@@ -620,8 +676,6 @@ def write_coreas_highlevel_file(output_filename, f_h5, args, f_h5_sephl=None):
             f_h5_obsplane['times_filtered'] = times_filtered
             f_h5_obsplane['traces_filtered'] = traces_filtered
 
-    return f_h5_sephl
-
 def extract_files_to_tempfolder(sim_num):
     import tarfile
     tar_filename = f"{RADIO_DATA_PATH}/"\
@@ -688,12 +742,10 @@ if __name__ == '__main__':
     from scipy import optimize
 
     output_filename_array = os.path.splitext(os.path.basename(output_filename))
-    output_filename_hl = os.path.join(os.path.dirname(output_filename),
-                                       output_filename_array[0] + "_highlevel" + output_filename_array[1])
 
-    f_h5_sephl = write_coreas_highlevel_file(output_filename_hl, f_h5, args)
-    f_h5_sephl.close()
+    write_coreas_highlevel_info(f_h5, args)
 
+    calculate_and_write_ge_ce(f_h5)
     if not args.store_full_simulation_in_hdf5:
         # make file empty (so that writing to disc does not cost a lot of i/o), write it to disc and remove it.
         for key in f_h5.keys():
