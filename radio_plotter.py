@@ -103,58 +103,70 @@ def plot_pulses(file_name, antenna_label):
     if type(file_name) is str:
         f_h5.close()
         
-def plot_interpolated_footprint(positions, energy_fluences):
-    fig, ax = plt.subplots(1, 2, figsize=(40,30), gridspec_kw={
-        'width_ratios': [30, 1]})
+def plot_interpolated_footprint(positions, energy_fluences, interp):
     # construct the interpolation function
-    interp_func = intp.Rbf(
-        positions[:, 0], positions[:, 1], energy_fluences, smooth=0, function='quintic')
-    # define positions where to interpolate
-    xs = np.linspace(np.min(positions), np.max(positions), 100)
-    ys = np.linspace(np.min(positions), np.max(positions), 100)
-    xx, yy = np.meshgrid(xs, ys)
-    # points within a circle
-    in_star = xx ** 2 + yy ** 2 <= np.amax(positions[:, 0] ** 2 + positions[:, 1] ** 2)
-    # interpolated values! but only in the star. outsite set to nan
-    fp_interp = np.where(in_star, interp_func(xx, yy), np.nan)
-    cmap = "inferno"  # set the colormap
-    # with vmin/vmax control that both pcolormesh and scatter use the same colorscale
-    pcm = ax[0].pcolormesh(yy, xx, fp_interp,
-                        vmin=np.amin(energy_fluences), vmax=np.amax(energy_fluences),
-                        cmap=cmap, shading="gouraud")  # use shading="gouraud" to make it smoother
-    # sct = ax.scatter(positions[:, 1], positions[:, 0], c=energy_fluences, edgecolor="k",
-    #         vmin=6e-11,vmax=7.5e-8, cmap=cmap)
-    sct = ax[0].scatter(
-            positions[:, 1],
-            positions[:, 0],
-            # c=energy_fluences,
-            edgecolor="w",
-            facecolor="none",
-            s=2.0,
-            lw=0.2,
-            # vmin=6e-11,
-            # vmax=7.5e-8,
-            # cmap=cmap,
-    )
+    if len(energy_fluences.shape) == 1:
+        energy_fluences = np.array([energy_fluences]).T
+    for i in range(energy_fluences.shape[1]):
+        energy_flu = energy_fluences[:,i]
+        if np.min(energy_flu) == np.max(energy_flu):
+            print(np.min(energy_flu))
+            continue
+        fig, ax = plt.subplots(1, 2, figsize=(40, 30), gridspec_kw={
+            'width_ratios': [30, 1]})
+        if interp:
+            interp_func = intp.Rbf(
+                positions[:, 0], positions[:, 1], energy_flu, smooth=0, function='quintic')
+            # define positions where to interpolate
+            xs = np.linspace(np.min(positions), np.max(positions), 100)
+            ys = np.linspace(np.min(positions), np.max(positions), 100)
+            xx, yy = np.meshgrid(xs, ys)
+            # points within a circle
+            in_star = xx ** 2 + yy ** 2 <= np.amax(positions[:, 0] ** 2 + positions[:, 1] ** 2)
+            # interpolated values! but only in the star. outsite set to nan
+            fp_interp = np.where(in_star, interp_func(xx, yy), np.nan)
+            cmap = "inferno"  # set the colormap
+            # with vmin/vmax control that both pcolormesh and scatter use the same colorscale
+            pcm = ax[0].pcolormesh(yy, xx, fp_interp,
+                                vmin=np.amin(energy_flu), vmax=np.amax(energy_flu),
+                                cmap=cmap, shading="gouraud")  # use shading="gouraud" to make it smoother
+            sct = ax[0].scatter(
+                positions[:, 1],
+                positions[:, 0],
+                edgecolor="w",
+                facecolor="none",
+                s=5.0,
+                lw=1.,
+            )
+            cbi = fig.colorbar(pcm, pad=0.02, cax=ax[1])
+            cbi.set_label(r"Energy Fluence $f$ / eV$\,$m$^{-2}$", fontsize=20)
+        else:
+            sct = ax[0].scatter(
+                    positions[:, 1],
+                    positions[:, 0],
+                    c=energy_flu,
+                    edgecolor="w",
+                    facecolor="none",
+                    s=5.0,
+                    lw=1.,
+            )
 
-    ax[0].set_ylabel("y / m",fontsize=20)
-    ax[0].set_xlabel("x / m",fontsize=20)
-    ax[0].set_facecolor("black")
-    ax[0].set_aspect(1)
-    ax[0].set_xlim(np.min(positions), np.max(positions))
-    ax[0].set_ylim(np.min(positions), np.max(positions))
-    fig.suptitle("CORSIKA 7 - all")
-    cbi = fig.colorbar(pcm, pad=0.02, cax=ax[1])
-    cbi.set_label(r"Energy Fluence $f$ / eV$\,$m$^{-2}$",fontsize=20)
-    print("vmin = ", np.amin(energy_fluences))
-    print("vmax = ", np.amax(energy_fluences))
-    plt.xticks(fontsize=20)
-    plt.yticks(fontsize=20)
-    plt.tight_layout()
-    plt.savefig("fluence.pdf", format='pdf')
-    plt.show()
+        ax[0].set_ylabel("y / m",fontsize=20)
+        ax[0].set_xlabel("x / m",fontsize=20)
+        ax[0].set_facecolor("black")
+        ax[0].set_aspect(1)
+        ax[0].set_xlim(np.min(positions), np.max(positions))
+        ax[0].set_ylim(np.min(positions), np.max(positions))
+        fig.suptitle("CORSIKA 7 - all")
+        print("vmin = ", np.amin(energy_flu))
+        print("vmax = ", np.amax(energy_flu))
+        plt.xticks(fontsize=20)
+        plt.yticks(fontsize=20)
+        plt.tight_layout()
+        plt.savefig(f"fluence_{i}.pdf", format='pdf')
+        plt.show()
 
-def plot_fluence_maps(file_name, from_file=False, data='ge_ce'):
+def plot_fluence_maps(file_name, from_file=False, data='ge_ce', interp=True):
     if type(file_name) is str:
         f_h5 = h5py.File(file_name, 'r')
     else:
@@ -166,6 +178,7 @@ def plot_fluence_maps(file_name, from_file=False, data='ge_ce'):
     energy_fluences = []
     positions = []
     for index, label in enumerate(antennas.keys()):
+        #print(label)
         if label[:3] != 'pos':
             continue
         pos = antennas_pos[index]
@@ -173,24 +186,19 @@ def plot_fluence_maps(file_name, from_file=False, data='ge_ce'):
         trace_vB = antennas[label]  # 0,1,2,3: t, vxB, vxvxB, v
         positions.append(pos)
         if not from_file:
-            ef = energy_fluence.calculate_energy_fluence(
+            ef = energy_fluence.calculate_energy_fluence_vector(
                 trace_vB[:,1:], trace_vB[:,0], remove_noise=True)
             # store all energy fluences (for all antennas) in a list
             energy_fluences.append(ef)
-
-
-    if from_file:
-        energy_fluences = []
-        for index, label in enumerate(antennas.keys()):
-            if label[:3] != 'pos':
-                continue
+        else:
             energy_fluences.append(f_h5['/highlevel/obsplane_na_na_vB_vvB'][
                                        'energy_fluence'][index])
+
     positions = np.array(positions)
     energy_fluences = np.array(energy_fluences)
-    print(positions.shape)
-    print(energy_fluences.shape)
-    plot_interpolated_footprint(positions, energy_fluences)
+    assert len(positions) == len(energy_fluences)
+    print(len(positions))
+    plot_interpolated_footprint(positions, energy_fluences, interp)
 
     
     if type(file_name) is str:

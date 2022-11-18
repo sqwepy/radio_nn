@@ -167,8 +167,6 @@ def calculate_and_write_ge_ce(f_h5):
     antennas_pos = f_h5['/highlevel/obsplane_na_na_vB_vvB']['antenna_position']
     traces = f_h5['CoREAS'].create_group('ge_ce')
     for index, label in enumerate(antennas.keys()):
-        if label[:3] != 'pos':
-            continue
         x_el, y_el, _ = antennas_pos[index]
         #x_el, y_el, _ = antennas[label].attrs['position']
         phi = rdhelp.get_normalized_angle(np.arctan2(y_el, x_el))
