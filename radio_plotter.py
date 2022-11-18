@@ -1,10 +1,13 @@
+"""
+Plot radio pulses and fluence maps.
+"""
 import h5py
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.interpolate as intp
 from radiotools.analyses import energy_fluence
 
-fnt_size = 10
+fnt_size = 20
 plt.rc("font", size=fnt_size)  # controls default text size
 plt.rc("axes", titlesize=fnt_size)  # fontsize of the title
 plt.rc("axes", labelsize=fnt_size)  # fontsize of the x and y labels
@@ -14,7 +17,18 @@ plt.rc("legend", fontsize=fnt_size)
 
 
 def indent_level(level):
-    """Indent according to hierarchy when printing hdf5 file."""
+    """
+    Indent according to hierarchy when printing hdf5 file.
+
+    Parameters
+    ----------
+    level: int
+        Indent level
+
+    Returns
+    -------
+    None
+    """
     return "".join(["  " for _ in range(level)])
 
 
@@ -46,9 +60,9 @@ def print_hdf5_file(file_name, level=0):
             print(f"{indent_level(level)} Property: {ff[k]}")
             if len(ff[k].attrs.keys()) != 0:
                 print(f"{indent_level(level)} Attributes")
-            for l in ff[k].attrs.keys():
-                print(f"{indent_level(level+1)} Key:{l}")
-                print(f"{indent_level(level+1)} Value:{ff[k].attrs[l]}")
+            for ll in ff[k].attrs.keys():
+                print(f"{indent_level(level+1)} Key:{ll}")
+                print(f"{indent_level(level+1)} Value:{ff[k].attrs[ll]}")
                 print(f"{indent_level(level+1)} -----------------------")
         else:
             raise KeyboardInterrupt
@@ -82,7 +96,7 @@ def plot_pulses(file_name, antenna_label):
     else:
         f_h5 = file_name
     plotstyle1 = {"color": "r", "marker": "."}
-    plotstyle2 = {"color": "b", "marker": "."}
+    # plotstyle2 = {"color": "b", "marker": "."}
     pulses = f_h5["/CoREAS/ge_ce"][antenna_label]
 
     timec7 = pulses[:, -4]
@@ -117,7 +131,7 @@ def plot_pulses(file_name, antenna_label):
     ax[2, 1].set_title(f"v - C7 CoREAS")
 
     fig.suptitle(f"Run:{file_name} Antenna: {antenna_label}")
-    fig.supylabel("Electric Field [$\mu$V/m]")
+    fig.supylabel("Electric Field [$\\mu$V/m]")
     fig.supxlabel("Time [s]")
     [k.grid(which="both", linestyle="dashed") for i in ax for k in i]
     plt.tight_layout()
@@ -146,7 +160,6 @@ def plot_interpolated_footprint(positions, energy_fluences, interp):
     -------
     None
     """
-    # construct the interpolation function
     if len(energy_fluences.shape) == 1:
         energy_fluences = np.array([energy_fluences]).T
     for i in range(energy_fluences.shape[1]):
@@ -161,6 +174,7 @@ def plot_interpolated_footprint(positions, energy_fluences, interp):
             gridspec_kw={"width_ratios": [30, 1]},
         )
         if interp:
+            # construct the interpolation function
             interp_func = intp.Rbf(
                 positions[:, 0],
                 positions[:, 1],
