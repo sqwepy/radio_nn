@@ -6,6 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scipy.interpolate as intp
 from radiotools.analyses import energy_fluence
+from radiotools import helper as rdhelp
 
 fnt_size = 20
 plt.rc("font", size=fnt_size)  # controls default text size
@@ -77,6 +78,75 @@ def print_hdf5_file(file_name, level=0):
         ff.close()
 
 
+def plot_pulses_at_rad(file_name, radius, data="vB_vvB"):
+    """
+    Plot pulses from given file at particular radius
+
+    Parameters
+    ----------
+    file_name: str or hdf5 class
+    antenna_label: str
+        Which antenna to plot
+
+    Returns
+    -------
+    None
+    """
+    if type(file_name) is str:
+        f_h5 = h5py.File(file_name, "r")
+    else:
+        f_h5 = file_name
+    labels = []
+    avail_radius = []
+    for label in f_h5[f"/highlevel/traces/{data}"].keys():
+        split_label = label.split("_")
+        if split_label[0] != "pos":
+            continue
+        elif split_label[1] == str(radius):
+            labels.append(label)
+        else:
+            avail_radius.append(int(split_label[1]))
+            continue
+
+    if len(labels) == 0:
+        print("No labels found to plot")
+        print("Available Radii:")
+        print(sorted(set(avail_radius)))
+        return
+
+    plotstyle1 = {"color": "r", "marker": "."}
+    # plotstyle2 = {"color": "b", "marker": "."}
+    fig, ax = plt.subplots(3, 8, figsize=(40, 30), sharey=True)
+    for i, antenna_label in enumerate(labels):
+        angle = antenna_label.split("_")[2]
+        pulses = f_h5[f"/highlevel/traces/{data}"][antenna_label]
+
+        timec7 = pulses[:, -4]
+        exc7 = pulses[:, -3]
+        eyc7 = pulses[:, -2]
+        ezc7 = pulses[:, -1]
+
+        ax[0, i].plot(timec7, exc7, **plotstyle1)
+        ax[0, i].set_title(f"{data.split('_')[0]} - C7 CoREAS - {angle}")
+
+        ax[1, i].plot(timec7, eyc7, **plotstyle1)
+        ax[1, i].set_title(f"{data.split('_')[1]} - C7 CoREAS - {angle}")
+
+        ax[2, i].plot(timec7, ezc7, **plotstyle1)
+        ax[2, i].set_title(f"v - C7 CoREAS - {angle}")
+
+    fig.suptitle(f"Run:{file_name} Radius: {radius}")
+    fig.supylabel("Electric Field [$\\mu$V/m]")
+    fig.supxlabel("Time [s]")
+    [k.grid(which="both", linestyle="dashed") for i in ax for k in i]
+    plt.tight_layout()
+    plt.savefig(f"plot_rad_{radius}.pdf", format="pdf")
+    plt.show()
+
+    if type(file_name) is str:
+        f_h5.close()
+
+
 def plot_pulses(file_name, antenna_label):
     """
     Plot pulses from given file.
@@ -97,34 +167,35 @@ def plot_pulses(file_name, antenna_label):
         f_h5 = file_name
     plotstyle1 = {"color": "r", "marker": "."}
     # plotstyle2 = {"color": "b", "marker": "."}
-    pulses = f_h5["/CoREAS/ge_ce"][antenna_label]
+    pulses = f_h5["/highlevel/traces/ge_ce"][antenna_label]
+    print(pulses.shape)
 
     timec7 = pulses[:, -4]
     exc7 = pulses[:, -3]
     eyc7 = pulses[:, -2]
     ezc7 = pulses[:, -1]
 
-    assert np.all(f_h5["/CoREAS/observers"][antenna_label][:, 0] == timec7)
     fig, ax = plt.subplots(3, 2, sharex=True, figsize=(40, 30))
-    ax[0, 0].plot(timec7, eyc7, **plotstyle1)
+    ax[0, 0].plot(timec7, exc7, **plotstyle1)
     ax[0, 0].set_title(f"GEO - C7 CoREAS")
 
-    ax[1, 0].plot(timec7, exc7, **plotstyle1)
+    ax[1, 0].plot(timec7, eyc7, **plotstyle1)
     ax[1, 0].set_title(f"CE - C7 CoREAS")
 
     ax[2, 0].plot(timec7, ezc7, **plotstyle1)
     ax[2, 0].set_title(f"Zeros - C7 CoREAS")
 
-    pulses = f_h5["/CoREAS/observers"][antenna_label]
+    pulses = f_h5["/highlevel/traces/vB_vvB"][antenna_label]
+    print(pulses.shape)
     timec7 = pulses[:, -4]
     exc7 = pulses[:, -3]
     eyc7 = pulses[:, -2]
     ezc7 = pulses[:, -1]
 
-    ax[0, 1].plot(timec7, eyc7, **plotstyle1)
+    ax[0, 1].plot(timec7, exc7, **plotstyle1)
     ax[0, 1].set_title(f"vB - C7 CoREAS")
 
-    ax[1, 1].plot(timec7, exc7, **plotstyle1)
+    ax[1, 1].plot(timec7, eyc7, **plotstyle1)
     ax[1, 1].set_title(f"vvB - C7 CoREAS")
 
     ax[2, 1].plot(timec7, ezc7, **plotstyle1)
@@ -142,7 +213,7 @@ def plot_pulses(file_name, antenna_label):
         f_h5.close()
 
 
-def plot_interpolated_footprint(positions, energy_fluences, interp):
+def plot_interpolated_footprint(positions, energy_fluences, interp, highlight_antenna):
     """
 
     Plot the interpolated footprint.
@@ -162,6 +233,7 @@ def plot_interpolated_footprint(positions, energy_fluences, interp):
     """
     if len(energy_fluences.shape) == 1:
         energy_fluences = np.array([energy_fluences]).T
+    x_pos, y_pos = positions[:, 0], positions[:, 1]
     for i in range(energy_fluences.shape[1]):
         energy_flu = energy_fluences[:, i]
         if np.min(energy_flu) == np.max(energy_flu):
@@ -176,36 +248,34 @@ def plot_interpolated_footprint(positions, energy_fluences, interp):
         if interp:
             # construct the interpolation function
             interp_func = intp.Rbf(
-                positions[:, 0],
-                positions[:, 1],
+                x_pos,
+                y_pos,
                 energy_flu,
                 smooth=0,
                 function="quintic",
             )
             # define positions where to interpolate
-            xs = np.linspace(np.min(positions), np.max(positions), 100)
-            ys = np.linspace(np.min(positions), np.max(positions), 100)
+            xs = np.linspace(np.min(x_pos), np.max(x_pos), 100)
+            ys = np.linspace(np.min(y_pos), np.max(y_pos), 100)
             xx, yy = np.meshgrid(xs, ys)
             # points within a circle
-            in_star = xx**2 + yy**2 <= np.amax(
-                positions[:, 0] ** 2 + positions[:, 1] ** 2
-            )
+            in_star = xx**2 + yy**2 <= np.amax(x_pos**2 + y_pos**2)
             # interpolated values! but only in the star. outsite set to nan
             fp_interp = np.where(in_star, interp_func(xx, yy), np.nan)
             cmap = "inferno"  # set the colormap
             # with vmin/vmax control that both pcolormesh and scatter use the same colorscale
             pcm = ax[0].pcolormesh(
-                yy,
                 xx,
+                yy,
                 fp_interp,
-                vmin=np.amin(energy_flu),
-                vmax=np.amax(energy_flu),
+                vmin=np.percentile(energy_flu, 0),
+                vmax=np.percentile(energy_flu, 100),
                 cmap=cmap,
                 shading="gouraud",
             )  # use shading="gouraud" to make it smoother
             sct = ax[0].scatter(
-                positions[:, 1],
-                positions[:, 0],
+                x_pos,
+                y_pos,
                 edgecolor="w",
                 facecolor="none",
                 s=5.0,
@@ -215,8 +285,8 @@ def plot_interpolated_footprint(positions, energy_fluences, interp):
             cbi.set_label(r"Energy Fluence $f$ / eV$\,$m$^{-2}$", fontsize=20)
         else:
             sct = ax[0].scatter(
-                positions[:, 1],
-                positions[:, 0],
+                x_pos,
+                y_pos,
                 c=energy_flu,
                 edgecolor="w",
                 facecolor="none",
@@ -224,13 +294,22 @@ def plot_interpolated_footprint(positions, energy_fluences, interp):
                 lw=fnt_size / 10,
             )
 
+        if len(highlight_antenna) != 0:
+            sct = ax[0].scatter(
+                x_pos[highlight_antenna],
+                y_pos[highlight_antenna],
+                edgecolor="r",
+                facecolor="none",
+                s=fnt_size / 1,
+                lw=fnt_size / 1,
+            )
         ax[0].set_ylabel("y / m", fontsize=fnt_size)
         ax[0].set_xlabel("x / m", fontsize=fnt_size)
         ax[0].set_facecolor("black")
         ax[0].set_aspect(1)
-        ax[0].set_xlim(np.min(positions), np.max(positions))
-        ax[0].set_ylim(np.min(positions), np.max(positions))
-        fig.suptitle("CORSIKA 7 - all")
+        ax[0].set_xlim(np.min(x_pos), np.max(x_pos))
+        ax[0].set_ylim(np.min(y_pos), np.max(y_pos))
+        fig.suptitle(f"CORSIKA 7 - all {i}")
         print("vmin = ", np.amin(energy_flu))
         print("vmax = ", np.amax(energy_flu))
         plt.xticks(fontsize=fnt_size)
@@ -240,7 +319,14 @@ def plot_interpolated_footprint(positions, energy_fluences, interp):
         plt.show()
 
 
-def plot_fluence_maps(file_name, from_file=False, data="ge_ce", interp=True):
+def plot_fluence_maps(
+    file_name,
+    from_file=False,
+    data="ge_ce",
+    interp=True,
+    highlight_radius=None,
+    hack=False,
+):
     """
     Plot fluence maps from given hdf5 file.
 
@@ -265,34 +351,52 @@ def plot_fluence_maps(file_name, from_file=False, data="ge_ce", interp=True):
     else:
         f_h5 = file_name
 
-    antennas_pos = f_h5["/highlevel/obsplane_na_na_vB_vvB"]["antenna_position_vBvvB"]
-    antennas = f_h5[f"/CoREAS/{data}"]
+    antennas = f_h5[f"/CoREAS/observers"]
+    trace = f_h5[f"/highlevel/traces/{data}"]
+    antennas_pos = f_h5[f"/highlevel/positions/ge_ce"]
     energy_fluences = []
     positions = []
+    highlight_antenna = []
     for index, label in enumerate(antennas.keys()):
         # print(label)
-        if label[:3] != "pos":
+        if label.split("_")[0] != "pos":
             continue
-        pos = antennas_pos[index]
-        # pos = antennas[label].attrs['position']
-        trace_vB = antennas[label]  # 0,1,2,3: t, vxB, vxvxB, v
+        if int(label.split("_")[1]) == highlight_radius:
+            highlight_antenna.append(len(positions))
+        pos = antennas_pos[label]
+        trace_vB = trace[label]  # 0,1,2,3: t, vxB, vxvxB, v
         positions.append(pos)
         if not from_file:
             ef = energy_fluence.calculate_energy_fluence_vector(
                 trace_vB[:, 1:], trace_vB[:, 0], remove_noise=True
             )
             # store all energy fluences (for all antennas) in a list
-            energy_fluences.append(ef)
         else:
-            energy_fluences.append(
-                f_h5["/highlevel/obsplane_na_na_vB_vvB"]["energy_fluence"][index]
-            )
+            ef = f_h5["/highlevel/obsplane_na_na_vB_vvB"]["energy_fluence_vector"][
+                index
+            ]
+        # print(index, label, f"pos:{pos}", f"ef{ef}")
+
+        energy_fluences.append(ef)
 
     positions = np.array(positions)
     energy_fluences = np.array(energy_fluences)
+
+    if hack:
+        for index in range(len(energy_fluences)):
+            if index % 8 == 0:
+                energy_fluences[index] = (
+                    energy_fluences[index + 4] + energy_fluences[index + 5]
+                ) / 2
+            if index % 8 == 2:
+                energy_fluences[index] = (
+                    energy_fluences[index - 1] + energy_fluences[index + 1]
+                ) / 2
+
+    print(len(positions), len(energy_fluences))
     assert len(positions) == len(energy_fluences)
     print(len(positions))
-    plot_interpolated_footprint(positions, energy_fluences, interp)
+    plot_interpolated_footprint(positions, energy_fluences, interp, highlight_antenna)
 
     if type(file_name) is str:
         f_h5.close()
