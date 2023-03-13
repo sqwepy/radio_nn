@@ -3,6 +3,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 run = "000001"
+
+
 def read_long_C7(filename):
     with open(filename) as f:
         lines = f.readlines()
@@ -14,7 +16,7 @@ def read_long_C7(filename):
 
     for i, l in line_iter:
         if l.startswith(" DEPTH"):
-            s_particle_number = i+1
+            s_particle_number = i + 1
             break
 
     for i, l in line_iter:
@@ -27,26 +29,48 @@ def read_long_C7(filename):
 
     array = []
     for line in lines[s_particle_number:s_energy_dep]:
-        array.append(list(map(float,line.split())))
+        array.append(list(map(float, line.split())))
 
     longprof = np.array(array)
     X = longprof[:, 0]
 
-    columns = ("X", "gamma", "e+", "e-", "mu+", "mu-", "hadron", "charged", "nuclei", "Cherenkov")
+    columns = (
+        "X",
+        "gamma",
+        "e+",
+        "e-",
+        "mu+",
+        "mu-",
+        "hadron",
+        "charged",
+        "nuclei",
+        "Cherenkov",
+    )
 
-    return longprof[:, 0], longprof[:, 1], longprof[:, 2], longprof[:, 3], longprof[:, 4], longprof[:, 5], longprof[:, 6]
+    return (
+        longprof[:, 0],
+        longprof[:, 1],
+        longprof[:, 2],
+        longprof[:, 3],
+        longprof[:, 4],
+        longprof[:, 5],
+        longprof[:, 6],
+    )
 
-depth, gammas, positrons, electrons, muplus, muminus, hadrons = read_long_C7(f"./data/DATA{run}/DAT{run}.long") # place your DAT000XXXX.long C7 file here
+
+depth, gammas, positrons, electrons, muplus, muminus, hadrons = read_long_C7(
+    f"./data/DATA{run}/DAT{run}.long"
+)  # place your DAT000XXXX.long C7 file here
 
 print(depth.shape)
 print(gammas.shape)
-plt.plot(depth, electrons, label='electrons')
+plt.plot(depth, electrons, label="electrons")
 plt.legend(fontsize=18)
 plt.xticks(fontsize=20)
 plt.yticks(fontsize=20)
-plt.xlabel('Shower Depth  [g $cm^{-2}$]',fontsize=20)
-plt.ylabel('Nr of particles',fontsize=20)
+plt.xlabel("Shower Depth  [g $cm^{-2}$]", fontsize=20)
+plt.ylabel("Nr of particles", fontsize=20)
 plt.grid(which="both", linestyle="dashed")
-plt.title('Longitudinal Profile', fontsize=20)
+plt.title("Longitudinal Profile", fontsize=20)
 plt.tight_layout()
 plt.show()

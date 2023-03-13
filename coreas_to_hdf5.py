@@ -222,6 +222,59 @@ def read_longitudinal_profile(hdf5_file, long_file):
     long_file.close()
 
 
+def get_density(
+    h,
+    atm_model,
+    allow_negative_heights=True,
+    h_max=112829.2,  # height where the mass overburden vanishes
+):
+    """returns the atmospheric density [g/m^3] for the height h above see level"""
+    b = atm_model["b"]
+    c = atm_model["c"]
+    layers = atm_model["h"]
+
+    y = np.zeros_like(h, dtype=float)
+    if not allow_negative_heights:
+        y *= np.nan  # set all requested densities for h < 0 to nan
+        y = np.where(h < 0, y, b[0] * np.exp(-1 * h / c[0]) / c[0])
+    else:
+        y = b[0] * np.exp(-1 * h / c[0]) / c[0]
+
+    y = np.where(h < layers[1], y, b[0] * np.exp(-1 * (h / 1000) / c[0]) / c[0])
+    y = np.where(h < layers[2], y, b[1] * np.exp(-1 * (h / 1000) / c[1]) / c[1])
+    y = np.where(h < layers[3], y, b[2] * np.exp(-1 * (h / 1000) / c[2]) / c[2])
+    y = np.where(h < layers[4], y, b[3] * np.exp(-1 * (h / 1000) / c[3]) / c[3])
+    y = np.where(h < h_max, y, b[4] / c[4])
+    # y = np.where(h < h_max, y, 0)
+
+    return y
+
+
+def get_atmosphere_model():
+    """Read the GDAS file and get the atmosphere model."""
+    log_filename = (
+        "GDAS" + os.path.splitext(os.path.basename(reas_filename))[0][3:-2] + "00.txt"
+    )
+    log_filename = os.path.join(os.path.dirname(reas_filename), log_filename)
+    model = np.loadtxt(log_filename, skiprows=1, max_rows=4)
+    ref_index = np.loadtxt(log_filename, skiprows=6)
+    atm_model = {"h": model[0], "a": model[1], "b": model[2], "c": model[3]}
+    return atm_model, ref_index
+
+
+def correct_geomag_Eem_density(f_h5):
+    traces = f_h5["highlevel/traces"]
+    traces_ge_ce = f_h5["highlevel/traces/ge_ce"]
+    trace_scaled = traces.create_group("scaled")
+    for index, label in enumerate(traces_ge_ce):
+        trace = traces_ge_ce[label]
+        trace /= np.sin(f_h5["highlevel"].attrs["geomagnetic_angle"])
+        trace /= f_h5["highlevel"].attrs["Eem"]
+        data_set = trace_scaled.create_dataset(label, trace.shape, dtype=float)
+        data_set[...] = trace
+    return f_h5
+
+
 def calculate_and_write_ge_ce(f_h5):
     antennas = f_h5["CoREAS/observers"]
     antennas_time = f_h5["/highlevel/obsplane_na_na_vB_vvB"]["times_filtered"]
@@ -244,10 +297,6 @@ def calculate_and_write_ge_ce(f_h5):
         phi = rdhelp.get_normalized_angle(np.arctan2(y_el, x_el))
         sin = np.sin(phi)
         cotg = np.cos(phi) / np.sin(phi)
-        print(
-            f"ind:{index} label:{label} phi:{np.rad2deg(phi)} pos:"
-            f"{antennas_pos[index]} c_el:{c_el}"
-        )
         time_tr = antennas_time[index]
         trace_vB = antennas_trace[index]  # 0,1,2: vxB, vxvxB, v
         trace_ce = trace_vB[:, 1] / sin
@@ -274,7 +323,6 @@ def calculate_and_write_ge_ce(f_h5):
         data_set[...] = antennas_pos[index]
         data_set.attrs["comment"] = "Position in vB vvB"
 
-    data_set.attrs["comment"] = "vB vvB traces"
     return f_h5
 
 
@@ -354,6 +402,26 @@ def read_antenna_data(hdf5_file, list_file, antenna_folder):
             data_set.attrs["additional_arguments"] = [a.encode("utf8") for a in ll[6:]]
 
 
+def write_density_n_refindex_from_gdas(f_h5):
+    atm_model, ref_index = get_atmosphere_model()
+    h = f_h5["atmosphere"]["Atmosphere"][:-1, 0]
+    ids = np.array([np.nanargmin(np.abs(ref_index[:, 0] - hh)) for hh in h])
+
+    ref_in = ref_index[ids, 1]
+    atmos = f_h5["atmosphere"]
+    data_set = atmos.create_dataset("Ref Index", ref_in.shape, dtype=float)
+    data_set[...] = ref_in
+    data_set.attrs["comment"] = (
+        "Refractive Index at height closest to the " "grammage steps"
+    )
+
+    density = get_density(h, atm_model)
+    data_set = atmos.create_dataset("Density", density.shape, dtype=float)
+    data_set[...] = density
+    data_set.attrs["comment"] = "Density at height of the Grammage steps"
+    return f_h5
+
+
 def write_coreas_hdf5_file(reas_filename, output_filename, f_h5=None):
 
     # create hdf5 file
@@ -400,6 +468,7 @@ def write_coreas_hdf5_file(reas_filename, output_filename, f_h5=None):
     log_filename = os.path.join(os.path.dirname(reas_filename), log_filename)
     log_file = open(log_filename, "r")
     read_height2X_from_C7log(f_h5, log_file)
+    write_density_n_refindex_from_gdas(f_h5)
     return f_h5
 
 
@@ -440,9 +509,11 @@ def write_highlevel_attributes(f_h5_hl, f_h5):
     f_h5_hl.attrs["Ehad_cut"] = Ehad_cut
     f_h5_hl.attrs["Eneutrino"] = Eneutrino
 
-    # fit Gaisser Hillas to longitudinal profile anyway (fir in CORSIKA not accurate for high zenith angle)
+    # fit Gaisser Hillas to longitudinal profile anyway
+    # (fir in CORSIKA not accurate for high zenith angle)
     print(
-        "Gaisser-Hillas Fit results could not be found in the .long file. Performing fit on longitudinal profile ..."
+        "Gaisser-Hillas Fit results could not be found in the .long file. "
+        "Performing fit on longitudinal profile ..."
     )
     xx = dE_data[0][:-2]
     yy = dE_data[9][:-2] * 1e-9  # sum of energy deposit in GeV
@@ -479,6 +550,9 @@ def write_coreas_highlevel_info(f_h5, args):
         zenith, azimuth, magnetic_field_vector=magnetic_field_vector
     )
 
+    f_h5_hl.attrs["geomagnetic_angle"] = np.deg2rad(
+        float(f_h5["CoREAS"].attrs["GeomagneticAngle"])
+    )
     f_h5_hl.attrs["zenith"] = zenith
     f_h5_hl.attrs["azimuth"] = azimuth
     f_h5_hl.attrs["energy"] = f_h5_inputs.attrs["ERANGE"][0] * 1e9  # in eV
@@ -1033,6 +1107,7 @@ if __name__ == "__main__":
     write_coreas_highlevel_info(f_h5, args)
 
     calculate_and_write_ge_ce(f_h5)
+    correct_geomag_Eem_density(f_h5)
     if not args.store_full_simulation_in_hdf5:
         # make file empty (so that writing to disc does not cost a lot of i/o), write it to disc and remove it.
         for key in f_h5.keys():

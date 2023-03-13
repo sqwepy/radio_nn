@@ -400,3 +400,33 @@ def plot_fluence_maps(
 
     if type(file_name) is str:
         f_h5.close()
+
+
+def plot_long_prof(file_name):
+    if type(file_name) is str:
+        f_h5 = h5py.File(file_name, "r")
+    else:
+        f_h5 = file_name
+
+    fig, ax = plt.subplots(3, 3, figsize=(40, 30))
+
+    longprof = f_h5["atmosphere"]["NumberOfParticles"]
+
+    depth = longprof[:, 0]
+    names = longprof.attrs["comment"].split(",")
+    for i in range(9):
+        ax[i // 3, i % 3].plot(depth, longprof[:, i + 1])
+        ax[i // 3, i % 3].set_title(
+            f"{names[i+1]}, XMAX: " f"{depth[longprof[:,i+1].argmax()]}"
+        )
+
+    fig.suptitle(f"Run:{file_name} ")
+    fig.supylabel("NumberOfParticles")
+    fig.supxlabel("Depth")
+    [k.grid(which="both", linestyle="dashed") for i in ax for k in i]
+    plt.tight_layout()
+    plt.savefig(f"plot_longprof.pdf", format="pdf")
+    plt.show()
+
+    if type(file_name) is str:
+        f_h5.close()
