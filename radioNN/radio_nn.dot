@@ -1,0 +1,764 @@
+digraph {
+	graph [size="12,12"]
+	node [align=center fontsize=12 height=0.2 ranksep=0.1 shape=plaintext]
+	140636506399856 [label=<
+            <TABLE CELLPADDING="1" CELLBORDER="1" CELLSPACING="0"
+            BORDER="0">
+            <TR>
+            <TD BGCOLOR="#ffffff" PORT="f0">AddBackw </TD><TD BGCOLOR="#ffffff" PORT="f1">ard0:985 </TD></TR><TR><TD COLSPAN="2"
+            ROWSPAN= "3"
+            PORT="attr"
+                >alpha: 1<BR/>mean_grad_0: 1.000e+00<BR/>mean_grad_1: 1.000e+00<BR/></TD></TR></TABLE>
+            >]
+	140636506400624 -> 140636506399856:f1
+	140636506400000 -> 140636506399856:f1
+	140636506400000 [label=<
+            <TABLE CELLPADDING="1" CELLBORDER="1" CELLSPACING="0"
+            BORDER="0">
+            <TR>
+            <TD BGCOLOR="#ff0000" PORT="f0">MseLossBac </TD><TD BGCOLOR="#969696" PORT="f1">kward0:000 </TD></TR><TR><TD COLSPAN="2"
+            ROWSPAN= "5"
+            PORT="attr"
+                >reduction: 1<BR/>self: [saved tensor]<BR/>target: [saved tensor]<BR/>mean_grad_0: 1.352e+09<BR/>mean_grad_1: None<BR/></TD></TR></TABLE>
+            >]
+	140636506399616 -> 140636506400000:f0
+	94861837392032 [label=<
+                            <TABLE
+                            CELLPADDING="0"
+                            CELLBORDER="1"
+                            CELLSPACING="0"
+                            BORDER="0">
+                            <TR>
+                            <TD BGCOLOR="#969696"
+                            >CONST (None Grad) </TD>
+                            </TR></TABLE>
+                            >]
+	94861837392032 -> 140636506400000:f1 [style=dotted]
+	140636506399616 [label=<
+            <TABLE CELLPADDING="1" CELLBORDER="1" CELLSPACING="0"
+            BORDER="0">
+            <TR>
+            <TD BGCOLOR="#ff0000" PORT="f0">UnsafeViewBackward0:9616 </TD></TR><TR><TD COLSPAN="1"
+            ROWSPAN= "2"
+            PORT="attr"
+                >self_sizes: (64, 256, 2)<BR/>mean_grad_0: 1.352e+09<BR/></TD></TR></TABLE>
+            >]
+	140636506399904 -> 140636506399616:f0
+	140636506399904 [label=<
+            <TABLE CELLPADDING="1" CELLBORDER="1" CELLSPACING="0"
+            BORDER="0">
+            <TR>
+            <TD BGCOLOR="#ff0000" PORT="f0">CloneBackward0:9904 </TD></TR><TR><TD COLSPAN="1"
+            ROWSPAN= "1"
+            PORT="attr"
+                >mean_grad_0: 1.352e+09<BR/></TD></TR></TABLE>
+            >]
+	140636506400672 -> 140636506399904:f0
+	140636506400672 [label=<
+            <TABLE CELLPADDING="1" CELLBORDER="1" CELLSPACING="0"
+            BORDER="0">
+            <TR>
+            <TD BGCOLOR="#ff0000" PORT="f0">TransposeBackward0:0672 </TD></TR><TR><TD COLSPAN="1"
+            ROWSPAN= "3"
+            PORT="attr"
+                >dim0: 1<BR/>dim1: 2<BR/>mean_grad_0: 1.352e+09<BR/></TD></TR></TABLE>
+            >]
+	140636506400384 -> 140636506400672:f0
+	140636506400384 [label=<
+            <TABLE CELLPADDING="1" CELLBORDER="1" CELLSPACING="0"
+            BORDER="0">
+            <TR>
+            <TD BGCOLOR="#ff0000" PORT="f0">Convolut </TD><TD BGCOLOR="#ff0000" PORT="f1">ionBackw </TD><TD BGCOLOR="#ff0000" PORT="f2">ard0:038 </TD></TR><TR><TD COLSPAN="3"
+            ROWSPAN= "12"
+            PORT="attr"
+                >bias_sizes_opt: (2,)<BR/>dilation: (1,)<BR/>groups: 1<BR/>input: [saved tensor]<BR/>output_padding: (0,)<BR/>padding: (0,)<BR/>stride: (1,)<BR/>transposed: True<BR/>weight: [saved tensor]<BR/>mean_grad_0: -1.050e+09<BR/>mean_grad_1: -3.409e+29<BR/>mean_grad_2: 2.215e+13<BR/></TD></TR></TABLE>
+            >]
+	140636506399952 -> 140636506400384:f0
+	140636506402256 -> 140636506400384:f1
+	140636506403648 -> 140636506400384:f2
+	140636506403648 [label=<<TABLE CELLPADDING="0" CELLBORDER="1" CELLSPACING="0"
+                    BORDER="0"><TR> <TD BGCOLOR="#add8e6"
+                        > Parameter: 3648 </TD> </TR> <TR> <TD BGCOLOR="#add8e6"
+                        > deconv.0.bias: (2) </TD> </TR> </TABLE >>]
+	140636506402256 [label=<<TABLE CELLPADDING="0" CELLBORDER="1" CELLSPACING="0"
+                    BORDER="0"><TR> <TD BGCOLOR="#add8e6"
+                        > Parameter: 2256 </TD> </TR> <TR> <TD BGCOLOR="#add8e6"
+                        > deconv.0.weight: (2, 2, 1) </TD> </TR> </TABLE >>]
+	140636506399952 [label=<
+            <TABLE CELLPADDING="1" CELLBORDER="1" CELLSPACING="0"
+            BORDER="0">
+            <TR>
+            <TD BGCOLOR="#ff0000" PORT="f0">ViewBackward0:9952 </TD></TR><TR><TD COLSPAN="1"
+            ROWSPAN= "2"
+            PORT="attr"
+                >self_sizes: (64, 512)<BR/>mean_grad_0: -1.050e+09<BR/></TD></TR></TABLE>
+            >]
+	140636506406336 -> 140636506399952:f0
+	140636506406336 [label=<
+            <TABLE CELLPADDING="1" CELLBORDER="1" CELLSPACING="0"
+            BORDER="0">
+            <TR>
+            <TD BGCOLOR="#ff0000" PORT="f0">SliceBackward0:6336 </TD></TR><TR><TD COLSPAN="1"
+            ROWSPAN= "6"
+            PORT="attr"
+                >dim: 1<BR/>end: 9223372036854775807<BR/>self_sizes: (64, 514)<BR/>start: 2<BR/>step: 1<BR/>mean_grad_0: -1.046e+09<BR/></TD></TR></TABLE>
+            >]
+	140636506406480 -> 140636506406336:f0
+	140636506406480 [label=<
+            <TABLE CELLPADDING="1" CELLBORDER="1" CELLSPACING="0"
+            BORDER="0">
+            <TR>
+            <TD BGCOLOR="#ff0000" PORT="f0">SliceBackward0:6480 </TD></TR><TR><TD COLSPAN="1"
+            ROWSPAN= "6"
+            PORT="attr"
+                >dim: 0<BR/>end: 9223372036854775807<BR/>self_sizes: (64, 514)<BR/>start: 0<BR/>step: 1<BR/>mean_grad_0: -1.046e+09<BR/></TD></TR></TABLE>
+            >]
+	140636506404656 -> 140636506406480
+	140636506404656 [label=<
+            <TABLE CELLPADDING="1" CELLBORDER="1" CELLSPACING="0"
+            BORDER="0">
+            <TR>
+            <TD BGCOLOR="#ff0000" PORT="f0">AddmmB </TD><TD BGCOLOR="#ff0000" PORT="f1">ackwar </TD><TD BGCOLOR="#ff8181" PORT="f2">d0:465 </TD></TR><TR><TD COLSPAN="3"
+            ROWSPAN= "11"
+            PORT="attr"
+                >alpha: 1<BR/>beta: 1<BR/>mat1: [saved tensor]<BR/>mat1_sizes: (64, 512)<BR/>mat1_strides: (512, 1)<BR/>mat2: [saved tensor]<BR/>mat2_sizes: (512, 514)<BR/>mat2_strides: (1, 512)<BR/>mean_grad_0: -6.766e+10<BR/>mean_grad_1: 4.434e+09<BR/>mean_grad_2: -9.868e+25<BR/></TD></TR></TABLE>
+            >]
+	140636506404512 -> 140636506404656:f0
+	140636506405040 -> 140636506404656:f1
+	140636506404752 -> 140636506404656:f2
+	140636506404752 [label=<
+            <TABLE CELLPADDING="1" CELLBORDER="1" CELLSPACING="0"
+            BORDER="0">
+            <TR>
+            <TD BGCOLOR="#ff8181" PORT="f0">TBackward0:4752 </TD></TR><TR><TD COLSPAN="1"
+            ROWSPAN= "1"
+            PORT="attr"
+                >mean_grad_0: -9.868e+25<BR/></TD></TR></TABLE>
+            >]
+	140636506403456 -> 140636506404752:f0
+	140636506403456 [label=<<TABLE CELLPADDING="0" CELLBORDER="1" CELLSPACING="0"
+                    BORDER="0"><TR> <TD BGCOLOR="#add8e6"
+                        > Parameter: 3456 </TD> </TR> <TR> <TD BGCOLOR="#add8e6"
+                        > fc_layers.4.weight: (514, 512) </TD> </TR> </TABLE >>]
+	140636506405040 [label=<
+            <TABLE CELLPADDING="1" CELLBORDER="1" CELLSPACING="0"
+            BORDER="0">
+            <TR>
+            <TD BGCOLOR="#ff8181" PORT="f0">ReluBackward0:5040 </TD></TR><TR><TD COLSPAN="1"
+            ROWSPAN= "2"
+            PORT="attr"
+                >result: [saved tensor]<BR/>mean_grad_0: 3.819e+09<BR/></TD></TR></TABLE>
+            >]
+	140636506406576 -> 140636506405040:f0
+	140636506406576 [label=<
+            <TABLE CELLPADDING="1" CELLBORDER="1" CELLSPACING="0"
+            BORDER="0">
+            <TR>
+            <TD BGCOLOR="#ff8181" PORT="f0">AddmmB </TD><TD BGCOLOR="#ff0000" PORT="f1">ackwar </TD><TD BGCOLOR="#ffc3c3" PORT="f2">d0:657 </TD></TR><TR><TD COLSPAN="3"
+            ROWSPAN= "11"
+            PORT="attr"
+                >alpha: 1<BR/>beta: 1<BR/>mat1: [saved tensor]<BR/>mat1_sizes: (64, 1024)<BR/>mat1_strides: (1024, 1)<BR/>mat2: [saved tensor]<BR/>mat2_sizes: (1024, 512)<BR/>mat2_strides: (1, 1024)<BR/>mean_grad_0: 2.444e+11<BR/>mean_grad_1: 6.821e+08<BR/>mean_grad_2: 8.783e+26<BR/></TD></TR></TABLE>
+            >]
+	140636506404176 -> 140636506406576:f0
+	140636506404368 -> 140636506406576:f1
+	140636506403984 -> 140636506406576:f2
+	140636506403984 [label=<
+            <TABLE CELLPADDING="1" CELLBORDER="1" CELLSPACING="0"
+            BORDER="0">
+            <TR>
+            <TD BGCOLOR="#ffc3c3" PORT="f0">TBackward0:3984 </TD></TR><TR><TD COLSPAN="1"
+            ROWSPAN= "1"
+            PORT="attr"
+                >mean_grad_0: 8.783e+26<BR/></TD></TR></TABLE>
+            >]
+	140636506405952 -> 140636506403984:f0
+	140636506405952 [label=<<TABLE CELLPADDING="0" CELLBORDER="1" CELLSPACING="0"
+                    BORDER="0"><TR> <TD BGCOLOR="#add8e6"
+                        > Parameter: 5952 </TD> </TR> <TR> <TD BGCOLOR="#add8e6"
+                        > fc_layers.2.weight: (512, 1024) </TD> </TR> </TABLE >>]
+	140636506404368 [label=<
+            <TABLE CELLPADDING="1" CELLBORDER="1" CELLSPACING="0"
+            BORDER="0">
+            <TR>
+            <TD BGCOLOR="#ff8686" PORT="f0">ReluBackward0:4368 </TD></TR><TR><TD COLSPAN="1"
+            ROWSPAN= "2"
+            PORT="attr"
+                >result: [saved tensor]<BR/>mean_grad_0: 8.272e+08<BR/></TD></TR></TABLE>
+            >]
+	140636506404320 -> 140636506404368:f0
+	140636506404320 [label=<
+            <TABLE CELLPADDING="1" CELLBORDER="1" CELLSPACING="0"
+            BORDER="0">
+            <TR>
+            <TD BGCOLOR="#ff8686" PORT="f0">AddmmB </TD><TD BGCOLOR="#ff0000" PORT="f1">ackwar </TD><TD BGCOLOR="#ffa2a2" PORT="f2">d0:432 </TD></TR><TR><TD COLSPAN="3"
+            ROWSPAN= "11"
+            PORT="attr"
+                >alpha: 1<BR/>beta: 1<BR/>mat1: [saved tensor]<BR/>mat1_sizes: (64, 4623)<BR/>mat1_strides: (4623, 1)<BR/>mat2: [saved tensor]<BR/>mat2_sizes: (4623, 1024)<BR/>mat2_strides: (1, 4623)<BR/>mean_grad_0: 5.294e+10<BR/>mean_grad_1: -2.660e+10<BR/>mean_grad_2: 1.223e+25<BR/></TD></TR></TABLE>
+            >]
+	140636506404944 -> 140636506404320:f0
+	140636506406096 -> 140636506404320:f1
+	140636506404080 -> 140636506404320:f2
+	140636506404080 [label=<
+            <TABLE CELLPADDING="1" CELLBORDER="1" CELLSPACING="0"
+            BORDER="0">
+            <TR>
+            <TD BGCOLOR="#ffa2a2" PORT="f0">TBackward0:4080 </TD></TR><TR><TD COLSPAN="1"
+            ROWSPAN= "1"
+            PORT="attr"
+                >mean_grad_0: 1.223e+25<BR/></TD></TR></TABLE>
+            >]
+	140636506404464 -> 140636506404080:f0
+	140636506404464 [label=<<TABLE CELLPADDING="0" CELLBORDER="1" CELLSPACING="0"
+                    BORDER="0"><TR> <TD BGCOLOR="#add8e6"
+                        > Parameter: 4464 </TD> </TR> <TR> <TD BGCOLOR="#add8e6"
+                        > fc_layers.0.weight: (1024, 4623) </TD> </TR> </TABLE >>]
+	140636506406096 [label=<
+            <TABLE CELLPADDING="1" CELLBORDER="1" CELLSPACING="0"
+            BORDER="0">
+            <TR>
+            <TD BGCOLOR="#ff0000" PORT="f0">CatBa </TD><TD BGCOLOR="#ff0000" PORT="f1">ckwar </TD><TD BGCOLOR="#ff0000" PORT="f2">d0:60 </TD></TR><TR><TD COLSPAN="3"
+            ROWSPAN= "4"
+            PORT="attr"
+                >dim: 1<BR/>mean_grad_0: -2.666e+10<BR/>mean_grad_1: -1.204e+10<BR/>mean_grad_2: 3.096e+09<BR/></TD></TR></TABLE>
+            >]
+	140636506406624 -> 140636506406096:f0
+	94861837392033 [label=<
+                            <TABLE
+                            CELLPADDING="0"
+                            CELLBORDER="1"
+                            CELLSPACING="0"
+                            BORDER="0">
+                            <TR>
+                            <TD BGCOLOR="#969696"
+                            >CONST (None Grad) </TD>
+                            </TR></TABLE>
+                            >]
+	94861837392033 -> 140636506406096 [style=dotted]
+	94861837392034 [label=<
+                            <TABLE
+                            CELLPADDING="0"
+                            CELLBORDER="1"
+                            CELLSPACING="0"
+                            BORDER="0">
+                            <TR>
+                            <TD BGCOLOR="#969696"
+                            >CONST (None Grad) </TD>
+                            </TR></TABLE>
+                            >]
+	94861837392034 -> 140636506406096 [style=dotted]
+	140636506406624 [label=<
+            <TABLE CELLPADDING="1" CELLBORDER="1" CELLSPACING="0"
+            BORDER="0">
+            <TR>
+            <TD BGCOLOR="#ff0000" PORT="f0">ViewBackward0:6624 </TD></TR><TR><TD COLSPAN="1"
+            ROWSPAN= "2"
+            PORT="attr"
+                >self_sizes: (64, 256, 18)<BR/>mean_grad_0: -2.666e+10<BR/></TD></TR></TABLE>
+            >]
+	140636506404848 -> 140636506406624:f0
+	140636506404848 [label=<
+            <TABLE CELLPADDING="1" CELLBORDER="1" CELLSPACING="0"
+            BORDER="0">
+            <TR>
+            <TD BGCOLOR="#ff0000" PORT="f0">SqueezeBackward1:4848 </TD></TR><TR><TD COLSPAN="1"
+            ROWSPAN= "3"
+            PORT="attr"
+                >dim: 18446744073709551614<BR/>self_sizes: (64, 256, 1, 18)<BR/>mean_grad_0: -2.666e+10<BR/></TD></TR></TABLE>
+            >]
+	140636506405616 -> 140636506404848:f0
+	140636506405616 [label=<
+            <TABLE CELLPADDING="1" CELLBORDER="1" CELLSPACING="0"
+            BORDER="0">
+            <TR>
+            <TD BGCOLOR="#ff8282" PORT="f0">MaxPool2DWithIndicesBackward0:5616 </TD></TR><TR><TD COLSPAN="1"
+            ROWSPAN= "8"
+            PORT="attr"
+                >ceil_mode: False<BR/>dilation: (1, 1)<BR/>kernel_size: (1, 2)<BR/>padding: (0, 0)<BR/>result1: [saved tensor]<BR/>self: [saved tensor]<BR/>stride: (1, 2)<BR/>mean_grad_0: -1.297e+10<BR/></TD></TR></TABLE>
+            >]
+	140636506406816 -> 140636506405616:f0
+	140636506406816 [label=<
+            <TABLE CELLPADDING="1" CELLBORDER="1" CELLSPACING="0"
+            BORDER="0">
+            <TR>
+            <TD BGCOLOR="#ff8282" PORT="f0">UnsqueezeBackward0:6816 </TD></TR><TR><TD COLSPAN="1"
+            ROWSPAN= "2"
+            PORT="attr"
+                >dim: 18446744073709551614<BR/>mean_grad_0: -1.297e+10<BR/></TD></TR></TABLE>
+            >]
+	140636506403840 -> 140636506406816:f0
+	140636506403840 [label=<
+            <TABLE CELLPADDING="1" CELLBORDER="1" CELLSPACING="0"
+            BORDER="0">
+            <TR>
+            <TD BGCOLOR="#ff9f9f" PORT="f0">ReluBackward0:3840 </TD></TR><TR><TD COLSPAN="1"
+            ROWSPAN= "2"
+            PORT="attr"
+                >result: [saved tensor]<BR/>mean_grad_0: -1.294e+10<BR/></TD></TR></TABLE>
+            >]
+	140636506400432 -> 140636506403840:f0
+	140636506400432 [label=<
+            <TABLE CELLPADDING="1" CELLBORDER="1" CELLSPACING="0"
+            BORDER="0">
+            <TR>
+            <TD BGCOLOR="#ff7979" PORT="f0">Convolut </TD><TD BGCOLOR="#ff6767" PORT="f1">ionBackw </TD><TD BGCOLOR="#ff3a3a" PORT="f2">ard0:043 </TD></TR><TR><TD COLSPAN="3"
+            ROWSPAN= "12"
+            PORT="attr"
+                >bias_sizes_opt: (256,)<BR/>dilation: (1,)<BR/>groups: 1<BR/>input: [saved tensor]<BR/>output_padding: (0,)<BR/>padding: (0,)<BR/>stride: (1,)<BR/>transposed: False<BR/>weight: [saved tensor]<BR/>mean_grad_0: -5.510e+10<BR/>mean_grad_1: -1.766e+14<BR/>mean_grad_2: -3.064e+13<BR/></TD></TR></TABLE>
+            >]
+	140636506406864 -> 140636506400432:f0
+	140636506406720 -> 140636506400432:f1
+	140636506403360 -> 140636506400432:f2
+	140636506403360 [label=<<TABLE CELLPADDING="0" CELLBORDER="1" CELLSPACING="0"
+                    BORDER="0"><TR> <TD BGCOLOR="#add8e6"
+                        > Parameter: 3360 </TD> </TR> <TR> <TD BGCOLOR="#add8e6"
+                        > event_data_cnn.conv_layers.9.bias: (256) </TD> </TR> </TABLE >>]
+	140636506406720 [label=<<TABLE CELLPADDING="0" CELLBORDER="1" CELLSPACING="0"
+                    BORDER="0"><TR> <TD BGCOLOR="#add8e6"
+                        > Parameter: 6720 </TD> </TR> <TR> <TD BGCOLOR="#add8e6"
+                        > event_data_cnn.conv_layers.9.weight: (256, 128, 1) </TD> </TR> </TABLE >>]
+	140636506406864 [label=<
+            <TABLE CELLPADDING="1" CELLBORDER="1" CELLSPACING="0"
+            BORDER="0">
+            <TR>
+            <TD BGCOLOR="#ff7979" PORT="f0">SqueezeBackward1:6864 </TD></TR><TR><TD COLSPAN="1"
+            ROWSPAN= "3"
+            PORT="attr"
+                >dim: 18446744073709551614<BR/>self_sizes: (64, 128, 1, 37)<BR/>mean_grad_0: -5.510e+10<BR/></TD></TR></TABLE>
+            >]
+	140636506404128 -> 140636506406864:f0
+	140636506404128 [label=<
+            <TABLE CELLPADDING="1" CELLBORDER="1" CELLSPACING="0"
+            BORDER="0">
+            <TR>
+            <TD BGCOLOR="#ffbcbc" PORT="f0">MaxPool2DWithIndicesBackward0:4128 </TD></TR><TR><TD COLSPAN="1"
+            ROWSPAN= "8"
+            PORT="attr"
+                >ceil_mode: False<BR/>dilation: (1, 1)<BR/>kernel_size: (1, 2)<BR/>padding: (0, 0)<BR/>result1: [saved tensor]<BR/>self: [saved tensor]<BR/>stride: (1, 2)<BR/>mean_grad_0: -2.718e+10<BR/></TD></TR></TABLE>
+            >]
+	140636506406144 -> 140636506404128:f0
+	140636506406144 [label=<
+            <TABLE CELLPADDING="1" CELLBORDER="1" CELLSPACING="0"
+            BORDER="0">
+            <TR>
+            <TD BGCOLOR="#ffbcbc" PORT="f0">UnsqueezeBackward0:6144 </TD></TR><TR><TD COLSPAN="1"
+            ROWSPAN= "2"
+            PORT="attr"
+                >dim: 18446744073709551614<BR/>mean_grad_0: -2.718e+10<BR/></TD></TR></TABLE>
+            >]
+	140636506403600 -> 140636506406144:f0
+	140636506403600 [label=<
+            <TABLE CELLPADDING="1" CELLBORDER="1" CELLSPACING="0"
+            BORDER="0">
+            <TR>
+            <TD BGCOLOR="#ffcdcd" PORT="f0">ReluBackward0:3600 </TD></TR><TR><TD COLSPAN="1"
+            ROWSPAN= "2"
+            PORT="attr"
+                >result: [saved tensor]<BR/>mean_grad_0: -2.633e+10<BR/></TD></TR></TABLE>
+            >]
+	140636506403216 -> 140636506403600:f0
+	140636506403216 [label=<
+            <TABLE CELLPADDING="1" CELLBORDER="1" CELLSPACING="0"
+            BORDER="0">
+            <TR>
+            <TD BGCOLOR="#ff9b9b" PORT="f0">Convolut </TD><TD BGCOLOR="#ff4040" PORT="f1">ionBackw </TD><TD BGCOLOR="#ff3939" PORT="f2">ard0:321 </TD></TR><TR><TD COLSPAN="3"
+            ROWSPAN= "12"
+            PORT="attr"
+                >bias_sizes_opt: (128,)<BR/>dilation: (1,)<BR/>groups: 1<BR/>input: [saved tensor]<BR/>output_padding: (0,)<BR/>padding: (0,)<BR/>stride: (1,)<BR/>transposed: False<BR/>weight: [saved tensor]<BR/>mean_grad_0: -6.511e+10<BR/>mean_grad_1: -6.222e+14<BR/>mean_grad_2: -1.264e+14<BR/></TD></TR></TABLE>
+            >]
+	140636506737104 -> 140636506403216:f0
+	140636506750880 -> 140636506403216:f1
+	140636506736720 -> 140636506403216:f2
+	140636506736720 [label=<<TABLE CELLPADDING="0" CELLBORDER="1" CELLSPACING="0"
+                    BORDER="0"><TR> <TD BGCOLOR="#add8e6"
+                        > Parameter: 6720 </TD> </TR> <TR> <TD BGCOLOR="#add8e6"
+                        > event_data_cnn.conv_layers.6.bias: (128) </TD> </TR> </TABLE >>]
+	140636506750880 [label=<<TABLE CELLPADDING="0" CELLBORDER="1" CELLSPACING="0"
+                    BORDER="0"><TR> <TD BGCOLOR="#add8e6"
+                        > Parameter: 0880 </TD> </TR> <TR> <TD BGCOLOR="#add8e6"
+                        > event_data_cnn.conv_layers.6.weight: (128, 64, 1) </TD> </TR> </TABLE >>]
+	140636506737104 [label=<
+            <TABLE CELLPADDING="1" CELLBORDER="1" CELLSPACING="0"
+            BORDER="0">
+            <TR>
+            <TD BGCOLOR="#ff9b9b" PORT="f0">SqueezeBackward1:7104 </TD></TR><TR><TD COLSPAN="1"
+            ROWSPAN= "3"
+            PORT="attr"
+                >dim: 18446744073709551614<BR/>self_sizes: (64, 64, 1, 75)<BR/>mean_grad_0: -6.511e+10<BR/></TD></TR></TABLE>
+            >]
+	140636506736576 -> 140636506737104:f0
+	140636506736576 [label=<
+            <TABLE CELLPADDING="1" CELLBORDER="1" CELLSPACING="0"
+            BORDER="0">
+            <TR>
+            <TD BGCOLOR="#ffcdcd" PORT="f0">MaxPool2DWithIndicesBackward0:6576 </TD></TR><TR><TD COLSPAN="1"
+            ROWSPAN= "8"
+            PORT="attr"
+                >ceil_mode: False<BR/>dilation: (1, 1)<BR/>kernel_size: (1, 2)<BR/>padding: (0, 0)<BR/>result1: [saved tensor]<BR/>self: [saved tensor]<BR/>stride: (1, 2)<BR/>mean_grad_0: -3.256e+10<BR/></TD></TR></TABLE>
+            >]
+	140636506736672 -> 140636506736576:f0
+	140636506736672 [label=<
+            <TABLE CELLPADDING="1" CELLBORDER="1" CELLSPACING="0"
+            BORDER="0">
+            <TR>
+            <TD BGCOLOR="#ffcdcd" PORT="f0">UnsqueezeBackward0:6672 </TD></TR><TR><TD COLSPAN="1"
+            ROWSPAN= "2"
+            PORT="attr"
+                >dim: 18446744073709551614<BR/>mean_grad_0: -3.256e+10<BR/></TD></TR></TABLE>
+            >]
+	140636506736624 -> 140636506736672:f0
+	140636506736624 [label=<
+            <TABLE CELLPADDING="1" CELLBORDER="1" CELLSPACING="0"
+            BORDER="0">
+            <TR>
+            <TD BGCOLOR="#ffdede" PORT="f0">ReluBackward0:6624 </TD></TR><TR><TD COLSPAN="1"
+            ROWSPAN= "2"
+            PORT="attr"
+                >result: [saved tensor]<BR/>mean_grad_0: -2.512e+10<BR/></TD></TR></TABLE>
+            >]
+	140636506738736 -> 140636506736624:f0
+	140636506738736 [label=<
+            <TABLE CELLPADDING="1" CELLBORDER="1" CELLSPACING="0"
+            BORDER="0">
+            <TR>
+            <TD BGCOLOR="#ffadad" PORT="f0">Convolut </TD><TD BGCOLOR="#ff1c1c" PORT="f1">ionBackw </TD><TD BGCOLOR="#ff0707" PORT="f2">ard0:873 </TD></TR><TR><TD COLSPAN="3"
+            ROWSPAN= "12"
+            PORT="attr"
+                >bias_sizes_opt: (64,)<BR/>dilation: (1,)<BR/>groups: 1<BR/>input: [saved tensor]<BR/>output_padding: (0,)<BR/>padding: (0,)<BR/>stride: (1,)<BR/>transposed: False<BR/>weight: [saved tensor]<BR/>mean_grad_0: -4.597e+10<BR/>mean_grad_1: -1.483e+15<BR/>mean_grad_2: -2.412e+14<BR/></TD></TR></TABLE>
+            >]
+	140636506734896 -> 140636506738736:f0
+	140636506738688 -> 140636506738736:f1
+	140636506738256 -> 140636506738736:f2
+	140636506738256 [label=<<TABLE CELLPADDING="0" CELLBORDER="1" CELLSPACING="0"
+                    BORDER="0"><TR> <TD BGCOLOR="#add8e6"
+                        > Parameter: 8256 </TD> </TR> <TR> <TD BGCOLOR="#add8e6"
+                        > event_data_cnn.conv_layers.3.bias: (64) </TD> </TR> </TABLE >>]
+	140636506738688 [label=<<TABLE CELLPADDING="0" CELLBORDER="1" CELLSPACING="0"
+                    BORDER="0"><TR> <TD BGCOLOR="#add8e6"
+                        > Parameter: 8688 </TD> </TR> <TR> <TD BGCOLOR="#add8e6"
+                        > event_data_cnn.conv_layers.3.weight: (64, 32, 1) </TD> </TR> </TABLE >>]
+	140636506734896 [label=<
+            <TABLE CELLPADDING="1" CELLBORDER="1" CELLSPACING="0"
+            BORDER="0">
+            <TR>
+            <TD BGCOLOR="#ffadad" PORT="f0">SqueezeBackward1:4896 </TD></TR><TR><TD COLSPAN="1"
+            ROWSPAN= "3"
+            PORT="attr"
+                >dim: 18446744073709551614<BR/>self_sizes: (64, 32, 1, 150)<BR/>mean_grad_0: -4.597e+10<BR/></TD></TR></TABLE>
+            >]
+	140636506739456 -> 140636506734896:f0
+	140636506739456 [label=<
+            <TABLE CELLPADDING="1" CELLBORDER="1" CELLSPACING="0"
+            BORDER="0">
+            <TR>
+            <TD BGCOLOR="#ffd6d6" PORT="f0">MaxPool2DWithIndicesBackward0:9456 </TD></TR><TR><TD COLSPAN="1"
+            ROWSPAN= "8"
+            PORT="attr"
+                >ceil_mode: False<BR/>dilation: (1, 1)<BR/>kernel_size: (1, 2)<BR/>padding: (0, 0)<BR/>result1: [saved tensor]<BR/>self: [saved tensor]<BR/>stride: (1, 2)<BR/>mean_grad_0: -2.298e+10<BR/></TD></TR></TABLE>
+            >]
+	140636506740128 -> 140636506739456:f0
+	140636506740128 [label=<
+            <TABLE CELLPADDING="1" CELLBORDER="1" CELLSPACING="0"
+            BORDER="0">
+            <TR>
+            <TD BGCOLOR="#ffd6d6" PORT="f0">UnsqueezeBackward0:0128 </TD></TR><TR><TD COLSPAN="1"
+            ROWSPAN= "2"
+            PORT="attr"
+                >dim: 18446744073709551614<BR/>mean_grad_0: -2.298e+10<BR/></TD></TR></TABLE>
+            >]
+	140636506747616 -> 140636506740128:f0
+	140636506747616 [label=<
+            <TABLE CELLPADDING="1" CELLBORDER="1" CELLSPACING="0"
+            BORDER="0">
+            <TR>
+            <TD BGCOLOR="#ffebeb" PORT="f0">ReluBackward0:7616 </TD></TR><TR><TD COLSPAN="1"
+            ROWSPAN= "2"
+            PORT="attr"
+                >result: [saved tensor]<BR/>mean_grad_0: -1.308e+10<BR/></TD></TR></TABLE>
+            >]
+	140636506736000 -> 140636506747616:f0
+	140636506736000 [label=<
+            <TABLE CELLPADDING="1" CELLBORDER="1" CELLSPACING="0"
+            BORDER="0">
+            <TR>
+            <TD BGCOLOR="#969696" PORT="f0">Convolut </TD><TD BGCOLOR="#ff0707" PORT="f1">ionBackw </TD><TD BGCOLOR="#ff0707" PORT="f2">ard0:600 </TD></TR><TR><TD COLSPAN="3"
+            ROWSPAN= "12"
+            PORT="attr"
+                >bias_sizes_opt: (32,)<BR/>dilation: (1,)<BR/>groups: 1<BR/>input: [saved tensor]<BR/>output_padding: (0,)<BR/>padding: (0,)<BR/>stride: (1,)<BR/>transposed: False<BR/>weight: [saved tensor]<BR/>mean_grad_0: None<BR/>mean_grad_1: 3.731e+15<BR/>mean_grad_2: -2.512e+14<BR/></TD></TR></TABLE>
+            >]
+	94861837392035 [label=<
+                            <TABLE
+                            CELLPADDING="0"
+                            CELLBORDER="1"
+                            CELLSPACING="0"
+                            BORDER="0">
+                            <TR>
+                            <TD BGCOLOR="#969696"
+                            >CONST (None Grad) </TD>
+                            </TR></TABLE>
+                            >]
+	94861837392035 -> 140636506736000:f0 [style=dotted]
+	140636506735568 -> 140636506736000:f1
+	140636506735616 -> 140636506736000:f2
+	140636506735616 [label=<<TABLE CELLPADDING="0" CELLBORDER="1" CELLSPACING="0"
+                    BORDER="0"><TR> <TD BGCOLOR="#add8e6"
+                        > Parameter: 5616 </TD> </TR> <TR> <TD BGCOLOR="#add8e6"
+                        > event_data_cnn.conv_layers.0.bias: (32) </TD> </TR> </TABLE >>]
+	140636506735568 [label=<<TABLE CELLPADDING="0" CELLBORDER="1" CELLSPACING="0"
+                    BORDER="0"><TR> <TD BGCOLOR="#add8e6"
+                        > Parameter: 5568 </TD> </TR> <TR> <TD BGCOLOR="#add8e6"
+                        > event_data_cnn.conv_layers.0.weight: (32, 7, 1) </TD> </TR> </TABLE >>]
+	140636506404944 [label=<<TABLE CELLPADDING="0" CELLBORDER="1" CELLSPACING="0"
+                    BORDER="0"><TR> <TD BGCOLOR="#add8e6"
+                        > Parameter: 4944 </TD> </TR> <TR> <TD BGCOLOR="#add8e6"
+                        > fc_layers.0.bias: (1024) </TD> </TR> </TABLE >>]
+	140636506404176 [label=<<TABLE CELLPADDING="0" CELLBORDER="1" CELLSPACING="0"
+                    BORDER="0"><TR> <TD BGCOLOR="#add8e6"
+                        > Parameter: 4176 </TD> </TR> <TR> <TD BGCOLOR="#add8e6"
+                        > fc_layers.2.bias: (512) </TD> </TR> </TABLE >>]
+	140636506404512 [label=<<TABLE CELLPADDING="0" CELLBORDER="1" CELLSPACING="0"
+                    BORDER="0"><TR> <TD BGCOLOR="#add8e6"
+                        > Parameter: 4512 </TD> </TR> <TR> <TD BGCOLOR="#add8e6"
+                        > fc_layers.4.bias: (514) </TD> </TR> </TABLE >>]
+	140636506400624 [label=<
+            <TABLE CELLPADDING="1" CELLBORDER="1" CELLSPACING="0"
+            BORDER="0">
+            <TR>
+            <TD BGCOLOR="#ff0000" PORT="f0">MseLossBac </TD><TD BGCOLOR="#969696" PORT="f1">kward0:062 </TD></TR><TR><TD COLSPAN="2"
+            ROWSPAN= "5"
+            PORT="attr"
+                >reduction: 1<BR/>self: [saved tensor]<BR/>target: [saved tensor]<BR/>mean_grad_0: 6.702e+10<BR/>mean_grad_1: None<BR/></TD></TR></TABLE>
+            >]
+	140636506738016 -> 140636506400624:f0
+	94861837392036 [label=<
+                            <TABLE
+                            CELLPADDING="0"
+                            CELLBORDER="1"
+                            CELLSPACING="0"
+                            BORDER="0">
+                            <TR>
+                            <TD BGCOLOR="#969696"
+                            >CONST (None Grad) </TD>
+                            </TR></TABLE>
+                            >]
+	94861837392036 -> 140636506400624:f1 [style=dotted]
+	140636506738016 [label=<
+            <TABLE CELLPADDING="1" CELLBORDER="1" CELLSPACING="0"
+            BORDER="0">
+            <TR>
+            <TD BGCOLOR="#ff0000" PORT="f0">ReshapeAliasBackward0:8016 </TD></TR><TR><TD COLSPAN="1"
+            ROWSPAN= "2"
+            PORT="attr"
+                >self_sizes: (64, 1, 2)<BR/>mean_grad_0: 6.702e+10<BR/></TD></TR></TABLE>
+            >]
+	140636506738832 -> 140636506738016:f0
+	140636506738832 [label=<
+            <TABLE CELLPADDING="1" CELLBORDER="1" CELLSPACING="0"
+            BORDER="0">
+            <TR>
+            <TD BGCOLOR="#ff0000" PORT="f0">ViewBackward0:8832 </TD></TR><TR><TD COLSPAN="1"
+            ROWSPAN= "2"
+            PORT="attr"
+                >self_sizes: (64, 2)<BR/>mean_grad_0: 6.702e+10<BR/></TD></TR></TABLE>
+            >]
+	140636506737344 -> 140636506738832:f0
+	140636506737344 [label=<
+            <TABLE CELLPADDING="1" CELLBORDER="1" CELLSPACING="0"
+            BORDER="0">
+            <TR>
+            <TD BGCOLOR="#ff0000" PORT="f0">AddmmB </TD><TD BGCOLOR="#ff0000" PORT="f1">ackwar </TD><TD BGCOLOR="#ff7f7f" PORT="f2">d0:734 </TD></TR><TR><TD COLSPAN="3"
+            ROWSPAN= "11"
+            PORT="attr"
+                >alpha: 1<BR/>beta: 1<BR/>mat1: [saved tensor]<BR/>mat1_sizes: (64, 10)<BR/>mat1_strides: (10, 1)<BR/>mat2: [saved tensor]<BR/>mat2_sizes: (10, 2)<BR/>mat2_strides: (1, 10)<BR/>mean_grad_0: 4.289e+12<BR/>mean_grad_1: 1.849e+10<BR/>mean_grad_2: 3.351e+26<BR/></TD></TR></TABLE>
+            >]
+	140636506737008 -> 140636506737344:f0
+	140636506737152 -> 140636506737344:f1
+	140636506736912 -> 140636506737344:f2
+	140636506736912 [label=<
+            <TABLE CELLPADDING="1" CELLBORDER="1" CELLSPACING="0"
+            BORDER="0">
+            <TR>
+            <TD BGCOLOR="#ff7f7f" PORT="f0">TBackward0:6912 </TD></TR><TR><TD COLSPAN="1"
+            ROWSPAN= "1"
+            PORT="attr"
+                >mean_grad_0: 3.351e+26<BR/></TD></TR></TABLE>
+            >]
+	140636506736960 -> 140636506736912:f0
+	140636506736960 [label=<<TABLE CELLPADDING="0" CELLBORDER="1" CELLSPACING="0"
+                    BORDER="0"><TR> <TD BGCOLOR="#add8e6"
+                        > Parameter: 6960 </TD> </TR> <TR> <TD BGCOLOR="#add8e6"
+                        > fc_meta.4.weight: (2, 10) </TD> </TR> </TABLE >>]
+	140636506737152 [label=<
+            <TABLE CELLPADDING="1" CELLBORDER="1" CELLSPACING="0"
+            BORDER="0">
+            <TR>
+            <TD BGCOLOR="#ff0000" PORT="f0">ViewBackward0:7152 </TD></TR><TR><TD COLSPAN="1"
+            ROWSPAN= "2"
+            PORT="attr"
+                >self_sizes: (64, 1, 10)<BR/>mean_grad_0: 1.849e+10<BR/></TD></TR></TABLE>
+            >]
+	140636506737680 -> 140636506737152:f0
+	140636506737680 [label=<
+            <TABLE CELLPADDING="1" CELLBORDER="1" CELLSPACING="0"
+            BORDER="0">
+            <TR>
+            <TD BGCOLOR="#ff7f7f" PORT="f0">ReluBackward0:7680 </TD></TR><TR><TD COLSPAN="1"
+            ROWSPAN= "2"
+            PORT="attr"
+                >result: [saved tensor]<BR/>mean_grad_0: 1.043e+10<BR/></TD></TR></TABLE>
+            >]
+	140636506734656 -> 140636506737680:f0
+	140636506734656 [label=<
+            <TABLE CELLPADDING="1" CELLBORDER="1" CELLSPACING="0"
+            BORDER="0">
+            <TR>
+            <TD BGCOLOR="#ff7f7f" PORT="f0">ViewBackward0:4656 </TD></TR><TR><TD COLSPAN="1"
+            ROWSPAN= "2"
+            PORT="attr"
+                >self_sizes: (64, 10)<BR/>mean_grad_0: 1.043e+10<BR/></TD></TR></TABLE>
+            >]
+	140636506735232 -> 140636506734656:f0
+	140636506735232 [label=<
+            <TABLE CELLPADDING="1" CELLBORDER="1" CELLSPACING="0"
+            BORDER="0">
+            <TR>
+            <TD BGCOLOR="#ff7f7f" PORT="f0">AddmmB </TD><TD BGCOLOR="#ff0000" PORT="f1">ackwar </TD><TD BGCOLOR="#ffbfbf" PORT="f2">d0:523 </TD></TR><TR><TD COLSPAN="3"
+            ROWSPAN= "11"
+            PORT="attr"
+                >alpha: 1<BR/>beta: 1<BR/>mat1: [saved tensor]<BR/>mat1_sizes: (64, 10)<BR/>mat1_strides: (10, 1)<BR/>mat2: [saved tensor]<BR/>mat2_sizes: (10, 10)<BR/>mat2_strides: (1, 10)<BR/>mean_grad_0: 6.672e+11<BR/>mean_grad_1: -3.704e+09<BR/>mean_grad_2: 1.814e+26<BR/></TD></TR></TABLE>
+            >]
+	140636506737872 -> 140636506735232:f0
+	140636506734752 -> 140636506735232:f1
+	140636506737728 -> 140636506735232:f2
+	140636506737728 [label=<
+            <TABLE CELLPADDING="1" CELLBORDER="1" CELLSPACING="0"
+            BORDER="0">
+            <TR>
+            <TD BGCOLOR="#ffbfbf" PORT="f0">TBackward0:7728 </TD></TR><TR><TD COLSPAN="1"
+            ROWSPAN= "1"
+            PORT="attr"
+                >mean_grad_0: 1.814e+26<BR/></TD></TR></TABLE>
+            >]
+	140636506738304 -> 140636506737728:f0
+	140636506738304 [label=<<TABLE CELLPADDING="0" CELLBORDER="1" CELLSPACING="0"
+                    BORDER="0"><TR> <TD BGCOLOR="#add8e6"
+                        > Parameter: 8304 </TD> </TR> <TR> <TD BGCOLOR="#add8e6"
+                        > fc_meta.2.weight: (10, 10) </TD> </TR> </TABLE >>]
+	140636506734752 [label=<
+            <TABLE CELLPADDING="1" CELLBORDER="1" CELLSPACING="0"
+            BORDER="0">
+            <TR>
+            <TD BGCOLOR="#ff0000" PORT="f0">ViewBackward0:4752 </TD></TR><TR><TD COLSPAN="1"
+            ROWSPAN= "2"
+            PORT="attr"
+                >self_sizes: (64, 1, 10)<BR/>mean_grad_0: -3.704e+09<BR/></TD></TR></TABLE>
+            >]
+	140636506735856 -> 140636506734752:f0
+	140636506735856 [label=<
+            <TABLE CELLPADDING="1" CELLBORDER="1" CELLSPACING="0"
+            BORDER="0">
+            <TR>
+            <TD BGCOLOR="#ff7f7f" PORT="f0">ReluBackward0:5856 </TD></TR><TR><TD COLSPAN="1"
+            ROWSPAN= "2"
+            PORT="attr"
+                >result: [saved tensor]<BR/>mean_grad_0: 6.680e+08<BR/></TD></TR></TABLE>
+            >]
+	140636506736096 -> 140636506735856:f0
+	140636506736096 [label=<
+            <TABLE CELLPADDING="1" CELLBORDER="1" CELLSPACING="0"
+            BORDER="0">
+            <TR>
+            <TD BGCOLOR="#ff7f7f" PORT="f0">AddBackw </TD><TD BGCOLOR="#ff7f7f" PORT="f1">ard0:609 </TD></TR><TR><TD COLSPAN="2"
+            ROWSPAN= "3"
+            PORT="attr"
+                >alpha: 1<BR/>mean_grad_0: 6.680e+08<BR/>mean_grad_1: 4.275e+10<BR/></TD></TR></TABLE>
+            >]
+	140636506735520 -> 140636506736096:f0
+	140636506744400 -> 140636506736096:f1
+	140636506744400 [label=<<TABLE CELLPADDING="0" CELLBORDER="1" CELLSPACING="0"
+                    BORDER="0"><TR> <TD BGCOLOR="#add8e6"
+                        > Parameter: 4400 </TD> </TR> <TR> <TD BGCOLOR="#add8e6"
+                        > fc_meta.0.bias: (10) </TD> </TR> </TABLE >>]
+	140636506735520 [label=<
+            <TABLE CELLPADDING="1" CELLBORDER="1" CELLSPACING="0"
+            BORDER="0">
+            <TR>
+            <TD BGCOLOR="#ff7f7f" PORT="f0">UnsafeViewBackward0:5520 </TD></TR><TR><TD COLSPAN="1"
+            ROWSPAN= "2"
+            PORT="attr"
+                >self_sizes: (64, 10)<BR/>mean_grad_0: 6.680e+08<BR/></TD></TR></TABLE>
+            >]
+	140636506736528 -> 140636506735520:f0
+	140636506736528 [label=<
+            <TABLE CELLPADDING="1" CELLBORDER="1" CELLSPACING="0"
+            BORDER="0">
+            <TR>
+            <TD BGCOLOR="#ff0000" PORT="f0">MmBackwa </TD><TD BGCOLOR="#ff7f7f" PORT="f1">rd0:6528 </TD></TR><TR><TD COLSPAN="2"
+            ROWSPAN= "8"
+            PORT="attr"
+                >mat2: [saved tensor]<BR/>mat2_sizes: (2, 10)<BR/>mat2_strides: (1, 2)<BR/>self: [saved tensor]<BR/>self_sizes: (64, 2)<BR/>self_strides: (514, 1)<BR/>mean_grad_0: -2.882e+09<BR/>mean_grad_1: -3.828e+25<BR/></TD></TR></TABLE>
+            >]
+	140636506738880 -> 140636506736528:f0
+	140636506750784 -> 140636506736528:f1
+	140636506750784 [label=<
+            <TABLE CELLPADDING="1" CELLBORDER="1" CELLSPACING="0"
+            BORDER="0">
+            <TR>
+            <TD BGCOLOR="#ff7f7f" PORT="f0">TBackward0:0784 </TD></TR><TR><TD COLSPAN="1"
+            ROWSPAN= "1"
+            PORT="attr"
+                >mean_grad_0: -3.828e+25<BR/></TD></TR></TABLE>
+            >]
+	140636506734992 -> 140636506750784:f0
+	140636506734992 [label=<<TABLE CELLPADDING="0" CELLBORDER="1" CELLSPACING="0"
+                    BORDER="0"><TR> <TD BGCOLOR="#add8e6"
+                        > Parameter: 4992 </TD> </TR> <TR> <TD BGCOLOR="#add8e6"
+                        > fc_meta.0.weight: (10, 2) </TD> </TR> </TABLE >>]
+	140636506738880 [label=<
+            <TABLE CELLPADDING="1" CELLBORDER="1" CELLSPACING="0"
+            BORDER="0">
+            <TR>
+            <TD BGCOLOR="#ff0000" PORT="f0">ReshapeAliasBackward0:8880 </TD></TR><TR><TD COLSPAN="1"
+            ROWSPAN= "2"
+            PORT="attr"
+                >self_sizes: (64, 1, 2)<BR/>mean_grad_0: -2.882e+09<BR/></TD></TR></TABLE>
+            >]
+	140636506738640 -> 140636506738880:f0
+	140636506738640 [label=<
+            <TABLE CELLPADDING="1" CELLBORDER="1" CELLSPACING="0"
+            BORDER="0">
+            <TR>
+            <TD BGCOLOR="#ff0000" PORT="f0">UnsqueezeBackward0:8640 </TD></TR><TR><TD COLSPAN="1"
+            ROWSPAN= "2"
+            PORT="attr"
+                >dim: 1<BR/>mean_grad_0: -2.882e+09<BR/></TD></TR></TABLE>
+            >]
+	140636506738448 -> 140636506738640:f0
+	140636506738448 [label=<
+            <TABLE CELLPADDING="1" CELLBORDER="1" CELLSPACING="0"
+            BORDER="0">
+            <TR>
+            <TD BGCOLOR="#fffefe" PORT="f0">SliceBackward0:8448 </TD></TR><TR><TD COLSPAN="1"
+            ROWSPAN= "6"
+            PORT="attr"
+                >dim: 1<BR/>end: 2<BR/>self_sizes: (64, 514)<BR/>start: 0<BR/>step: 1<BR/>mean_grad_0: -1.121e+07<BR/></TD></TR></TABLE>
+            >]
+	140636506738064 -> 140636506738448:f0
+	140636506738064 [label=<
+            <TABLE CELLPADDING="1" CELLBORDER="1" CELLSPACING="0"
+            BORDER="0">
+            <TR>
+            <TD BGCOLOR="#fffefe" PORT="f0">SliceBackward0:8064 </TD></TR><TR><TD COLSPAN="1"
+            ROWSPAN= "6"
+            PORT="attr"
+                >dim: 0<BR/>end: 9223372036854775807<BR/>self_sizes: (64, 514)<BR/>start: 0<BR/>step: 1<BR/>mean_grad_0: -1.121e+07<BR/></TD></TR></TABLE>
+            >]
+	140636506404656 -> 140636506738064
+	140636506737872 [label=<<TABLE CELLPADDING="0" CELLBORDER="1" CELLSPACING="0"
+                    BORDER="0"><TR> <TD BGCOLOR="#add8e6"
+                        > Parameter: 7872 </TD> </TR> <TR> <TD BGCOLOR="#add8e6"
+                        > fc_meta.2.bias: (10) </TD> </TR> </TABLE >>]
+	140636506737008 [label=<<TABLE CELLPADDING="0" CELLBORDER="1" CELLSPACING="0"
+                    BORDER="0"><TR> <TD BGCOLOR="#add8e6"
+                        > Parameter: 7008 </TD> </TR> <TR> <TD BGCOLOR="#add8e6"
+                        > fc_meta.4.bias: (2) </TD> </TR> </TABLE >>]
+}
