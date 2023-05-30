@@ -1,3 +1,4 @@
+#! /usr/bin/env python
 """
 Main training file which needs to be run.
 """
@@ -92,7 +93,7 @@ if __name__ == "__main__":
     opt = parser.parse_args()
     if opt.one_shower:
         print("Training with a single shower")
-        one_shower_training(np.random.randint(low=1, high=2300))
+        one_shower_training(np.random.randint(low=1, high=2159))
         exit()
     if opt.profile:
         print("Profiling Code")

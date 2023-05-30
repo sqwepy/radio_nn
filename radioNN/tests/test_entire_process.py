@@ -65,13 +65,15 @@ class MyTestCase(unittest.TestCase):
             collate_fn=custom_collate_fn,
         )
         for batch in tqdm.tqdm(self.dataloader):
+            if batch is None:
+                continue
             self.assertTrue(torch.all(torch.isfinite(batch[0])))
             self.assertTrue(torch.all(torch.isfinite(batch[1])))
             self.assertTrue(torch.all(torch.isfinite(batch[2])))
             self.assertTrue(torch.all(torch.isfinite(batch[3])))
             self.assertTrue(torch.all(torch.isfinite(batch[4])))
         output_channels = dataset.output.shape[-1]
-        print(output_channels)
+        print(f"Output Channels: {output_channels}")
         assert 2 <= output_channels <= 3
         self.model = AntennaNetwork(output_channels).to("cpu")
         self.optimizer = optim.Adam(self.model.parameters(), lr=1e-3)
@@ -88,6 +90,8 @@ class TestCaseOneShower(MyTestCase, unittest.TestCase):
 
     def test_dataloading(self):
         """Test dataloading."""
+        one_shower = np.random.randint(low=1, high=2159)
+        print(f"Use shower {one_shower}")
         dataset = AntennaDataset(
             self.input_data_file,
             self.input_meta_file,
@@ -95,7 +99,7 @@ class TestCaseOneShower(MyTestCase, unittest.TestCase):
             self.output_meta_file,
             self.output_file,
             mmap_mode="r",
-            one_shower=1,
+            one_shower=one_shower,
         )
         super().base_dataloading(dataset)
 
