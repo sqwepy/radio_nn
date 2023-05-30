@@ -5,8 +5,10 @@ Tests dataloading and training
 """
 import unittest
 import os
+import tqdm
 
 import numpy as np
+import torch
 from torch import nn, optim
 from torch.utils.data import DataLoader
 
@@ -62,6 +64,12 @@ class MyTestCase(unittest.TestCase):
             num_workers=4,
             collate_fn=custom_collate_fn,
         )
+        for batch in tqdm.tqdm(self.dataloader):
+            self.assertTrue(torch.all(torch.isfinite(batch[0])))
+            self.assertTrue(torch.all(torch.isfinite(batch[1])))
+            self.assertTrue(torch.all(torch.isfinite(batch[2])))
+            self.assertTrue(torch.all(torch.isfinite(batch[3])))
+            self.assertTrue(torch.all(torch.isfinite(batch[4])))
         output_channels = dataset.output.shape[-1]
         print(output_channels)
         assert 2 <= output_channels <= 3
@@ -124,6 +132,28 @@ class TestCaseSmallDataset(MyTestCase, unittest.TestCase):
             self.model, self.dataloader, self.criterion, self.optimizer, "cpu"
         )
         self.assertTrue(np.isfinite(train_loss))
+
+
+@unittest.skip("Too slow to test by default, Try manually.")
+class TestCaseEntireDataset(MyTestCase, unittest.TestCase):
+    """
+    Tests involving the entire dataset.
+    """
+
+    def setUp(self) -> None:
+        super().base_setup()
+
+    def test_dataloading(self):
+        dataset = AntennaDataset(
+            self.input_data_file,
+            self.input_meta_file,
+            self.antenna_pos_file,
+            self.output_meta_file,
+            self.output_file,
+            mmap_mode="r",
+            percentage=100,
+        )
+        super().base_dataloading(dataset)
 
 
 if __name__ == "__main__":
