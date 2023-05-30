@@ -1,11 +1,13 @@
 import torch
-import torch.nn as nn
+from torch import nn
 from radioNN.cnn_module import EventDataCNN
 
 
 class AntennaNetwork(nn.Module):
+    """Antenna pulse generation network."""
+
     def __init__(self, output_channels):
-        super(AntennaNetwork, self).__init__()
+        super().__init__()
 
         self.event_data_cnn = EventDataCNN()
 
@@ -31,6 +33,7 @@ class AntennaNetwork(nn.Module):
         self.deconv = nn.Sequential(nn.ConvTranspose1d(2, output_channels, 1))
 
     def forward(self, event_data, meta_data, antenna_pos):
+        """Forward pass which is called at model(data)."""
         event_data = self.event_data_cnn(event_data)
         event_data = event_data.view(event_data.size(0), -1)
         combined_input = torch.cat((event_data, meta_data, antenna_pos), dim=1)
