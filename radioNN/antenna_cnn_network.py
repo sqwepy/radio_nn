@@ -1,6 +1,37 @@
+"""
+Antenna Pulse Generation Network.
+"""
 import torch
 from torch import nn
-from radioNN.cnn_module import EventDataCNN
+
+
+class EventDataCNN(nn.Module):
+    """CNN part of the AntennaNetwork."""
+
+    def __init__(self):
+        self.padding = 0
+        self.kernel_size = 1
+        super(EventDataCNN, self).__init__()
+
+        self.conv_layers = nn.Sequential(
+            nn.Conv1d(7, 32, self.kernel_size, padding=self.padding),
+            nn.ReLU(),
+            nn.MaxPool1d(2),
+            nn.Conv1d(32, 64, self.kernel_size, padding=self.padding),
+            nn.ReLU(),
+            nn.MaxPool1d(2),
+            nn.Conv1d(64, 128, self.kernel_size, padding=self.padding),
+            nn.ReLU(),
+            nn.MaxPool1d(2),
+            nn.Conv1d(128, 256, self.kernel_size, padding=self.padding),
+            nn.ReLU(),
+            nn.MaxPool1d(2),
+        )
+
+    def forward(self, x):
+        """Forward pass called when using model(data)."""
+        x = self.conv_layers(x)
+        return x
 
 
 class AntennaNetwork(nn.Module):

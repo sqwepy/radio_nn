@@ -13,7 +13,7 @@ from torch import nn, optim
 from torch.utils.data import DataLoader
 
 from radioNN.dataloader import AntennaDataset, custom_collate_fn
-from radioNN.main_network import AntennaNetwork
+from radioNN.antenna_cnn_network import AntennaNetwork
 from radioNN.process_network import train
 
 
