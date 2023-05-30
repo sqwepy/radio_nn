@@ -1,3 +1,6 @@
+"""
+Main training file which needs to be run.
+"""
 import numpy as np
 import torch
 from torch.autograd import profiler
@@ -19,7 +22,9 @@ def main():
 
     for epoch in tqdm.trange(num_epochs):
         train_loss = train(model, dataloader, criterion, optimizer, device)
-        tqdm.tqdm.write(f"Epoch: {epoch + 1}/{num_epochs}, Loss: {train_loss:.6f}")
+        tqdm.tqdm.write(
+            f"Epoch: {epoch + 1}/{num_epochs}, Loss:" f" {train_loss:.6f}"
+        )
 
     torch.save(model.state_dict(), "antenna_network.pth")
 

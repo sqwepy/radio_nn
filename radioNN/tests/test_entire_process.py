@@ -1,8 +1,12 @@
+"""
+Unit tests for the network process
+
+Tests dataloading and training
+"""
 import unittest
 import os
 
 import numpy as np
-import torch
 from torch import nn, optim
 from torch.utils.data import DataLoader
 
@@ -12,28 +16,45 @@ from radioNN.process_network import train
 
 
 class MyTestCase(unittest.TestCase):
+    """
+    Base class for all the tests.
+    """
+
     def base_setup(self) -> None:
-        RADIO_DATA_PATH = "/home/sampathkumar/radio_data"
-        memmap_mode = "r"
-        if not os.path.exists(RADIO_DATA_PATH):
-            RADIO_DATA_PATH = "/home/pranav/work-stuff-unsynced/radio_data"
-            memmap_mode = "r"
-        assert os.path.exists(RADIO_DATA_PATH)
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.input_data_file = os.path.join(RADIO_DATA_PATH, "input_data.npy")
-        self.input_meta_file = os.path.join(RADIO_DATA_PATH, "meta_data.npy")
-        self.antenna_pos_file = os.path.join(RADIO_DATA_PATH, "antenna_pos_data.npy")
-        self.output_meta_file = os.path.join(RADIO_DATA_PATH, "output_meta_data.npy")
-        self.output_file = os.path.join(RADIO_DATA_PATH, "output_gece_data.npy")
+        """
+        Setup for the tests
+        Returns
+        -------
+
+        """
+        radio_data_path = "/home/sampathkumar/radio_data"
+        if not os.path.exists(radio_data_path):
+            radio_data_path = "/home/pranav/work-stuff-unsynced/radio_data"
+        assert os.path.exists(radio_data_path)
+        self.input_data_file = os.path.join(radio_data_path, "input_data.npy")
+        self.input_meta_file = os.path.join(radio_data_path, "meta_data.npy")
+        self.antenna_pos_file = os.path.join(
+            radio_data_path, "antenna_pos_data.npy"
+        )
+        self.output_meta_file = os.path.join(
+            radio_data_path, "output_meta_data.npy"
+        )
+        self.output_file = os.path.join(radio_data_path, "output_gece_data.npy")
 
         self.criterion = nn.MSELoss()
 
 
 class TestCaseOneShower(MyTestCase, unittest.TestCase):
+    """
+    Test for the case of a single shower
+    """
+
     def setUp(self) -> None:
+        """Fixure."""
         super().base_setup()
 
     def test_dataloading(self):
+        """Test dataloading."""
         dataset = AntennaDataset(
             self.input_data_file,
             self.input_meta_file,
@@ -58,6 +79,7 @@ class TestCaseOneShower(MyTestCase, unittest.TestCase):
         pass
 
     def test_training(self):
+        """Test Training."""
         self.test_dataloading()
         train_loss = train(
             self.model, self.dataloader, self.criterion, self.optimizer, "cpu"
@@ -67,9 +89,11 @@ class TestCaseOneShower(MyTestCase, unittest.TestCase):
 
 class TestCaseSmallDataset(MyTestCase, unittest.TestCase):
     def setUp(self) -> None:
+        """Fixure."""
         super().base_setup()
 
     def test_dataloading(self):
+        """Test dataloading."""
         dataset = AntennaDataset(
             self.input_data_file,
             self.input_meta_file,

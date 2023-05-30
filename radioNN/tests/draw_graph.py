@@ -1,7 +1,17 @@
+"""
+Draw graph of the radio network
+"""
 from radioNN.process_network import network_process_setup, train
 
 
 def draw_graph():
+    """
+    Draw a graph of the model to check for bad gradients.
+
+    Returns
+    -------
+    None
+    """
     import radioNN.tests.bad_grad_viz as bgv
 
     criterion, dataloader, device, model, optimizer = network_process_setup(

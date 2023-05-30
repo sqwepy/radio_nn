@@ -1,3 +1,9 @@
+"""
+Process network, contains the setup and training functions.
+
+TODO: Convert it into a class
+
+"""
 import os
 
 import tqdm
@@ -9,6 +15,22 @@ from radioNN.dataloader import AntennaDataset, custom_collate_fn
 
 
 def train(model, dataloader, criterion, optimizer, device, loss_obj=False):
+    """
+    Train the given model using given data, criteria and optimizer
+
+    Parameters
+    ----------
+    model: Model Class
+    dataloader: Dataloader Class to load data.
+    criterion: Loss function
+    optimizer: Optimization Algorithm
+    device: cpu or gpu
+    loss_obj: If True, just return a single batch loss.
+
+    Returns
+    -------
+
+    """
     model.train()
     running_loss = 0.0
     valid_batch_count = 0
@@ -32,7 +54,9 @@ def train(model, dataloader, criterion, optimizer, device, loss_obj=False):
 
         optimizer.zero_grad()
 
-        pred_output_meta, pred_output = model(event_data, meta_data, antenna_pos)
+        pred_output_meta, pred_output = model(
+            event_data, meta_data, antenna_pos
+        )
 
         loss_meta = criterion(pred_output_meta, output_meta)
         loss_output = criterion(pred_output, output)
@@ -54,22 +78,38 @@ def train(model, dataloader, criterion, optimizer, device, loss_obj=False):
 
 
 def network_process_setup(percentage=100, one_shower=None):
-    RADIO_DATA_PATH = "/home/sampathkumar/radio_data"
+    """
+    Create the classes to be processed while training the network.
+
+    Parameters
+    ----------
+    percentage: Percentage of data to be used.
+    one_shower: if not None, use only the shower of given number.
+
+    Returns
+    -------
+    criterion: Loss function
+    dataloader: Dataloader Class to load data.
+    device: cpu or gpu
+    model: Model Class
+    optimizer: Optimization Algorithm
+    """
+    radio_data_path = "/home/sampathkumar/radio_data"
     memmap_mode = "r"
-    if not os.path.exists(RADIO_DATA_PATH):
-        RADIO_DATA_PATH = "/home/pranav/work-stuff-unsynced/radio_data"
+    if not os.path.exists(radio_data_path):
+        radio_data_path = "/home/pranav/work-stuff-unsynced/radio_data"
         memmap_mode = "r"
-    assert os.path.exists(RADIO_DATA_PATH)
+    assert os.path.exists(radio_data_path)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(
-        f"Using the data from {RADIO_DATA_PATH} in {device} with memmap "
+        f"Using the data from {radio_data_path} in {device} with memmap "
         f"mode: {memmap_mode} using {percentage}% of data"
     )
-    input_data_file = os.path.join(RADIO_DATA_PATH, "input_data.npy")
-    input_meta_file = os.path.join(RADIO_DATA_PATH, "meta_data.npy")
-    antenna_pos_file = os.path.join(RADIO_DATA_PATH, "antenna_pos_data.npy")
-    output_meta_file = os.path.join(RADIO_DATA_PATH, "output_meta_data.npy")
-    output_file = os.path.join(RADIO_DATA_PATH, "output_gece_data.npy")
+    input_data_file = os.path.join(radio_data_path, "input_data.npy")
+    input_meta_file = os.path.join(radio_data_path, "meta_data.npy")
+    antenna_pos_file = os.path.join(radio_data_path, "antenna_pos_data.npy")
+    output_meta_file = os.path.join(radio_data_path, "output_meta_data.npy")
+    output_file = os.path.join(radio_data_path, "output_gece_data.npy")
     dataset = AntennaDataset(
         input_data_file,
         input_meta_file,
