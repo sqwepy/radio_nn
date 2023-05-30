@@ -2,7 +2,7 @@ from radioNN.process_network import network_process_setup, train
 
 
 def draw_graph():
-    from bad_grad_viz import register_hooks
+    import radioNN.tests.bad_grad_viz as bgv
 
     criterion, dataloader, device, model, optimizer = network_process_setup(
         percentage=0.01
@@ -10,7 +10,7 @@ def draw_graph():
 
     _ = train(model, dataloader, criterion, optimizer, device)
     loss = train(model, dataloader, criterion, optimizer, device, loss_obj=True)
-    get_dot = register_hooks(loss)
+    get_dot = bgv.register_hooks(loss)
     loss.backward(retain_graph=True)
     dot = get_dot(
         params=dict(model.named_parameters()),
