@@ -43,6 +43,31 @@ class MyTestCase(unittest.TestCase):
 
         self.criterion = nn.MSELoss()
 
+    def base_dataloading(self, dataset):
+        """
+        The boilerplate after loading dataset
+
+        Parameters
+        ----------
+        dataset: AntennaDataset class with loaded arrays.
+
+        Returns
+        -------
+
+        """
+        self.dataloader = DataLoader(
+            dataset,
+            batch_size=64,
+            shuffle=True,
+            num_workers=4,
+            collate_fn=custom_collate_fn,
+        )
+        output_channels = dataset.output.shape[-1]
+        print(output_channels)
+        assert 2 <= output_channels <= 3
+        self.model = AntennaNetwork(output_channels).to("cpu")
+        self.optimizer = optim.Adam(self.model.parameters(), lr=1e-3)
+
 
 class TestCaseOneShower(MyTestCase, unittest.TestCase):
     """
@@ -64,19 +89,7 @@ class TestCaseOneShower(MyTestCase, unittest.TestCase):
             mmap_mode="r",
             one_shower=1,
         )
-        self.dataloader = DataLoader(
-            dataset,
-            batch_size=64,
-            shuffle=True,
-            num_workers=4,
-            collate_fn=custom_collate_fn,
-        )
-        output_channels = dataset.output.shape[-1]
-        print(output_channels)
-        assert 2 <= output_channels <= 3
-        self.model = AntennaNetwork(output_channels).to("cpu")
-        self.optimizer = optim.Adam(self.model.parameters(), lr=1e-3)
-        pass
+        super().base_dataloading(dataset)
 
     def test_training(self):
         """Test Training."""
@@ -103,19 +116,7 @@ class TestCaseSmallDataset(MyTestCase, unittest.TestCase):
             mmap_mode="r",
             percentage=0.02,
         )
-        self.dataloader = DataLoader(
-            dataset,
-            batch_size=64,
-            shuffle=True,
-            num_workers=4,
-            collate_fn=custom_collate_fn,
-        )
-        output_channels = dataset.output.shape[-1]
-        print(output_channels)
-        assert 2 <= output_channels <= 3
-        self.model = AntennaNetwork(output_channels).to("cpu")
-        self.optimizer = optim.Adam(self.model.parameters(), lr=1e-3)
-        pass
+        super().base_dataloading(dataset)
 
     def test_training(self):
         self.test_dataloading()
