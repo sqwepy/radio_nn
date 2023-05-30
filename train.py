@@ -74,9 +74,21 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--one_shower", action="store_true")
-    parser.add_argument("--profile", action="store_true")
-    parser.add_argument("--graph", action="store_true")
+    parser.add_argument(
+        "--one_shower",
+        action="store_true",
+        help="Try to " "memorize a single shower",
+    )
+    parser.add_argument(
+        "--profile",
+        action="store_true",
+        help="Profile the network for performance hotspots",
+    )
+    parser.add_argument(
+        "--graph",
+        action="store_true",
+        help="Graph the network for bad gradients",
+    )
     opt = parser.parse_args()
     if opt.one_shower:
         print("Training with a single shower")
