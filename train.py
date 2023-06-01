@@ -18,7 +18,14 @@ def main():
     -------
 
     """
-    criterion, dataloader, device, model, optimizer = network_process_setup()
+    (
+        criterion,
+        dataloader,
+        device,
+        model,
+        optimizer,
+        scheduler,
+    ) = network_process_setup()
     num_epochs = 100
 
     for epoch in tqdm.trange(num_epochs):
@@ -26,6 +33,7 @@ def main():
         tqdm.tqdm.write(
             f"Epoch: {epoch + 1}/{num_epochs}, Loss:" f" {train_loss:.6f}"
         )
+        scheduler.step()
 
     torch.save(model.state_dict(), "antenna_network.pth")
 
@@ -38,7 +46,14 @@ def profile():
 
     """
 
-    criterion, dataloader, device, model, optimizer = network_process_setup()
+    (
+        criterion,
+        dataloader,
+        device,
+        model,
+        optimizer,
+        scheduler,
+    ) = network_process_setup()
     _ = train(model, dataloader, criterion, optimizer, device)  # warmup
     with profiler.profile(with_stack=True, profile_memory=True) as prof:
         _ = train(model, dataloader, criterion, optimizer, device)
@@ -59,14 +74,20 @@ def one_shower_training(one_shower=1):
 
     """
     print(f"Use shower {one_shower}")
-    criterion, dataloader, device, model, optimizer = network_process_setup(
-        one_shower=one_shower
-    )
+    (
+        criterion,
+        dataloader,
+        device,
+        model,
+        optimizer,
+        scheduler,
+    ) = network_process_setup(one_shower=one_shower)
     num_epochs = 100
 
     for epoch in tqdm.trange(num_epochs):
         train_loss = train(model, dataloader, criterion, optimizer, device)
         tqdm.tqdm.write(f"Epoch: {epoch + 1}/{num_epochs}, Loss: {train_loss}")
+        scheduler.step()
 
     torch.save(model.state_dict(), "antenna_network.pth")
 
