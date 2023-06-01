@@ -17,6 +17,7 @@ class AntennaNetworkFC(nn.Module):
             nn.Linear(1024, 512),
             nn.ReLU(),
             nn.Linear(512, 256 * 2 + 2),
+            nn.Tanh(),
         )
 
         self.fc_meta = nn.Sequential(
@@ -33,6 +34,7 @@ class AntennaNetworkFC(nn.Module):
             nn.Linear(1024, 1024),
             nn.ReLU(),
             nn.Linear(1024, 256 * output_channels),
+            nn.Tanh(),
         )
 
     def forward(self, event_data, meta_data, antenna_pos):
