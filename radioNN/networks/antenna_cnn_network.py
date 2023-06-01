@@ -34,7 +34,7 @@ class EventDataCNN(nn.Module):
         return x
 
 
-class AntennaNetwork(nn.Module):
+class AntennaNetworkCNN(nn.Module):
     """Antenna pulse generation network."""
 
     def __init__(self, output_channels):
@@ -71,9 +71,9 @@ class AntennaNetwork(nn.Module):
         combined_output = self.fc_layers(combined_input)
 
         # Separate the output
-        antenna_output_meta = combined_output[:, :2].unsqueeze(1)
+        antenna_output_meta = combined_output[:, :2]
         antenna_output_meta = self.fc_meta(antenna_output_meta)
-        antenna_output = combined_output[:, 2:].view(-1, 2, 256)
+        antenna_output = combined_output[:, 2:].reshape(-1, 2, 256)
         antenna_output = self.deconv(antenna_output)
         antenna_output = torch.swapaxes(antenna_output, 1, 2)
         return antenna_output_meta, antenna_output

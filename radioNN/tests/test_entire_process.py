@@ -13,7 +13,8 @@ from torch import nn, optim
 from torch.utils.data import DataLoader
 
 from radioNN.dataloader import AntennaDataset, custom_collate_fn
-from radioNN.antenna_cnn_network import AntennaNetwork
+from radioNN.networks.antenna_cnn_network import AntennaNetworkCNN
+from radioNN.networks.antenna_fc_network import AntennaNetworkFC
 from radioNN.process_network import train
 
 
@@ -72,11 +73,9 @@ class MyTestCase(unittest.TestCase):
             self.assertTrue(torch.all(torch.isfinite(batch[2])))
             self.assertTrue(torch.all(torch.isfinite(batch[3])))
             self.assertTrue(torch.all(torch.isfinite(batch[4])))
-        output_channels = dataset.output.shape[-1]
-        print(f"Output Channels: {output_channels}")
-        assert 2 <= output_channels <= 3
-        self.model = AntennaNetwork(output_channels).to("cpu")
-        self.optimizer = optim.Adam(self.model.parameters(), lr=1e-3)
+        self.output_channels = dataset.output.shape[-1]
+        print(f"Output Channels: {self.output_channels}")
+        assert 2 <= self.output_channels <= 3
 
 
 class TestCaseOneShower(MyTestCase, unittest.TestCase):
@@ -103,9 +102,21 @@ class TestCaseOneShower(MyTestCase, unittest.TestCase):
         )
         super().base_dataloading(dataset)
 
-    def test_training(self):
+    def test_training_cnn(self):
         """Test Training."""
         self.test_dataloading()
+        self.model = AntennaNetworkCNN(self.output_channels).to("cpu")
+        self.optimizer = optim.Adam(self.model.parameters(), lr=1e-3)
+        train_loss = train(
+            self.model, self.dataloader, self.criterion, self.optimizer, "cpu"
+        )
+        self.assertTrue(np.isfinite(train_loss))
+
+    def test_training_fc(self):
+        """Test Training."""
+        self.test_dataloading()
+        self.model = AntennaNetworkFC(self.output_channels).to("cpu")
+        self.optimizer = optim.Adam(self.model.parameters(), lr=1e-3)
         train_loss = train(
             self.model, self.dataloader, self.criterion, self.optimizer, "cpu"
         )
@@ -130,8 +141,20 @@ class TestCaseSmallDataset(MyTestCase, unittest.TestCase):
         )
         super().base_dataloading(dataset)
 
-    def test_training(self):
+    def test_training_cnn(self):
         self.test_dataloading()
+        self.model = AntennaNetworkCNN(self.output_channels).to("cpu")
+        self.optimizer = optim.Adam(self.model.parameters(), lr=1e-3)
+        train_loss = train(
+            self.model, self.dataloader, self.criterion, self.optimizer, "cpu"
+        )
+        self.assertTrue(np.isfinite(train_loss))
+
+    def test_training_fc(self):
+        """Test Training."""
+        self.test_dataloading()
+        self.model = AntennaNetworkFC(self.output_channels).to("cpu")
+        self.optimizer = optim.Adam(self.model.parameters(), lr=1e-3)
         train_loss = train(
             self.model, self.dataloader, self.criterion, self.optimizer, "cpu"
         )
