@@ -14,9 +14,14 @@ def draw_graph():
     """
     import radioNN.tests.bad_grad_viz as bgv
 
-    criterion, dataloader, device, model, optimizer = network_process_setup(
-        percentage=0.01
-    )
+    (
+        criterion,
+        dataloader,
+        device,
+        model,
+        optimizer,
+        scheduler,
+    ) = network_process_setup(percentage=0.01)
 
     _ = train(model, dataloader, criterion, optimizer, device)
     loss = train(model, dataloader, criterion, optimizer, device, loss_obj=True)

@@ -73,16 +73,20 @@ def register_hooks(var):
                 val = getattr(function, attr)
                 attr = attr[len(SAVED_PREFIX) :]
                 if torch.is_tensor(val):
-                    attrs[attr] = "[saved tensor]"
-                elif isinstance(val, tuple) and any(torch.is_tensor(t) for t in val):
-                    attrs[attr] = "[saved tensors]"
+                    attrs[attr] = f"[saved tensor] {torch.mean(val):.3e}"
+                elif isinstance(val, tuple) and any(
+                    torch.is_tensor(t) for t in val
+                ):
+                    attrs[attr] = f"[saved tensors] {torch.mean(val):.3e}"
                 else:
                     attrs[attr] = val
             for i, grad_inp in enumerate(fn_dict_input[function]):
                 if grad_inp is None:
                     attrs[f"mean_grad_{i}"] = "None"
                 else:
-                    attrs[f"mean_grad_{i}"] = f"{torch.mean(grad_inp).item():.3e}"
+                    attrs[
+                        f"mean_grad_{i}"
+                    ] = f"{torch.mean(grad_inp).item():.3e}"
             max_attr_chars = max(max_attr_chars, 3)
             attr_params = [f"{k}: {str(v)}<BR/>" for (k, v) in attrs.items()]
         label = (
@@ -129,13 +133,15 @@ def register_hooks(var):
         """Get variable name from object"""
         if not name:
             name = param_map[id(variab)] if id(variab) in param_map else ""
-        return f"{name}: {size_to_str(variab.size())}"
+        return f"{name}: {size_to_str(variab.size())} {torch.mean(variab):.1e}"
 
     def bad_grad_value(grad_output):
         """Metric for bad gradients in a mode."""
         grad_output = grad_output.data
         sum_bad = torch.sum(
-            grad_output.ne(grad_output) | grad_output.gt(1e6) | grad_output.le(-1e6)
+            grad_output.ne(grad_output)
+            | grad_output.gt(1e6)
+            | grad_output.le(-1e6)
         )
         return sum_bad / torch.numel(grad_output)
 
@@ -150,7 +156,9 @@ def register_hooks(var):
     def make_dot(params=None, show_attrs=False, max_attr_chars=50):
         """Make node."""
         if params is not None:
-            assert all(isinstance(p, torch.autograd.Variable) for p in params.values())
+            assert all(
+                isinstance(p, torch.autograd.Variable) for p in params.values()
+            )
             param_map = {id(v): k for k, v in params.items()}
         else:
             param_map = {}
@@ -170,7 +178,9 @@ def register_hooks(var):
                 dot.node(str(id(function)), label)
             else:
                 assert function in fn_dict_input, function
-                node_label = get_fn_html_label(function, show_attrs, max_attr_chars)
+                node_label = get_fn_html_label(
+                    function, show_attrs, max_attr_chars
+                )
                 dot.node(str(id(function)), node_label)
             for next_fn, _ in function.next_functions:
                 if next_fn is not None:
