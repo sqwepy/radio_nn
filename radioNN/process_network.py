@@ -10,6 +10,8 @@ import tqdm
 import torch
 from torch import nn, optim
 from torch.utils.data import DataLoader
+
+from radioNN.networks.antenna_resnet_network import AntennaNetworkResNet
 from radioNN.dataloader import AntennaDataset, custom_collate_fn
 from radioNN.networks.antenna_cnn_network import AntennaNetworkCNN
 from radioNN.networks.antenna_fc_network import AntennaNetworkFC
@@ -72,7 +74,7 @@ class NetworkProcess:
         self.output_channels = dataset.output.shape[-1]
         print(self.output_channels)
         assert 2 <= self.output_channels <= 3
-        self.model = AntennaNetworkCNN(self.output_channels).to(self.device)
+        self.model = AntennaNetworkResNet(self.output_channels).to(self.device)
         self.criterion = nn.MSELoss()
         self.optimizer = optim.Adam(self.model.parameters(), lr=1e-1)
         self.scheduler = optim.lr_scheduler.ReduceLROnPlateau(
