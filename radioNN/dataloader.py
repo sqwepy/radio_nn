@@ -73,6 +73,7 @@ class AntennaDataset(Dataset):
         percentage
         one_shower
         """
+        # TODO: Make this into a seperate class
         self.input_data = np.load(input_data_file, mmap_mode=mmap_mode)
         self.input_meta = np.load(input_meta_file, mmap_mode=mmap_mode)
         self.antenna_pos = np.load(antenna_pos_file, mmap_mode=mmap_mode)

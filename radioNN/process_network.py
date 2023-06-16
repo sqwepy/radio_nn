@@ -53,17 +53,21 @@ class NetworkProcess:
                 f"memmap "
                 f"mode: {memmap_mode} using {percentage}% of data"
             )
-        input_data_file = os.path.join(radio_data_path, "input_data.npy")
-        input_meta_file = os.path.join(radio_data_path, "meta_data.npy")
-        antenna_pos_file = os.path.join(radio_data_path, "antenna_pos_data.npy")
-        output_meta_file = os.path.join(radio_data_path, "output_meta_data.npy")
-        output_file = os.path.join(radio_data_path, "output_gece_data.npy")
+        self.input_data_file = os.path.join(radio_data_path, "input_data.npy")
+        self.input_meta_file = os.path.join(radio_data_path, "meta_data.npy")
+        self.antenna_pos_file = os.path.join(
+            radio_data_path, "antenna_pos_data.npy"
+        )
+        self.output_meta_file = os.path.join(
+            radio_data_path, "output_meta_data.npy"
+        )
+        self.output_file = os.path.join(radio_data_path, "output_gece_data.npy")
         self.dataset = AntennaDataset(
-            input_data_file,
-            input_meta_file,
-            antenna_pos_file,
-            output_meta_file,
-            output_file,
+            self.input_data_file,
+            self.input_meta_file,
+            self.antenna_pos_file,
+            self.output_meta_file,
+            self.output_file,
             mmap_mode=memmap_mode,
             percentage=percentage,
             one_shower=one_shower,
@@ -147,3 +151,39 @@ class NetworkProcess:
             valid_batch_count += 1
 
         return running_loss / valid_batch_count
+
+    def pred_one_shower(self, one_shower):
+        one_sh_dataset = AntennaDataset(
+            self.input_data_file,
+            self.input_meta_file,
+            self.antenna_pos_file,
+            self.output_meta_file,
+            self.output_file,
+            one_shower=one_shower,
+        )
+        dataloader = DataLoader(
+            one_sh_dataset,
+            batch_size=len(one_sh_dataset),
+            shuffle=True,
+            num_workers=4,
+            collate_fn=custom_collate_fn,
+        )
+        assert len(dataloader) == 1
+        for batch in dataloader:
+            if batch is None:
+                raise RuntimeError("Not a valid Shower {one_shower}")
+
+            event_data, meta_data, antenna_pos, output_meta, output = batch
+            # TODO: Fix it in the input file and stop swapaxes.
+            event_data = torch.swapaxes(event_data, 1, 2)
+            event_data, meta_data, antenna_pos = (
+                event_data.to(self.device),
+                meta_data.to(self.device),
+                antenna_pos.to(self.device),
+            )
+
+            pred_output_meta, pred_output = self.model(
+                event_data, meta_data, antenna_pos
+            )
+
+            return pred_output_meta, pred_output
