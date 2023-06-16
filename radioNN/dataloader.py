@@ -109,6 +109,7 @@ class AntennaDataset(Dataset):
             event_idx = selected_idx // self.antenna_pos.shape[1]
             antenna_idx = selected_idx % self.antenna_pos.shape[1]
 
+        # TODO: Check how much data we need to give here
         event_data = torch.log(
             torch.tensor(self.input_data[event_idx, :, 4:], dtype=torch.float32)
             + 1e-14
@@ -134,3 +135,13 @@ class AntennaDataset(Dataset):
         )
 
         return event_data, meta_data, antenna_pos, output_meta, output
+
+    def data_of_single_shower(self, one_shower):
+        one_shower_event_idx = one_shower
+        return (
+            self.input_data[one_shower_event_idx, :, 4:],
+            self.input_meta[one_shower_event_idx],
+            self.antenna_pos[one_shower_event_idx, :],
+            self.output_meta[one_shower_event_idx, :],
+            self.output[one_shower_event_idx, :],
+        )

@@ -1,8 +1,5 @@
 """
-Process network, contains the setup and training functions.
-
-TODO: Convert it into a class
-
+Process network class which takes of setup training and inference
 """
 import os
 
@@ -44,17 +41,24 @@ class NetworkProcess:
         self.device = torch.device(
             "cuda" if torch.cuda.is_available() else "cpu"
         )
-        print(
-            f"Using the data from {radio_data_path} in {self.device} with "
-            f"memmap "
-            f"mode: {memmap_mode} using {percentage}% of data"
-        )
+        if one_shower is not None:
+            print(
+                f"Using the data from {radio_data_path} in {self.device} with "
+                f"memmap "
+                f"mode: {memmap_mode} using only shower {one_shower}"
+            )
+        else:
+            print(
+                f"Using the data from {radio_data_path} in {self.device} with "
+                f"memmap "
+                f"mode: {memmap_mode} using {percentage}% of data"
+            )
         input_data_file = os.path.join(radio_data_path, "input_data.npy")
         input_meta_file = os.path.join(radio_data_path, "meta_data.npy")
         antenna_pos_file = os.path.join(radio_data_path, "antenna_pos_data.npy")
         output_meta_file = os.path.join(radio_data_path, "output_meta_data.npy")
         output_file = os.path.join(radio_data_path, "output_gece_data.npy")
-        dataset = AntennaDataset(
+        self.dataset = AntennaDataset(
             input_data_file,
             input_meta_file,
             antenna_pos_file,
@@ -65,13 +69,13 @@ class NetworkProcess:
             one_shower=one_shower,
         )
         self.dataloader = DataLoader(
-            dataset,
+            self.dataset,
             batch_size=64,
             shuffle=True,
             num_workers=4,
             collate_fn=custom_collate_fn,
         )
-        self.output_channels = dataset.output.shape[-1]
+        self.output_channels = self.dataset.output.shape[-1]
         print(self.output_channels)
         assert 2 <= self.output_channels <= 3
         self.model = AntennaNetworkResNet(self.output_channels).to(self.device)
