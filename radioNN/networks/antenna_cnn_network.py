@@ -55,7 +55,6 @@ class EventDataCNNDeConv(nn.Module):
             nn.Conv1d(
                 32, output_channels, self.kernel_size, padding=self.padding
             ),
-            nn.Sigmoid(),
         )
 
     def forward(self, x):
@@ -89,7 +88,6 @@ class AntennaNetworkCNN(nn.Module):
             nn.Linear(10, 10),
             nn.ReLU(),
             nn.Linear(10, 2),
-            nn.Sigmoid(),
         )
 
         self.deconv = EventDataCNNDeConv(2, output_channels)

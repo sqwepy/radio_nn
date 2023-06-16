@@ -7,7 +7,7 @@ import torch
 from torch.autograd import profiler
 import tqdm
 
-from radioNN.process_network import network_process_setup, train
+from radioNN.process_network import NetworkProcess
 from radioNN.tests.draw_graph import draw_graph
 
 
@@ -18,24 +18,17 @@ def main():
     -------
 
     """
-    (
-        criterion,
-        dataloader,
-        device,
-        model,
-        optimizer,
-        scheduler,
-    ) = network_process_setup()
+    process = NetworkProcess()
     num_epochs = 100
 
     for epoch in tqdm.trange(num_epochs):
-        train_loss = train(model, dataloader, criterion, optimizer, device)
+        train_loss = process.train()
         tqdm.tqdm.write(
             f"Epoch: {epoch + 1}/{num_epochs}, Loss:" f" {train_loss:.6f}"
         )
-        scheduler.step()
+        process.scheduler.step()
 
-    torch.save(model.state_dict(), "antenna_network.pth")
+    torch.save(process.model.state_dict(), "antenna_network.pth")
 
 
 def profile():
@@ -46,17 +39,10 @@ def profile():
 
     """
 
-    (
-        criterion,
-        dataloader,
-        device,
-        model,
-        optimizer,
-        scheduler,
-    ) = network_process_setup()
-    _ = train(model, dataloader, criterion, optimizer, device)  # warmup
+    process = NetworkProcess()
+    _ = process.train()  # warmup
     with profiler.profile(with_stack=True, profile_memory=True) as prof:
-        _ = train(model, dataloader, criterion, optimizer, device)
+        _ = process.train()
         print("ONE EPOCH DONE")
 
     print(
@@ -74,22 +60,15 @@ def one_shower_training(one_shower=1):
 
     """
     print(f"Use shower {one_shower}")
-    (
-        criterion,
-        dataloader,
-        device,
-        model,
-        optimizer,
-        scheduler,
-    ) = network_process_setup(one_shower=one_shower)
+    process = NetworkProcess(one_shower=one_shower)
     num_epochs = 1000
 
     for epoch in tqdm.trange(num_epochs):
-        train_loss = train(model, dataloader, criterion, optimizer, device)
+        train_loss = process.train()
         tqdm.tqdm.write(f"Epoch: {epoch + 1}/{num_epochs}, Loss: {train_loss}")
-        scheduler.step(train_loss)
+        process.scheduler.step(train_loss)
 
-    torch.save(model.state_dict(), "antenna_network.pth")
+    torch.save(process.model.state_dict(), "antenna_network.pth")
 
 
 if __name__ == "__main__":

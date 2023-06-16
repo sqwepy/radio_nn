@@ -4,68 +4,36 @@ Unit tests for the network process
 Tests dataloading and training
 """
 import unittest
-import os
 import tqdm
 
 import numpy as np
 import torch
 from torch import nn, optim
-from torch.utils.data import DataLoader
 
-from radioNN.dataloader import AntennaDataset, custom_collate_fn
 from radioNN.networks.antenna_cnn_network import AntennaNetworkCNN
 from radioNN.networks.antenna_fc_network import AntennaNetworkFC
-from radioNN.process_network import train
+from radioNN.networks.antenna_resnet_network import AntennaNetworkResNet
+from radioNN.process_network import NetworkProcess, train
+
+# TODO: Write seperate tests for dataloader classes
 
 
-class MyTestCase(unittest.TestCase):
+class ProcessTest(unittest.TestCase):
     """
-    Base class for all the tests.
+    Test the process class and setup for other network tests.
     """
 
-    def base_setup(self) -> None:
+    def test_process_init(self, percentage=0.01, one_shower=None) -> None:
         """
         Setup for the tests
         Returns
         -------
 
         """
-        radio_data_path = "/home/sampathkumar/radio_data"
-        if not os.path.exists(radio_data_path):
-            radio_data_path = "/home/pranav/work-stuff-unsynced/radio_data"
-        assert os.path.exists(radio_data_path)
-        self.input_data_file = os.path.join(radio_data_path, "input_data.npy")
-        self.input_meta_file = os.path.join(radio_data_path, "meta_data.npy")
-        self.antenna_pos_file = os.path.join(
-            radio_data_path, "antenna_pos_data.npy"
+        self.process = NetworkProcess(
+            percentage=percentage, one_shower=one_shower
         )
-        self.output_meta_file = os.path.join(
-            radio_data_path, "output_meta_data.npy"
-        )
-        self.output_file = os.path.join(radio_data_path, "output_gece_data.npy")
-
-        self.criterion = nn.MSELoss()
-
-    def base_dataloading(self, dataset):
-        """
-        The boilerplate after loading dataset
-
-        Parameters
-        ----------
-        dataset: AntennaDataset class with loaded arrays.
-
-        Returns
-        -------
-
-        """
-        self.dataloader = DataLoader(
-            dataset,
-            batch_size=64,
-            shuffle=True,
-            num_workers=4,
-            collate_fn=custom_collate_fn,
-        )
-        for batch in tqdm.tqdm(self.dataloader):
+        for batch in tqdm.tqdm(self.process.dataloader):
             if batch is None:
                 continue
             self.assertTrue(torch.all(torch.isfinite(batch[0])))
@@ -73,115 +41,81 @@ class MyTestCase(unittest.TestCase):
             self.assertTrue(torch.all(torch.isfinite(batch[2])))
             self.assertTrue(torch.all(torch.isfinite(batch[3])))
             self.assertTrue(torch.all(torch.isfinite(batch[4])))
-        self.output_channels = dataset.output.shape[-1]
-        print(f"Output Channels: {self.output_channels}")
-        assert 2 <= self.output_channels <= 3
+        print(f"Output Channels: {self.process.output_channels}")
+        assert 2 <= self.process.output_channels <= 3
 
 
-class TestCaseOneShower(MyTestCase, unittest.TestCase):
+class TestOneShower(ProcessTest, unittest.TestCase):
     """
     Test for the case of a single shower
     """
 
     def setUp(self) -> None:
         """Fixure."""
-        super().base_setup()
-
-    def test_dataloading(self):
-        """Test dataloading."""
-        one_shower = np.random.randint(low=1, high=2159)
-        print(f"Use shower {one_shower}")
-        dataset = AntennaDataset(
-            self.input_data_file,
-            self.input_meta_file,
-            self.antenna_pos_file,
-            self.output_meta_file,
-            self.output_file,
-            mmap_mode="r",
-            one_shower=one_shower,
-        )
-        super().base_dataloading(dataset)
+        super().test_process_init(one_shower=np.random.randint(1, high=2158))
 
     def test_training_cnn(self):
         """Test Training."""
-        self.test_dataloading()
-        self.model = AntennaNetworkCNN(self.output_channels).to("cpu")
-        self.optimizer = optim.Adam(self.model.parameters(), lr=1e-3)
-        train_loss = train(
-            self.model, self.dataloader, self.criterion, self.optimizer, "cpu"
+        self.process.model = AntennaNetworkCNN(self.process.output_channels).to(
+            "cpu"
         )
+        train_loss = self.process.train()
         self.assertTrue(np.isfinite(train_loss))
 
     def test_training_fc(self):
         """Test Training."""
-        self.test_dataloading()
-        self.model = AntennaNetworkFC(self.output_channels).to("cpu")
-        self.optimizer = optim.Adam(self.model.parameters(), lr=1e-3)
-        train_loss = train(
-            self.model, self.dataloader, self.criterion, self.optimizer, "cpu"
+        self.process.model = AntennaNetworkFC(self.process.output_channels).to(
+            "cpu"
         )
+        train_loss = self.process.train()
+        self.assertTrue(np.isfinite(train_loss))
+
+    def test_training_resnet(self):
+        """Test Training."""
+        self.process.model = AntennaNetworkResNet(
+            self.process.output_channels
+        ).to("cpu")
+        train_loss = self.process.train()
         self.assertTrue(np.isfinite(train_loss))
 
 
-class TestCaseSmallDataset(MyTestCase, unittest.TestCase):
+class TestSmallDataset(ProcessTest, unittest.TestCase):
     def setUp(self) -> None:
         """Fixure."""
-        super().base_setup()
-
-    def test_dataloading(self):
-        """Test dataloading."""
-        dataset = AntennaDataset(
-            self.input_data_file,
-            self.input_meta_file,
-            self.antenna_pos_file,
-            self.output_meta_file,
-            self.output_file,
-            mmap_mode="r",
-            percentage=0.02,
-        )
-        super().base_dataloading(dataset)
+        super().test_process_init(percentage=0.01)
 
     def test_training_cnn(self):
-        self.test_dataloading()
-        self.model = AntennaNetworkCNN(self.output_channels).to("cpu")
-        self.optimizer = optim.Adam(self.model.parameters(), lr=1e-3)
-        train_loss = train(
-            self.model, self.dataloader, self.criterion, self.optimizer, "cpu"
+        self.process.model = AntennaNetworkCNN(self.process.output_channels).to(
+            "cpu"
         )
+        train_loss = self.process.train()
         self.assertTrue(np.isfinite(train_loss))
 
     def test_training_fc(self):
         """Test Training."""
-        self.test_dataloading()
-        self.model = AntennaNetworkFC(self.output_channels).to("cpu")
-        self.optimizer = optim.Adam(self.model.parameters(), lr=1e-3)
-        train_loss = train(
-            self.model, self.dataloader, self.criterion, self.optimizer, "cpu"
+        self.process.model = AntennaNetworkFC(self.process.output_channels).to(
+            "cpu"
         )
+        train_loss = self.process.train()
+        self.assertTrue(np.isfinite(train_loss))
+
+    def test_training_resnet(self):
+        """Test Training."""
+        self.process.model = AntennaNetworkResNet(
+            self.process.output_channels
+        ).to("cpu")
+        train_loss = self.process.train()
         self.assertTrue(np.isfinite(train_loss))
 
 
 @unittest.skip("Too slow to test by default, Try manually.")
-class TestCaseEntireDataset(MyTestCase, unittest.TestCase):
+class TestEntireDataset(ProcessTest, unittest.TestCase):
     """
     Tests involving the entire dataset.
     """
 
-    def setUp(self) -> None:
-        """Fixure."""
-        super().base_setup()
-
     def test_dataloading(self):
-        dataset = AntennaDataset(
-            self.input_data_file,
-            self.input_meta_file,
-            self.antenna_pos_file,
-            self.output_meta_file,
-            self.output_file,
-            mmap_mode="r",
-            percentage=100,
-        )
-        super().base_dataloading(dataset)
+        super().test_process_init(percentage=100)
 
 
 if __name__ == "__main__":

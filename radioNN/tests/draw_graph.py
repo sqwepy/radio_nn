@@ -1,7 +1,7 @@
 """
 Draw graph of the radio network
 """
-from radioNN.process_network import network_process_setup, train
+from radioNN.process_network import NetworkProcess
 
 
 def draw_graph():
@@ -14,21 +14,14 @@ def draw_graph():
     """
     import radioNN.tests.bad_grad_viz as bgv
 
-    (
-        criterion,
-        dataloader,
-        device,
-        model,
-        optimizer,
-        scheduler,
-    ) = network_process_setup(percentage=0.01)
+    process = NetworkProcess(percentage=0.01)
 
-    _ = train(model, dataloader, criterion, optimizer, device)
-    loss = train(model, dataloader, criterion, optimizer, device, loss_obj=True)
+    _ = process.train()
+    loss = process.train(loss_obj=True)
     get_dot = bgv.register_hooks(loss)
     loss.backward(retain_graph=True)
     dot = get_dot(
-        params=dict(model.named_parameters()),
+        params=dict(process.model.named_parameters()),
         show_attrs=True,
     )
     dot.save(f"radio_nn.dot")
