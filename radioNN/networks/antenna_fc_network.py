@@ -13,28 +13,38 @@ class AntennaNetworkFC(nn.Module):
 
         self.fc_layers_encode = nn.Sequential(
             nn.Linear(input_sequence_size + 12 + 3, 1024),
-            nn.ReLU(),
+            nn.LeakyReLU(),
+            nn.Linear(1024, 1024),
+            nn.LeakyReLU(),
+            nn.Linear(1024, 1024),
+            nn.LeakyReLU(),
             nn.Linear(1024, 512),
-            nn.ReLU(),
+            nn.LeakyReLU(),
             nn.Linear(512, 256 * 2 + 2),
-            nn.Tanh(),
+            nn.Sigmoid(),
         )
 
         self.fc_meta = nn.Sequential(
             nn.Linear(2, 10),
-            nn.ReLU(),
+            nn.LeakyReLU(),
             nn.Linear(10, 10),
-            nn.ReLU(),
+            nn.LeakyReLU(),
+            nn.Linear(10, 10),
+            nn.LeakyReLU(),
             nn.Linear(10, 2),
         )
 
         self.fc_layers_decode = nn.Sequential(
-            nn.Linear(256 * 2, 1024),
-            nn.ReLU(),
+            nn.Linear(256 * 2, 512),
+            nn.LeakyReLU(),
+            nn.Linear(512, 1024),
+            nn.LeakyReLU(),
             nn.Linear(1024, 1024),
-            nn.ReLU(),
+            nn.LeakyReLU(),
+            nn.Linear(1024, 1024),
+            nn.LeakyReLU(),
             nn.Linear(1024, 256 * output_channels),
-            nn.Tanh(),
+            nn.Sigmoid(),
         )
 
     def forward(self, event_data, meta_data, antenna_pos):
