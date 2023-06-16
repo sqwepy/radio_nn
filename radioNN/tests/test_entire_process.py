@@ -13,7 +13,7 @@ from torch import nn, optim
 from radioNN.networks.antenna_cnn_network import AntennaNetworkCNN
 from radioNN.networks.antenna_fc_network import AntennaNetworkFC
 from radioNN.networks.antenna_resnet_network import AntennaNetworkResNet
-from radioNN.process_network import NetworkProcess, train
+from radioNN.process_network import NetworkProcess
 
 # TODO: Write seperate tests for dataloader classes
 
