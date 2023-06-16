@@ -82,12 +82,12 @@ def one_shower_training(one_shower=1):
         optimizer,
         scheduler,
     ) = network_process_setup(one_shower=one_shower)
-    num_epochs = 100
+    num_epochs = 1000
 
     for epoch in tqdm.trange(num_epochs):
         train_loss = train(model, dataloader, criterion, optimizer, device)
         tqdm.tqdm.write(f"Epoch: {epoch + 1}/{num_epochs}, Loss: {train_loss}")
-        scheduler.step()
+        scheduler.step(train_loss)
 
     torch.save(model.state_dict(), "antenna_network.pth")
 

@@ -15,15 +15,19 @@ class EventDataCNN(nn.Module):
 
         self.conv_layers = nn.Sequential(
             nn.Conv1d(7, 32, self.kernel_size, padding=self.padding),
+            nn.BatchNorm1d(32),
             nn.ReLU(),
             nn.MaxPool1d(2),
             nn.Conv1d(32, 64, self.kernel_size, padding=self.padding),
+            nn.BatchNorm1d(64),
             nn.ReLU(),
             nn.MaxPool1d(2),
             nn.Conv1d(64, 128, self.kernel_size, padding=self.padding),
+            nn.BatchNorm1d(128),
             nn.ReLU(),
             nn.MaxPool1d(2),
             nn.Conv1d(128, 256, self.kernel_size, padding=self.padding),
+            nn.BatchNorm1d(256),
             nn.ReLU(),
             nn.MaxPool1d(2),
         )
@@ -31,6 +35,32 @@ class EventDataCNN(nn.Module):
     def forward(self, x):
         """Forward pass called when using model(data)."""
         x = self.conv_layers(x)
+        return x
+
+
+class EventDataCNNDeConv(nn.Module):
+    """CNN part of the AntennaNetwork."""
+
+    def __init__(self, input_channels, output_channels):
+        self.padding = 0
+        self.kernel_size = 1
+        super(EventDataCNNDeConv, self).__init__()
+
+        self.de_conv_layers = nn.Sequential(
+            nn.Conv1d(
+                input_channels, 32, self.kernel_size, padding=self.padding
+            ),
+            nn.BatchNorm1d(32),
+            nn.ReLU(),
+            nn.Conv1d(
+                32, output_channels, self.kernel_size, padding=self.padding
+            ),
+            nn.Sigmoid(),
+        )
+
+    def forward(self, x):
+        """Forward pass called when using model(data)."""
+        x = self.de_conv_layers(x)
         return x
 
 
@@ -61,12 +91,12 @@ class AntennaNetworkCNN(nn.Module):
             nn.Linear(10, 2),
         )
 
-        self.deconv = nn.Sequential(nn.ConvTranspose1d(2, output_channels, 1))
+        self.deconv = EventDataCNNDeConv(2, output_channels)
 
     def forward(self, event_data, meta_data, antenna_pos):
         """Forward pass which is called at model(data)."""
         event_data = self.event_data_cnn(event_data)
-        event_data = event_data.view(event_data.size(0), -1)
+        event_data = event_data.reshape(event_data.size(0), -1)
         combined_input = torch.cat((event_data, meta_data, antenna_pos), dim=1)
         combined_output = self.fc_layers(combined_input)
 
