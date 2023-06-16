@@ -33,3 +33,4 @@ def draw_graph():
     )
     dot.save(f"radio_nn.dot")
     dot.render(format="pdf")
+    print("Saved file to radio_nn.dot.pdf")

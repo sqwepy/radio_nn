@@ -73,11 +73,17 @@ def register_hooks(var):
                 val = getattr(function, attr)
                 attr = attr[len(SAVED_PREFIX) :]
                 if torch.is_tensor(val):
-                    attrs[attr] = f"[saved tensor] {torch.mean(val):.3e}"
+                    attrs[attr] = (
+                        f"[saved tensor] "
+                        f"{torch.mean(val, dtype=torch.float):.3e}"
+                    )
                 elif isinstance(val, tuple) and any(
                     torch.is_tensor(t) for t in val
                 ):
-                    attrs[attr] = f"[saved tensors] {torch.mean(val):.3e}"
+                    attrs[attr] = (
+                        f"[saved tensors] "
+                        f"{torch.mean(val, dtype=torch.float):.3e}"
+                    )
                 else:
                     attrs[attr] = val
             for i, grad_inp in enumerate(fn_dict_input[function]):
