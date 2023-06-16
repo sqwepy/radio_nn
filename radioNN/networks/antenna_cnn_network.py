@@ -89,6 +89,7 @@ class AntennaNetworkCNN(nn.Module):
             nn.Linear(10, 10),
             nn.ReLU(),
             nn.Linear(10, 2),
+            nn.Sigmoid(),
         )
 
         self.deconv = EventDataCNNDeConv(2, output_channels)

@@ -60,7 +60,7 @@ def train(model, dataloader, criterion, optimizer, device, loss_obj=False):
 
         loss_meta = criterion(pred_output_meta, output_meta)
         loss_output = criterion(pred_output, output)
-        loss = loss_meta + loss_output
+        loss = loss_output  # + loss_meta
 
         if loss_obj:
             return loss
