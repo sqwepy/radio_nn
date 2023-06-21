@@ -83,7 +83,7 @@ class NetworkProcess:
         print(self.output_channels)
         assert 2 <= self.output_channels <= 3
         self.model = AntennaNetworkResNet(self.output_channels).to(self.device)
-        self.criterion = nn.MSELoss()
+        self.criterion = nn.L1Loss()
         self.optimizer = optim.Adam(self.model.parameters(), lr=1e-1)
         self.scheduler = optim.lr_scheduler.ReduceLROnPlateau(
             self.optimizer, verbose=True
@@ -109,7 +109,7 @@ class NetworkProcess:
         running_loss = 0.0
         valid_batch_count = 0
 
-        for batch in tqdm.tqdm(self.dataloader, leave=False):
+        for batch in tqdm.autonotebook.tqdm(self.dataloader, leave=False):
             if batch is None:
                 tqdm.tqdm.write(f"Skipped batch {batch}")
                 continue
@@ -136,7 +136,7 @@ class NetworkProcess:
 
             loss_meta = self.criterion(pred_output_meta, output_meta)
             loss_output = self.criterion(pred_output, output)
-            loss = loss_output  # + loss_meta
+            loss = 10000*loss_output  # + loss_meta
 
             if loss_obj:
                 return loss
@@ -159,12 +159,13 @@ class NetworkProcess:
             self.antenna_pos_file,
             self.output_meta_file,
             self.output_file,
+            mmap_mode='r',
             one_shower=one_shower,
         )
         dataloader = DataLoader(
             one_sh_dataset,
             batch_size=len(one_sh_dataset),
-            shuffle=True,
+            shuffle=False,
             num_workers=4,
             collate_fn=custom_collate_fn,
         )
@@ -181,9 +182,9 @@ class NetworkProcess:
                 meta_data.to(self.device),
                 antenna_pos.to(self.device),
             )
+            with torch.no_grad():
+                pred_output_meta, pred_output = self.model(
+                    event_data, meta_data, antenna_pos
+                )
 
-            pred_output_meta, pred_output = self.model(
-                event_data, meta_data, antenna_pos
-            )
-
-            return pred_output_meta, pred_output
+            return pred_output_meta.cpu().numpy(), pred_output.cpu().numpy()
