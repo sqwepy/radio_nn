@@ -135,7 +135,7 @@ class NetworkProcess:
             )
 
             loss_meta = self.criterion(pred_output_meta, output_meta)
-            loss_output = self.criterion(pred_output, output)
+            loss_output = self.criterion(10*pred_output, 10*output)
             loss = 10000*loss_output  # + loss_meta
 
             if loss_obj:

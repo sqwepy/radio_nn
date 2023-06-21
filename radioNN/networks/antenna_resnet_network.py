@@ -97,15 +97,15 @@ class EventDataResCNN(nn.Module):
         self.relu = nn.ReLU(inplace=True)
         self.maxpool = nn.MaxPool1d(kernel_size=3, stride=2, padding=1)
         self.avgpool = nn.AdaptiveAvgPool1d(5)
-        self.layer1, inplanes = make_layer(BasicBlock, 64, 2)
+        self.layer1, inplanes = make_layer(BasicBlock, 64, 3)
         self.layer2, inplanes = make_layer(
-            BasicBlock, 128, 2, stride=2, inplanes=inplanes
+            BasicBlock, 128, 3, stride=2, inplanes=inplanes
         )
         self.layer3, inplanes = make_layer(
-            BasicBlock, 256, 2, stride=2, inplanes=inplanes
+            BasicBlock, 256, 3, stride=2, inplanes=inplanes
         )
         self.layer4, inplanes = make_layer(
-            BasicBlock, 512, 2, stride=2, inplanes=inplanes
+            BasicBlock, 512, 3, stride=2, inplanes=inplanes
         )
 
     def _forward_impl(self, x):
@@ -139,15 +139,15 @@ class EventDataCNNResDeConv(nn.Module):
         )
         self.bn1 = nn.BatchNorm1d(64)
         self.relu = nn.ReLU(inplace=True)
-        self.layer1, inplanes = make_layer(BasicBlock, 64, 2)
+        self.layer1, inplanes = make_layer(BasicBlock, 64, 3)
         self.layer2, inplanes = make_layer(
-            BasicBlock, 128, 2, stride=1, inplanes=inplanes
+            BasicBlock, 128, 3, stride=1, inplanes=inplanes
         )
         self.layer3, inplanes = make_layer(
-            BasicBlock, 256, 2, stride=1, inplanes=inplanes
+            BasicBlock, 256, 3, stride=1, inplanes=inplanes
         )
         self.layer4, inplanes = make_layer(
-            BasicBlock, 512, 2, stride=1, inplanes=inplanes
+            BasicBlock, 512, 3, stride=1, inplanes=inplanes
         )
         self.conv2 = nn.Conv1d(512, output_channels, 1)
 
@@ -181,15 +181,22 @@ class AntennaNetworkResNet(nn.Module):
             nn.ReLU(),
             nn.Linear(1024, 512),
             nn.ReLU(),
-            nn.Linear(512, 256 * 2 + 2),
+            nn.Linear(512, 256 * 2),
         )
 
         self.fc_meta = nn.Sequential(
-            nn.Linear(2, 10),
+            nn.Linear(512, 256),
             nn.ReLU(),
-            nn.Linear(10, 10),
+            nn.Linear(256, 128),
             nn.ReLU(),
-            nn.Linear(10, 2),
+            nn.Linear(128, 64),
+            nn.ReLU(),
+            nn.Linear(64, 32),
+            nn.ReLU(),
+            nn.Linear(32, 16),
+            nn.ReLU(),
+            nn.Linear(16, 2),
+            nn.ReLU(),
         )
 
         self.deconv = EventDataCNNResDeConv(2, output_channels)
@@ -202,9 +209,8 @@ class AntennaNetworkResNet(nn.Module):
         combined_output = self.fc_layers(combined_input)
 
         # Separate the output
-        antenna_output_meta = combined_output[:, :2]
-        antenna_output_meta = self.fc_meta(antenna_output_meta)
-        antenna_output = combined_output[:, 2:].reshape(-1, 2, 256)
+        antenna_output_meta = self.fc_meta(combined_output)
+        antenna_output = combined_output.reshape(-1, 2, 256)
         antenna_output = self.deconv(antenna_output)
         antenna_output = torch.swapaxes(antenna_output, 1, 2)
         return antenna_output_meta, antenna_output
