@@ -10,6 +10,7 @@ import numpy as np
 import torch
 from torch import nn, optim
 
+from antenna_skipfc_network import AntennaNetworkSkipFC
 from radioNN.networks.antenna_cnn_network import AntennaNetworkCNN
 from radioNN.networks.antenna_fc_network import AntennaNetworkFC
 from radioNN.networks.antenna_resnet_network import AntennaNetworkResNet
@@ -70,6 +71,14 @@ class TestOneShower(ProcessTest, unittest.TestCase):
         train_loss = self.process.train()
         self.assertTrue(np.isfinite(train_loss))
 
+    def test_training_skipfc(self):
+        """Test Training."""
+        self.process.model = AntennaNetworkSkipFC(
+            self.process.output_channels
+        ).to("cpu")
+        train_loss = self.process.train()
+        self.assertTrue(np.isfinite(train_loss))
+
     def test_training_resnet(self):
         """Test Training."""
         self.process.model = AntennaNetworkResNet(
@@ -102,6 +111,14 @@ class TestSmallDataset(ProcessTest, unittest.TestCase):
     def test_training_resnet(self):
         """Test Training."""
         self.process.model = AntennaNetworkResNet(
+            self.process.output_channels
+        ).to("cpu")
+        train_loss = self.process.train()
+        self.assertTrue(np.isfinite(train_loss))
+
+    def test_training_skipfc(self):
+        """Test Training."""
+        self.process.model = AntennaNetworkSkipFC(
             self.process.output_channels
         ).to("cpu")
         train_loss = self.process.train()
