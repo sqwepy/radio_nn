@@ -14,7 +14,7 @@ def draw_graph():
     """
     import radioNN.tests.bad_grad_viz as bgv
 
-    process = NetworkProcess(percentage=0.01)
+    process = NetworkProcess(one_shower=33)
 
     _ = process.train()
     loss = process.train(loss_obj=True)
