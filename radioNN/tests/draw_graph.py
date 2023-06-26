@@ -16,7 +16,7 @@ def draw_graph():
 
     process = NetworkProcess(one_shower=33)
 
-    _ = process.train()
+    # _ = process.train()
     loss = process.train(loss_obj=True)
     get_dot = bgv.register_hooks(loss)
     loss.backward(retain_graph=True)
