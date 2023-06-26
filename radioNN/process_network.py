@@ -83,12 +83,12 @@ class NetworkProcess:
         print(self.output_channels)
         assert 2 <= self.output_channels <= 3
         self.model = AntennaNetworkFC(self.output_channels).to(self.device)
-        self.criterion = nn.MSELoss()
-        self.optimizer = optim.Adam(self.model.parameters(), lr=1e-1)
-        self.scheduler = optim.lr_scheduler.ReduceLROnPlateau(
+        self.criterion = nn.L1Loss()
+        self.optimizer = optim.Adam(self.model.parameters(), lr=1e-3)
+        self.scheduler = optim.lr_scheduler.MultiStepLR(
             self.optimizer,
+            milestones=[100, 300, 700, 1300],
             verbose=True,
-            eps=1e-6,
         )
 
     def train(self, loss_obj=False):
@@ -138,7 +138,7 @@ class NetworkProcess:
 
             loss_meta = self.criterion(pred_output_meta, output_meta)
             loss_output = self.criterion(250 * pred_output, 250 * output)
-            loss = 10000 * loss_output  # + loss_meta
+            loss = loss_output  # + loss_meta
 
             if loss_obj:
                 return loss

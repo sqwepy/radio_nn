@@ -10,7 +10,7 @@ import numpy as np
 import torch
 from torch import nn, optim
 
-from antenna_skipfc_network import AntennaNetworkSkipFC
+from radioNN.networks.antenna_skipfc_network import AntennaNetworkSkipFC
 from radioNN.networks.antenna_cnn_network import AntennaNetworkCNN
 from radioNN.networks.antenna_fc_network import AntennaNetworkFC
 from radioNN.networks.antenna_resnet_network import AntennaNetworkResNet

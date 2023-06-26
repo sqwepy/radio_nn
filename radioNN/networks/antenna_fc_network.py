@@ -12,51 +12,46 @@ class AntennaNetworkFC(nn.Module):
         input_sequence_size = 7 * 300
 
         self.fc_layers_encode = nn.Sequential(
-            nn.Linear(input_sequence_size + 12 + 3, 1024),
+            nn.Linear(3, 40),
             nn.LeakyReLU(),
-            nn.Linear(1024, 1024),
+            nn.Linear(40, 160),
             nn.LeakyReLU(),
-            nn.Linear(1024, 1024),
+            nn.Linear(160, 512),
             nn.LeakyReLU(),
-            nn.Linear(1024, 512),
+            nn.Linear(512, 256 * 2),
             nn.LeakyReLU(),
-            nn.Linear(512, 256 * 2 + 2),
-            nn.Sigmoid(),
         )
 
         self.fc_meta = nn.Sequential(
-            nn.Linear(2, 10),
-            nn.LeakyReLU(),
-            nn.Linear(10, 10),
-            nn.LeakyReLU(),
-            nn.Linear(10, 10),
-            nn.LeakyReLU(),
-            nn.Linear(10, 2),
+            nn.Linear(512, 256),
+            nn.ReLU(),
+            nn.Linear(256, 128),
+            nn.ReLU(),
+            nn.Linear(128, 64),
+            nn.ReLU(),
+            nn.Linear(64, 32),
+            nn.ReLU(),
+            nn.Linear(32, 16),
+            nn.ReLU(),
+            nn.Linear(16, 2),
         )
 
         self.fc_layers_decode = nn.Sequential(
-            nn.Linear(256 * 2, 512),
-            nn.LeakyReLU(),
-            nn.Linear(512, 1024),
-            nn.LeakyReLU(),
-            nn.Linear(1024, 1024),
+            nn.Linear(256 * 2, 1024),
             nn.LeakyReLU(),
             nn.Linear(1024, 1024),
             nn.LeakyReLU(),
             nn.Linear(1024, 256 * output_channels),
-            nn.Sigmoid(),
         )
 
     def forward(self, event_data, meta_data, antenna_pos):
         """Forward pass which is called at model(data)."""
         event_data = event_data.reshape(event_data.size(0), -1)
         combined_input = torch.cat((event_data, meta_data, antenna_pos), dim=1)
-        combined_output = self.fc_layers_encode(combined_input)
+        combined_output = self.fc_layers_encode(antenna_pos / 250)
 
         # Separate the output
-        antenna_output_meta = combined_output[:, :2]
-        antenna_output_meta = self.fc_meta(antenna_output_meta)
-        antenna_output = combined_output[:, 2:]
-        antenna_output = self.fc_layers_decode(antenna_output)
+        antenna_output_meta = self.fc_meta(combined_output)
+        antenna_output = self.fc_layers_decode(combined_output)
         antenna_output = antenna_output.reshape(-1, 256, 2)
         return antenna_output_meta, antenna_output
