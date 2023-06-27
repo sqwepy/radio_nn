@@ -118,8 +118,11 @@ class AntennaDataset(Dataset):
         meta_data = torch.tensor(
             self.input_meta[event_idx], dtype=torch.float32
         )[1:]
+        meta_data[2] = meta_data[2] / 100
+        meta_data[3] = torch.log(meta_data[3])
         meta_data[4] = torch.log(meta_data[4])
         meta_data[5] = torch.log(meta_data[5])
+        meta_data[10] = meta_data[10] / 5000
         meta_data[11] = torch.log(meta_data[11])
 
         antenna_pos = torch.tensor(
@@ -139,10 +142,19 @@ class AntennaDataset(Dataset):
 
     def data_of_single_shower(self, one_shower):
         one_shower_event_idx = one_shower
+        inp_d = np.log(self.input_data[one_shower_event_idx, :, 4:] + 1e-14)
+        outp_m = self.output_meta[one_shower_event_idx, :]
+        inp_m = np.copy(self.input_meta[one_shower_event_idx])
+        inp_m[2] = inp_m[2] / 100
+        inp_m[3] = np.log(inp_m[3])
+        inp_m[4] = np.log(inp_m[4])
+        inp_m[5] = np.log(inp_m[5])
+        inp_m[10] = inp_m[10] / 5000
+        inp_m[11] = np.log(inp_m[11])
         return (
-            self.input_data[one_shower_event_idx, :, 4:],
-            self.input_meta[one_shower_event_idx],
+            inp_d,
+            inp_m[1:],
             self.antenna_pos[one_shower_event_idx, :],
-            self.output_meta[one_shower_event_idx, :],
+            np.sign(outp_m) * np.log(np.abs(outp_m) + 1e-14),
             self.output[one_shower_event_idx, :],
         )
