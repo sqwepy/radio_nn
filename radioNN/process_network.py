@@ -15,7 +15,9 @@ from radioNN.networks.antenna_fc_network import AntennaNetworkFC
 
 
 class NetworkProcess:
-    def __init__(self, percentage=100, one_shower=None):
+    def __init__(
+        self, percentage=100, one_shower=None, model_class=AntennaNetworkFC
+    ):
         """
         Create the classes to be processed while training the network.
 
@@ -82,12 +84,13 @@ class NetworkProcess:
         self.output_channels = self.dataset.output.shape[-1]
         print(self.output_channels)
         assert 2 <= self.output_channels <= 3
-        self.model = AntennaNetworkFC(self.output_channels).to(self.device)
+        print(f"Using {model_class}")
+        self.model = model_class(self.output_channels).to(self.device)
         self.criterion = nn.L1Loss()
         self.optimizer = optim.Adam(self.model.parameters(), lr=1e-3)
-        self.scheduler = optim.lr_scheduler.MultiStepLR(
+        self.scheduler = optim.lr_scheduler.StepLR(
             self.optimizer,
-            milestones=[100, 300, 700, 1300],
+            50,
             verbose=True,
         )
 

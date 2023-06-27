@@ -1,6 +1,8 @@
 """
 Draw graph of the radio network
 """
+from radioNN.networks.antenna_resnet_network import AntennaNetworkResNet
+from radioNN.networks.antenna_skipfc_network import AntennaNetworkSkipFC
 from radioNN.process_network import NetworkProcess
 
 
@@ -14,9 +16,9 @@ def draw_graph():
     """
     import radioNN.tests.bad_grad_viz as bgv
 
-    process = NetworkProcess(one_shower=33)
+    process = NetworkProcess(one_shower=33, model_class=AntennaNetworkResNet)
 
-    # _ = process.train()
+    _ = process.train()
     loss = process.train(loss_obj=True)
     get_dot = bgv.register_hooks(loss)
     loss.backward(retain_graph=True)

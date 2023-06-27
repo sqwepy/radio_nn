@@ -97,15 +97,15 @@ class EventDataResCNN(nn.Module):
         self.relu = nn.ReLU(inplace=True)
         self.maxpool = nn.MaxPool1d(kernel_size=3, stride=2, padding=1)
         self.avgpool = nn.AdaptiveAvgPool1d(5)
-        self.layer1, inplanes = make_layer(BasicBlock, 64, 4)
+        self.layer1, inplanes = make_layer(BasicBlock, 64, 2)
         self.layer2, inplanes = make_layer(
-            BasicBlock, 128, 4, stride=2, inplanes=inplanes
+            BasicBlock, 128, 2, stride=2, inplanes=inplanes
         )
         self.layer3, inplanes = make_layer(
-            BasicBlock, 256, 8, stride=2, inplanes=inplanes
+            BasicBlock, 256, 2, stride=2, inplanes=inplanes
         )
         self.layer4, inplanes = make_layer(
-            BasicBlock, 512, 8, stride=2, inplanes=inplanes
+            BasicBlock, 512, 2, stride=2, inplanes=inplanes
         )
 
     def _forward_impl(self, x):
@@ -139,15 +139,15 @@ class EventDataCNNResDeConv(nn.Module):
         )
         self.bn1 = nn.BatchNorm1d(64)
         self.relu = nn.ReLU(inplace=True)
-        self.layer1, inplanes = make_layer(BasicBlock, 64, 8)
+        self.layer1, inplanes = make_layer(BasicBlock, 64, 2)
         self.layer2, inplanes = make_layer(
-            BasicBlock, 128, 8, stride=1, inplanes=inplanes
+            BasicBlock, 128, 2, stride=1, inplanes=inplanes
         )
         self.layer3, inplanes = make_layer(
-            BasicBlock, 256, 4, stride=1, inplanes=inplanes
+            BasicBlock, 256, 2, stride=1, inplanes=inplanes
         )
         self.layer4, inplanes = make_layer(
-            BasicBlock, 512, 4, stride=1, inplanes=inplanes
+            BasicBlock, 512, 2, stride=1, inplanes=inplanes
         )
         self.conv2 = nn.Conv1d(512, output_channels, 1)
 

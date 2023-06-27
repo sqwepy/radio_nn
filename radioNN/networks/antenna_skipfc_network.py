@@ -37,7 +37,7 @@ class AntennaNetworkSkipFC(nn.Module):
             nn.LeakyReLU(),
             SkipBlock(512, 5),
             nn.Linear(512, 256 * 2),
-            nn.Sigmoid(),
+            nn.LeakyReLU(),
         )
 
         self.fc_meta = nn.Sequential(
@@ -63,7 +63,6 @@ class AntennaNetworkSkipFC(nn.Module):
             nn.LeakyReLU(),
             SkipBlock(1024, 5),
             nn.Linear(1024, 256 * output_channels),
-            nn.Sigmoid(),
         )
 
     def forward(self, event_data, meta_data, antenna_pos):
