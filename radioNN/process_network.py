@@ -76,7 +76,7 @@ class NetworkProcess:
         )
         self.dataloader = DataLoader(
             self.dataset,
-            batch_size=64,
+            batch_size=1,
             shuffle=True,
             num_workers=4,
             collate_fn=custom_collate_fn,
