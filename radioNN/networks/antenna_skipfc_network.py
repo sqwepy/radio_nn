@@ -30,12 +30,18 @@ class AntennaNetworkSkipFC(nn.Module):
         input_sequence_size = 7 * 300
 
         self.fc_layers_encode = nn.Sequential(
-            nn.Linear(input_sequence_size + 12 + 3, 1024),
+            nn.Linear(3, 64),
             nn.LeakyReLU(),
-            SkipBlock(1024, 5),
+            nn.Linear(64, 128),
+            nn.LeakyReLU(),
+            nn.Linear(128, 512),
+            nn.LeakyReLU(),
+            nn.Linear(512, 1024),
+            nn.LeakyReLU(),
+            SkipBlock(1024, 2),
             nn.Linear(1024, 512),
             nn.LeakyReLU(),
-            SkipBlock(512, 5),
+            SkipBlock(512, 2),
             nn.Linear(512, 256 * 2),
             nn.LeakyReLU(),
         )
@@ -58,10 +64,12 @@ class AntennaNetworkSkipFC(nn.Module):
         self.fc_layers_decode = nn.Sequential(
             nn.Linear(256 * 2, 512),
             nn.LeakyReLU(),
-            SkipBlock(512, 5),
+            SkipBlock(512, 2),
             nn.Linear(512, 1024),
             nn.LeakyReLU(),
-            SkipBlock(1024, 5),
+            SkipBlock(1024, 2),
+            nn.Linear(1024, 1024),
+            nn.LeakyReLU(),
             nn.Linear(1024, 256 * output_channels),
         )
 
@@ -69,7 +77,7 @@ class AntennaNetworkSkipFC(nn.Module):
         """Forward pass which is called at model(data)."""
         event_data = event_data.reshape(event_data.size(0), -1)
         combined_input = torch.cat((event_data, meta_data, antenna_pos), dim=1)
-        combined_output = self.fc_layers_encode(combined_input)
+        combined_output = self.fc_layers_encode(antenna_pos)
 
         # Separate the output
         antenna_output_meta = self.fc_meta(combined_output)

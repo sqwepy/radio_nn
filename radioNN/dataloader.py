@@ -111,9 +111,14 @@ class AntennaDataset(Dataset):
             antenna_idx = selected_idx % self.antenna_pos.shape[1]
 
         # TODO: Check how much data we need to give here
-        event_data = torch.log(
-            torch.tensor(self.input_data[event_idx, :, 4:], dtype=torch.float32)
-            + 1e-14
+        event_data = (
+            torch.log(
+                torch.tensor(
+                    self.input_data[event_idx, :, 4:], dtype=torch.float32
+                )
+                + 1e-14
+            )
+            / 30
         )
         meta_data = torch.tensor(
             self.input_meta[event_idx], dtype=torch.float32
@@ -138,9 +143,10 @@ class AntennaDataset(Dataset):
             self.output[event_idx, antenna_idx], dtype=torch.float32
         )
 
-        return event_data, meta_data, antenna_pos, output_meta, output
+        return event_data, meta_data / 20, antenna_pos, output_meta, output
 
     def data_of_single_shower(self, one_shower):
+        # TODO: Seperate the preprocessing into seperate function
         one_shower_event_idx = one_shower
         inp_d = np.log(self.input_data[one_shower_event_idx, :, 4:] + 1e-14)
         outp_m = self.output_meta[one_shower_event_idx, :]
@@ -152,8 +158,8 @@ class AntennaDataset(Dataset):
         inp_m[10] = inp_m[10] / 5000
         inp_m[11] = np.log(inp_m[11])
         return (
-            inp_d,
-            inp_m[1:],
+            inp_d / 30,
+            inp_m[1:] / 20,
             self.antenna_pos[one_shower_event_idx, :],
             np.sign(outp_m) * np.log(np.abs(outp_m) + 1e-14),
             self.output[one_shower_event_idx, :],
