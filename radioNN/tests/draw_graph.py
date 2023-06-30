@@ -16,7 +16,7 @@ def draw_graph():
     """
     import radioNN.tests.bad_grad_viz as bgv
 
-    process = NetworkProcess(one_shower=33, model_class=AntennaNetworkResNet)
+    process = NetworkProcess(one_shower=33, model_class=AntennaNetworkSkipFC)
 
     _ = process.train()
     loss = process.train(loss_obj=True)

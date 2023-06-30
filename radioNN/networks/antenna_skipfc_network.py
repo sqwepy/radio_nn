@@ -76,7 +76,8 @@ class AntennaNetworkSkipFC(nn.Module):
     def forward(self, event_data, meta_data, antenna_pos):
         """Forward pass which is called at model(data)."""
         event_data = event_data.reshape(event_data.size(0), -1)
-        combined_input = torch.cat((event_data, meta_data, antenna_pos), dim=1)
+        print(meta_data)
+        # combined_input = torch.cat((antenna_pos), dim=1)
         combined_output = self.fc_layers_encode(antenna_pos)
 
         # Separate the output

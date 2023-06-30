@@ -12,11 +12,11 @@ class AntennaNetworkFC(nn.Module):
         input_sequence_size = 7 * 300
 
         self.fc_layers_encode = nn.Sequential(
-            nn.Linear(3, 40),
+            nn.Linear(3, 64),
             nn.LeakyReLU(),
-            nn.Linear(40, 160),
+            nn.Linear(64, 128),
             nn.LeakyReLU(),
-            nn.Linear(160, 512),
+            nn.Linear(128, 512),
             nn.LeakyReLU(),
             nn.Linear(512, 256 * 2),
             nn.LeakyReLU(),
@@ -48,7 +48,7 @@ class AntennaNetworkFC(nn.Module):
         """Forward pass which is called at model(data)."""
         event_data = event_data.reshape(event_data.size(0), -1)
         combined_input = torch.cat((event_data, meta_data, antenna_pos), dim=1)
-        combined_output = self.fc_layers_encode(antenna_pos / 250)
+        combined_output = self.fc_layers_encode(antenna_pos)
 
         # Separate the output
         antenna_output_meta = self.fc_meta(combined_output)

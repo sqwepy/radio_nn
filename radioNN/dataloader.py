@@ -160,7 +160,7 @@ class AntennaDataset(Dataset):
         return (
             inp_d / 30,
             inp_m[1:] / 20,
-            self.antenna_pos[one_shower_event_idx, :],
+            self.antenna_pos[one_shower_event_idx, :] / 250,
             np.sign(outp_m) * np.log(np.abs(outp_m) + 1e-14),
             self.output[one_shower_event_idx, :],
         )
