@@ -111,14 +111,10 @@ class AntennaDataset(Dataset):
             antenna_idx = selected_idx % self.antenna_pos.shape[1]
 
         # TODO: Check how much data we need to give here
-        event_data = (
-            torch.log(
-                torch.tensor(
-                    self.input_data[event_idx, :, 4:], dtype=torch.float32
-                )
-                + 1e-14
-            )
-            / 30
+        # TODO: Seperate this into seperate internal function, this is repeated in many places.
+        event_data = torch.log(
+            torch.tensor(self.input_data[event_idx, :, 4:], dtype=torch.float32)
+            + 1e-14
         )
         meta_data = torch.tensor(
             self.input_meta[event_idx], dtype=torch.float32
@@ -164,3 +160,49 @@ class AntennaDataset(Dataset):
             np.sign(outp_m) * np.log(np.abs(outp_m) + 1e-14),
             self.output[one_shower_event_idx, :],
         )
+
+    def return_data(self, percentage=None):
+        if percentage is not None:
+            num_samples = int(self.total_events * percentage / 100)
+            indices = np.sort(
+                np.random.choice(
+                    np.arange(self.total_events),
+                    size=num_samples,
+                    replace=False,
+                )
+            )
+        else:
+            indices = self.indices
+
+        selected_idx = indices
+        event_idx = selected_idx // self.antenna_pos.shape[1]
+        antenna_idx = selected_idx % self.antenna_pos.shape[1]
+
+        event_data = torch.log(
+            torch.tensor(self.input_data[event_idx, :, 4:], dtype=torch.float32)
+            + 1e-14
+        )
+        meta_data = torch.tensor(
+            self.input_meta[event_idx], dtype=torch.float32
+        )[1:]
+        meta_data[2] = meta_data[2] / 100
+        meta_data[3] = torch.log(meta_data[3])
+        meta_data[4] = torch.log(meta_data[4])
+        meta_data[5] = torch.log(meta_data[5])
+        meta_data[10] = meta_data[10] / 5000
+        meta_data[11] = torch.log(meta_data[11])
+
+        antenna_pos = torch.tensor(
+            self.antenna_pos[event_idx, antenna_idx], dtype=torch.float32
+        )
+        output_meta = torch.tensor(
+            self.output_meta[event_idx, antenna_idx], dtype=torch.float32
+        )
+        output_meta = torch.sign(output_meta) * torch.log(
+            torch.abs(output_meta) + 1e-14
+        )
+        output = torch.tensor(
+            self.output[event_idx, antenna_idx], dtype=torch.float32
+        )
+
+        return event_data, meta_data, antenna_pos, output_meta, output

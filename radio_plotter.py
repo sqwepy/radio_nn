@@ -341,6 +341,9 @@ def plot_fluence_maps(
         which data to plot from source file
     interp:
         interpolate the intermediate points when plotting fluences
+    hack: Bool
+        Skipping along sin(theta) == 0 to make sure fluence map look pretty for ge and ce
+        This is a hack since our way of calculating ge and ce isnt defined along sin == 0
 
     Returns
     -------
