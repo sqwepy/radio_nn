@@ -14,9 +14,27 @@ from radioNN.networks.antenna_cnn_network import AntennaNetworkCNN
 from radioNN.networks.antenna_fc_network import AntennaNetworkFC
 
 
+def fit_plane_and_return_3d_grid(pos):
+    import numpy as np
+    from scipy.sparse.linalg import lsqr
+
+    design_matrix = np.ones_like(pos)
+    design_matrix[:, :2] = pos[:, :2]
+    fit = lsqr(design_matrix, pos[:, 2])[0]
+    xs = np.linspace(np.min(pos[:, 0]), np.max(pos[:, 0]), 100)
+    ys = np.linspace(np.min(pos[:, 1]), np.max(pos[:, 1]), 100)
+    X, Y = np.meshgrid(xs, ys)
+    Z = fit[0] * X + fit[1] * Y + fit[2]
+    return np.dstack([X, Y, Z]).reshape(-1, 3)
+
+
 class NetworkProcess:
     def __init__(
-        self, percentage=100, one_shower=None, model_class=AntennaNetworkFC
+        self,
+        percentage=100,
+        one_shower=None,
+        model_class=AntennaNetworkFC,
+        batch_size=4,
     ):
         """
         Create the classes to be processed while training the network.
@@ -76,7 +94,7 @@ class NetworkProcess:
         )
         self.dataloader = DataLoader(
             self.dataset,
-            batch_size=4,
+            batch_size=batch_size,
             shuffle=True,
             num_workers=4,
             collate_fn=custom_collate_fn,
@@ -88,9 +106,8 @@ class NetworkProcess:
         self.model = model_class(self.output_channels).to(self.device)
         self.criterion = nn.L1Loss()
         self.optimizer = optim.Adam(self.model.parameters(), lr=1e-3)
-        self.scheduler = optim.lr_scheduler.StepLR(
+        self.scheduler = optim.lr_scheduler.ReduceLROnPlateau(
             self.optimizer,
-            50,
             verbose=True,
         )
 
@@ -158,6 +175,7 @@ class NetworkProcess:
         return running_loss / valid_batch_count
 
     def pred_one_shower(self, one_shower):
+        # TODO : Use dataloader.return_single_shower
         one_sh_dataset = AntennaDataset(
             self.input_data_file,
             self.input_meta_file,
@@ -190,6 +208,61 @@ class NetworkProcess:
             with torch.no_grad():
                 pred_output_meta, pred_output = self.model(
                     event_data, meta_data, antenna_pos
+                )
+
+            return pred_output_meta.cpu().numpy(), pred_output.cpu().numpy()
+
+    def pred_one_shower_entire_array(self, one_shower):
+        # TODO : Use dataloader.return_single_shower
+        one_sh_dataset = AntennaDataset(
+            self.input_data_file,
+            self.input_meta_file,
+            self.antenna_pos_file,
+            self.output_meta_file,
+            self.output_file,
+            mmap_mode="r",
+            one_shower=one_shower,
+        )
+        dataloader = DataLoader(
+            one_sh_dataset,
+            batch_size=len(one_sh_dataset),
+            shuffle=False,
+            num_workers=4,
+            collate_fn=custom_collate_fn,
+        )
+        assert len(dataloader) == 1
+        for batch in dataloader:
+            if batch is None:
+                raise RuntimeError("Not a valid Shower {one_shower}")
+
+            event_data, meta_data, antenna_pos, output_meta, output = batch
+            # TODO: Fix it in the input file and stop swapaxes.
+            antenna_pos = torch.Tensor(
+                fit_plane_and_return_3d_grid(antenna_pos.cpu().numpy())
+            )
+            event_data = torch.swapaxes(event_data, 1, 2)
+            assert torch.all(event_data == event_data[0])
+            assert torch.all(meta_data == meta_data[0])
+            event_data, meta_data, antenna_pos = (
+                event_data.to(self.device),
+                meta_data.to(self.device),
+                antenna_pos.to(self.device),
+            )
+            print(event_data.shape)
+            print(
+                event_data[0]
+                .expand(antenna_pos.shape[0], *event_data[0].shape)
+                .shape
+            )
+            with torch.no_grad():
+                pred_output_meta, pred_output = self.model(
+                    event_data[0].expand(
+                        antenna_pos.shape[0], *event_data[0].shape
+                    ),
+                    meta_data[0].expand(
+                        antenna_pos.shape[0], *meta_data[0].shape
+                    ),
+                    antenna_pos,
                 )
 
             return pred_output_meta.cpu().numpy(), pred_output.cpu().numpy()
