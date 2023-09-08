@@ -6,6 +6,7 @@ import torch
 from torch.utils.data import Dataset
 from torch.utils.data.dataloader import default_collate
 
+from radioNN.data_filters import default_filter
 from radioNN.data_transforms import Identity, DefaultTransform
 
 
@@ -34,7 +35,13 @@ def custom_collate_fn(batch):
 
         has_non_zero_meta_data = (meta_data[0] != 0) and (meta_data[2] != 0)
 
-        if is_finite and has_non_zero_meta_data:
+        if (
+            is_finite
+            and has_non_zero_meta_data
+            and default_filter(
+                event_data, meta_data, antenna_pos, output_meta, output
+            )
+        ):
             filtered_batch.append(
                 (event_data, meta_data, antenna_pos, output_meta, output)
             )
@@ -84,24 +91,28 @@ class AntennaDataset(Dataset):
         self.output = np.load(output_file, mmap_mode=mmap_mode)
         self.percentage = percentage
         self.one_shower = one_shower
+
         if transform is not None:
             self.transform = transform()
         else:
             self.transform = Identity()
+
         if self.one_shower is not None:
             self.total_events = 1 * self.antenna_pos.shape[1]
         else:
             self.total_events = (
                 self.input_data.shape[0] * self.antenna_pos.shape[1]
             )
-            num_samples = int(self.total_events * self.percentage / 100)
-            self.indices = np.sort(
-                np.random.choice(
-                    np.arange(self.total_events),
-                    size=num_samples,
-                    replace=False,
-                )
+            num_samples = int(self.input_data.shape[0] * self.percentage / 100)
+            shower_indices = np.random.choice(
+                np.arange(self.input_data.shape[0]),
+                size=num_samples,
+                replace=False,
             )
+            indices = np.repeat(shower_indices, 240) * 240 + np.tile(
+                np.arange(240), shower_indices.shape[0]
+            )
+            self.indices = np.sort(indices)
 
     def __len__(self):
         if self.one_shower is not None:
