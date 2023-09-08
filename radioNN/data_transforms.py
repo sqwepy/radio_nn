@@ -22,7 +22,6 @@ class DefaultTransform:
         elif isinstance(event_data, torch.Tensor):
             module = torch
         event_data = module.log(event_data[:, 4:] + 1e-14)
-        meta_data = meta_data[1:]
         meta_data[2] = meta_data[2] / 100
         meta_data[3] = module.log(meta_data[3])
         meta_data[4] = meta_data[4] / 30000  # from 1% data, we see this is
@@ -31,6 +30,7 @@ class DefaultTransform:
         meta_data[10] = meta_data[10] / 5000
         meta_data[11] = module.log(meta_data[11])
 
+        meta_data = meta_data[1:]
         output_meta = module.sign(output_meta) * module.log(
             module.abs(output_meta) + 1e-14
         )
