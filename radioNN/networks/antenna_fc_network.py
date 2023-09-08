@@ -18,6 +18,8 @@ class AntennaNetworkFC(nn.Module):
             nn.LeakyReLU(),
             nn.Linear(128, 512),
             nn.LeakyReLU(),
+            nn.Linear(512, 512),
+            nn.LeakyReLU(),
             nn.Linear(512, 256 * 2),
             nn.LeakyReLU(),
         )
@@ -38,6 +40,8 @@ class AntennaNetworkFC(nn.Module):
 
         self.fc_layers_decode = nn.Sequential(
             nn.Linear(256 * 2, 1024),
+            nn.LeakyReLU(),
+            nn.Linear(1024, 1024),
             nn.LeakyReLU(),
             nn.Linear(1024, 1024),
             nn.LeakyReLU(),
