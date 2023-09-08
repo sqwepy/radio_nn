@@ -109,6 +109,7 @@ class NetworkProcess:
         self.scheduler = optim.lr_scheduler.ReduceLROnPlateau(
             self.optimizer,
             verbose=True,
+            eps=1e-12,
         )
 
     def train(self, loss_obj=False):
@@ -151,7 +152,6 @@ class NetworkProcess:
             )
 
             self.optimizer.zero_grad()
-
             pred_output_meta, pred_output = self.model(
                 event_data, meta_data, antenna_pos
             )
