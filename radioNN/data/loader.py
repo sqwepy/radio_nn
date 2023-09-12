@@ -6,8 +6,8 @@ import torch
 from torch.utils.data import Dataset
 from torch.utils.data.dataloader import default_collate
 
-from radioNN.data_filters import DefaultFilter
-from radioNN.data_transforms import Identity, DefaultTransform
+from radioNN.data.filters import DefaultFilter
+from radioNN.data.transforms import Identity, DefaultTransform
 
 
 def custom_collate_fn(batch):

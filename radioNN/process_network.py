@@ -10,9 +10,7 @@ from torch import nn, optim
 from torch.utils.data import DataLoader
 import wandb
 
-from radioNN.networks.antenna_resnet_network import AntennaNetworkResNet
-from radioNN.dataloader import AntennaDataset, custom_collate_fn
-from radioNN.networks.antenna_cnn_network import AntennaNetworkCNN
+from radioNN.data.loader import AntennaDataset, custom_collate_fn
 from radioNN.networks.antenna_fc_network import AntennaNetworkFC
 
 
