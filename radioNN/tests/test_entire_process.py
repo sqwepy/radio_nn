@@ -32,7 +32,9 @@ class ProcessTest(unittest.TestCase):
 
         """
         self.process = NetworkProcess(
-            percentage=percentage, one_shower=one_shower
+            percentage=percentage,
+            one_shower=one_shower,
+            wb=False,
         )
         for batch in tqdm.tqdm(self.process.dataloader):
             if batch is None:

@@ -125,7 +125,10 @@ class NetworkProcess:
                 save_code=True,
                 group=type(self.model).__name__,
             )
-            os.mkdir(f"./runs/{self.log_dir}")
+            try:
+                os.mkdir(f"./runs/{self.log_dir}")
+            except FileExistsError:
+                pass
             wandb.watch(self.model)
 
     def send_wandb_data(self, epoch, train_loss):
@@ -237,7 +240,7 @@ class NetworkProcess:
         assert len(dataloader) == 1
         for batch in dataloader:
             if batch is None:
-                raise RuntimeError("Not a valid Shower {one_shower}")
+                raise RuntimeError(f"Not a valid Shower {one_shower}")
 
             event_data, meta_data, antenna_pos, output_meta, output = batch
             # TODO: Fix it in the input file and stop swapaxes.
