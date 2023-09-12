@@ -153,7 +153,6 @@ class AntennaDataset(Dataset):
         one_shower_event_idx = one_shower
         inp_d = self.input_data[one_shower_event_idx]
         inp_m = np.copy(self.input_meta[one_shower_event_idx])
-        print(inp_m[0])
         ant_pos = self.antenna_pos[one_shower_event_idx, :]
         outp_m = self.output_meta[one_shower_event_idx]
         outp_d = self.output[one_shower_event_idx]
@@ -191,7 +190,9 @@ class AntennaDataset(Dataset):
             output,
         ) = self.transform(
             torch.tensor(self.input_data[event_idx], dtype=torch.float32),
-            torch.tensor(self.input_meta[event_idx], dtype=torch.float32),
+            torch.tensor(
+                np.copy(self.input_meta[event_idx]), dtype=torch.float32
+            ),
             torch.tensor(
                 self.antenna_pos[event_idx, antenna_idx], dtype=torch.float32
             ),

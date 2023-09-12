@@ -2,11 +2,13 @@
 Process network class which takes of setup training and inference
 """
 import os
+from datetime import datetime
 
 import tqdm
 import torch
 from torch import nn, optim
 from torch.utils.data import DataLoader
+import wandb
 
 from radioNN.networks.antenna_resnet_network import AntennaNetworkResNet
 from radioNN.dataloader import AntennaDataset, custom_collate_fn
@@ -35,6 +37,7 @@ class NetworkProcess:
         one_shower=None,
         model_class=AntennaNetworkFC,
         batch_size=4,
+        wb=True,
     ):
         """
         Create the classes to be processed while training the network.
@@ -52,6 +55,7 @@ class NetworkProcess:
         model: Model Class
         optimizer: Optimization Algorithm
         """
+        self.wandb = wb
         radio_data_path = "/home/sampathkumar/radio_data"
         memmap_mode = "r"
         if not os.path.exists(radio_data_path):
@@ -103,6 +107,7 @@ class NetworkProcess:
         print(self.output_channels)
         assert 2 <= self.output_channels <= 3
         print(f"Using {model_class}")
+        self.log_dir = f"{datetime.now().strftime('%y%m%b%d%a_%H%M%S')}"
         self.model = model_class(self.output_channels).to(self.device)
         self.criterion = nn.L1Loss()
         self.optimizer = optim.Adam(self.model.parameters(), lr=1e-3)
@@ -111,6 +116,43 @@ class NetworkProcess:
             verbose=True,
             eps=1e-12,
         )
+        if self.wandb:
+            wandb.init(
+                project="RadioNN",
+                name=self.log_dir,
+                entity="pranavsampathkumar",
+                config={"batch_size": batch_size},
+                save_code=True,
+                group=type(self.model).__name__,
+            )
+            os.mkdir(f"./runs/{self.log_dir}")
+            wandb.watch(self.model)
+
+    def send_wandb_data(self, epoch, train_loss):
+        torch.save(self.model, f"./runs/{self.log_dir}/SavedModel")
+        wandb.save(  # pylint: disable=unexpected-keyword-arg
+            f"./runs/{self.log_dir}/SavedModel",
+            base_path=f"./runs",
+        )
+        wandb.log(
+            {
+                "LearningRate": self.optimizer.param_groups[-1]["lr"],
+                "Train Loss": train_loss,
+            },
+            step=epoch,
+        )
+
+    def full_training(self, num_epochs):
+        for epoch in tqdm.notebook.trange(num_epochs):
+            train_loss = self.train()
+            tqdm.tqdm.write(
+                f"Epoch: {epoch + 1}/{num_epochs}, Loss: {train_loss}"
+            )
+            if self.optimizer.param_groups[-1]["lr"] <= 1e-11:
+                break
+            self.scheduler.step(train_loss)
+            if self.wandb:
+                self.send_wandb_data(epoch, train_loss)
 
     def train(self, loss_obj=False):
         """
