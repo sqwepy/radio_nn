@@ -33,7 +33,9 @@ class DefaultFilter:
             replace=False,
         )
 
-    def get_indices(self):
+    def get_indices(
+        self,
+    ):
         shower_indices = self.get_shower_indices()
         antenna_indices = self.get_antenna_indices()
         indices = np.repeat(shower_indices, len(antenna_indices)) * len(

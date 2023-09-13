@@ -78,7 +78,7 @@ class AntennaNetworkSkipFC(nn.Module):
         event_data = event_data.reshape(event_data.size(0), -1)
         # combined_input = torch.cat((event_data, meta_data, antenna_pos), dim=1)
         combined_input = torch.cat(
-            (meta_data[:, 4].reshape((-1, 1)), antenna_pos), dim=1
+            (meta_data[:, 1].reshape((-1, 1)), antenna_pos), dim=1
         )
         # combined_output = self.fc_layers_encode(antenna_pos)
         combined_output = self.fc_layers_encode(combined_input)

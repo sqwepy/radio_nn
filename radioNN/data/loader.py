@@ -162,6 +162,7 @@ class AntennaDataset(Dataset):
 
     def return_data(self, percentage=None):
         if percentage is not None:
+            # TODO: This segment is botched
             num_samples = int(self.total_events * percentage / 100)
             indices = np.sort(
                 np.random.choice(
@@ -176,7 +177,6 @@ class AntennaDataset(Dataset):
         selected_idx = indices
         event_idx = selected_idx // self.antenna_pos.shape[1]
         antenna_idx = selected_idx % self.antenna_pos.shape[1]
-
         (
             event_data,
             meta_data,
