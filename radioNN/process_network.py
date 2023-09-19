@@ -59,6 +59,9 @@ class NetworkProcess:
         if not os.path.exists(radio_data_path):
             radio_data_path = "/home/pranav/work-stuff-unsynced/radio_data"
             memmap_mode = "r"
+        if not os.path.exists(radio_data_path):
+            radio_data_path = "/cr/work/sampathkumar/radio_data"
+            memmap_mode = "r"
         assert os.path.exists(radio_data_path)
         self.device = torch.device(
             "cuda" if torch.cuda.is_available() else "cpu"
