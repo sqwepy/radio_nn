@@ -7,6 +7,7 @@ import torch
 from torch.autograd import profiler
 import tqdm
 
+from antenna_skipfc_network import AntennaNetworkSkipFC
 from radioNN.process_network import NetworkProcess
 from radioNN.tests.draw_graph import draw_graph
 
@@ -18,17 +19,14 @@ def main():
     -------
 
     """
-    process = NetworkProcess()
-    num_epochs = 100
-
-    for epoch in tqdm.autonotebook.trange(num_epochs):
-        train_loss = process.train()
-        tqdm.tqdm.write(
-            f"Epoch: {epoch + 1}/{num_epochs}, Loss:" f" {train_loss:.6f}"
-        )
-        process.scheduler.step()
-
-    torch.save(process.model.state_dict(), "antenna_network.pth")
+    process = NetworkProcess(
+        model_class=AntennaNetworkSkipFC,
+        # one_shower=one_shower,
+        percentage=0.1,
+        batch_size=8,
+    )
+    num_epochs = 500
+    process.full_training(num_epochs)
 
 
 def profile():
