@@ -12,7 +12,7 @@ from radioNN.process_network import NetworkProcess
 from radioNN.tests.draw_graph import draw_graph
 
 
-def main(percentage=0.1):
+def main(percentage=0.1, base_path="./runs/"):
     """
     Run Code.
     Returns
@@ -24,6 +24,7 @@ def main(percentage=0.1):
         # one_shower=one_shower,
         percentage=percentage,
         batch_size=8,
+        base_path=base_path,
     )
     num_epochs = 500
     process.full_training(num_epochs)
@@ -80,6 +81,14 @@ if __name__ == "__main__":
         type=float,
         help="Percentage of dataset to use",
     )
+
+    parser.add_argument(
+        "-b",
+        "--base_path",
+        default="./runs/",
+        type=str,
+        help="Base path for storing model information",
+    )
     parser.add_argument(
         "--one_shower",
         action="store_true",
@@ -109,4 +118,4 @@ if __name__ == "__main__":
         draw_graph()
         exit()
     print("No options provided, executing main training")
-    main(opt.percentage)
+    main(percentage=opt.percentage, base_path=opt.base_path)

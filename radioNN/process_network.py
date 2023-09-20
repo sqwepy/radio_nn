@@ -36,6 +36,7 @@ class NetworkProcess:
         model_class=AntennaNetworkFC,
         batch_size=4,
         wb=True,
+        base_path="./runs/",
     ):
         """
         Create the classes to be processed while training the network.
@@ -108,7 +109,9 @@ class NetworkProcess:
         print(self.output_channels)
         assert 2 <= self.output_channels <= 3
         print(f"Using {model_class}")
-        self.log_dir = f"{datetime.now().strftime('%y%m%b%d%a_%H%M%S')}"
+        self.log_dir = (
+            f"{base_path}/{datetime.now().strftime('%y%m%b%d%a_%H%M%S')}"
+        )
         self.model = model_class(self.output_channels).to(self.device)
         self.criterion = nn.L1Loss()
         self.optimizer = optim.Adam(self.model.parameters(), lr=1e-3)
@@ -127,15 +130,15 @@ class NetworkProcess:
                 group=type(self.model).__name__,
             )
             try:
-                os.mkdir(f"runs/{self.log_dir}")
+                os.mkdir(f"{self.log_dir}")
             except FileExistsError:
                 pass
             wandb.watch(self.model)
 
     def send_wandb_data(self, epoch, train_loss):
-        torch.save(self.model, f"runs/{self.log_dir}/SavedModel")
+        torch.save(self.model, f"{self.log_dir}/SavedModel")
         wandb.save(  # pylint: disable=unexpected-keyword-arg
-            f"runs/{self.log_dir}/SavedModel",
+            f"{self.log_dir}/SavedModel",
             base_path=f"runs",
         )
         wandb.log(
