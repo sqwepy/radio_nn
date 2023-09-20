@@ -109,9 +109,9 @@ class NetworkProcess:
         print(self.output_channels)
         assert 2 <= self.output_channels <= 3
         print(f"Using {model_class}")
-        self.log_dir = (
-            f"{base_path}/{datetime.now().strftime('%y%m%b%d%a_%H%M%S')}"
-        )
+        self.run_name = datetime.now().strftime("%y%m%b%d%a_%H%M%S")
+        self.base_path = base_path
+        self.log_dir = f"{self.base_path}/{self.run_name}"
         self.model = model_class(self.output_channels).to(self.device)
         self.criterion = nn.L1Loss()
         self.optimizer = optim.Adam(self.model.parameters(), lr=1e-3)
@@ -123,7 +123,7 @@ class NetworkProcess:
         if self.wandb:
             wandb.init(
                 project="RadioNN",
-                name=self.log_dir,
+                name=self.run_name,
                 entity="pranavsampathkumar",
                 config={"batch_size": batch_size},
                 save_code=True,
@@ -139,7 +139,7 @@ class NetworkProcess:
         torch.save(self.model, f"{self.log_dir}/SavedModel")
         wandb.save(  # pylint: disable=unexpected-keyword-arg
             f"{self.log_dir}/SavedModel",
-            base_path=f"runs",
+            # base_path=f"runs",
         )
         wandb.log(
             {
