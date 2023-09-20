@@ -127,16 +127,16 @@ class NetworkProcess:
                 group=type(self.model).__name__,
             )
             try:
-                os.mkdir(f"./runs/{self.log_dir}")
+                os.mkdir(f"runs/{self.log_dir}")
             except FileExistsError:
                 pass
             wandb.watch(self.model)
 
     def send_wandb_data(self, epoch, train_loss):
-        torch.save(self.model, f"./runs/{self.log_dir}/SavedModel")
+        torch.save(self.model, f"runs/{self.log_dir}/SavedModel")
         wandb.save(  # pylint: disable=unexpected-keyword-arg
-            f"./runs/{self.log_dir}/SavedModel",
-            base_path=f"./runs",
+            f"runs/{self.log_dir}/SavedModel",
+            base_path=f"runs",
         )
         wandb.log(
             {
