@@ -7,7 +7,7 @@ import torch
 from torch.autograd import profiler
 import tqdm
 
-from antenna_skipfc_network import AntennaNetworkSkipFC
+from radioNN.networks.antenna_skipfc_network import AntennaNetworkSkipFC
 from radioNN.process_network import NetworkProcess
 from radioNN.tests.draw_graph import draw_graph
 
