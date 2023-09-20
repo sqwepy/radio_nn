@@ -12,7 +12,7 @@ from radioNN.process_network import NetworkProcess
 from radioNN.tests.draw_graph import draw_graph
 
 
-def main():
+def main(percentage=0.1):
     """
     Run Code.
     Returns
@@ -22,7 +22,7 @@ def main():
     process = NetworkProcess(
         model_class=AntennaNetworkSkipFC,
         # one_shower=one_shower,
-        percentage=0.1,
+        percentage=percentage,
         batch_size=8,
     )
     num_epochs = 500
@@ -74,6 +74,13 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument(
+        "-p",
+        "--percentage",
+        default=0.1,
+        type=float,
+        help="Percentage of dataset to use",
+    )
+    parser.add_argument(
         "--one_shower",
         action="store_true",
         help="Try to " "memorize a single shower",
@@ -102,4 +109,4 @@ if __name__ == "__main__":
         draw_graph()
         exit()
     print("No options provided, executing main training")
-    main()
+    main(opt.percentage)

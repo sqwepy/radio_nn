@@ -147,7 +147,7 @@ class NetworkProcess:
         )
 
     def full_training(self, num_epochs):
-        for epoch in tqdm.notebook.trange(num_epochs):
+        for epoch in tqdm.trange(num_epochs):
             train_loss = self.train()
             tqdm.tqdm.write(
                 f"Epoch: {epoch + 1}/{num_epochs}, Loss: {train_loss}"
