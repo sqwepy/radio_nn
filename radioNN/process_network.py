@@ -276,7 +276,6 @@ class NetworkProcess:
             one_sh_dataset,
             batch_size=len(one_sh_dataset),
             shuffle=False,
-            num_workers=4,
             collate_fn=custom_collate_fn,
         )
         assert len(dataloader) == 1
