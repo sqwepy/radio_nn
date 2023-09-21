@@ -188,10 +188,6 @@ class NetworkProcess:
                 continue
 
             event_data, meta_data, antenna_pos, output_meta, output = batch
-            # Event shape is flipped. It should be [batch, 300, 7] but it is
-            # [batch, 7, 300].
-            # TODO: Fix it in the input file and stop swapaxes.
-            event_data = torch.swapaxes(event_data, 1, 2)
 
             self.optimizer.zero_grad()
             pred_output_meta, pred_output = self.model(
@@ -240,13 +236,6 @@ class NetworkProcess:
                 raise RuntimeError(f"Not a valid Shower {one_shower}")
 
             event_data, meta_data, antenna_pos, output_meta, output = batch
-            # TODO: Fix it in the input file and stop swapaxes.
-            event_data = torch.swapaxes(event_data, 1, 2)
-            event_data, meta_data, antenna_pos = (
-                event_data.to(self.device),
-                meta_data.to(self.device),
-                antenna_pos.to(self.device),
-            )
             with torch.no_grad():
                 pred_output_meta, pred_output = self.model(
                     event_data, meta_data, antenna_pos
@@ -281,20 +270,8 @@ class NetworkProcess:
             antenna_pos = torch.Tensor(
                 fit_plane_and_return_3d_grid(antenna_pos.cpu().numpy())
             )
-            event_data = torch.swapaxes(event_data, 1, 2)
             assert torch.all(event_data == event_data[0])
             assert torch.all(meta_data == meta_data[0])
-            event_data, meta_data, antenna_pos = (
-                event_data.to(self.device),
-                meta_data.to(self.device),
-                antenna_pos.to(self.device),
-            )
-            print(event_data.shape)
-            print(
-                event_data[0]
-                .expand(antenna_pos.shape[0], *event_data[0].shape)
-                .shape
-            )
             with torch.no_grad():
                 pred_output_meta, pred_output = self.model(
                     event_data[0].expand(

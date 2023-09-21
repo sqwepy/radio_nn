@@ -44,8 +44,11 @@ class DefaultTransform:
         output_meta = module.sign(output_meta) * module.log(
             module.abs(output_meta) + 1e-14
         )
+        # Event shape is flipped. It should be [batch, 300, 7] but it is
+        # [batch, 7, 300].
+        # TODO: Fix it in the input file and stop swapaxes.
         return (
-            event_data / 30,
+            event_data.T / 30,
             meta_data,
             antenna_pos / 250,
             output_meta,
