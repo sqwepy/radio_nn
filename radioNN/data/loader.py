@@ -63,6 +63,7 @@ class AntennaDataset(Dataset):
         one_shower=None,
         transform=DefaultTransform,
         filter=DefaultFilter,
+        device="cpu",
     ):
         """
         Initialize the antenna dataset as memmap arrays.
@@ -86,13 +87,14 @@ class AntennaDataset(Dataset):
         self.output = np.load(output_file, mmap_mode=mmap_mode)
         self.percentage = percentage
         self.one_shower = one_shower
+        self.device = device
 
         if transform is not None:
             self.transform = transform()
         else:
             self.transform = Identity()
 
-        self.filter = DefaultFilter(
+        self.filter = filter(
             self.input_data,
             self.input_meta,
             self.antenna_pos,
@@ -130,17 +132,21 @@ class AntennaDataset(Dataset):
             output_meta,
             output,
         ) = self.transform(
-            torch.tensor(self.input_data[event_idx], dtype=torch.float32),
-            torch.tensor(self.input_meta[event_idx], dtype=torch.float32),
+            torch.tensor(self.input_data[event_idx], dtype=torch.float32).to(
+                self.device
+            ),
+            torch.tensor(self.input_meta[event_idx], dtype=torch.float32).to(
+                self.device
+            ),
             torch.tensor(
                 self.antenna_pos[event_idx, antenna_idx], dtype=torch.float32
-            ),
+            ).to(self.device),
             torch.tensor(
                 self.output_meta[event_idx, antenna_idx], dtype=torch.float32
-            ),
+            ).to(self.device),
             torch.tensor(
                 self.output[event_idx, antenna_idx], dtype=torch.float32
-            ),
+            ).to(self.device),
         )
         return event_data, meta_data, antenna_pos, output_meta, output
 

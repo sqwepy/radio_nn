@@ -97,6 +97,7 @@ class NetworkProcess:
             mmap_mode=memmap_mode,
             percentage=percentage,
             one_shower=one_shower,
+            device=self.device,
         )
         self.dataloader = DataLoader(
             self.dataset,
@@ -191,14 +192,6 @@ class NetworkProcess:
             # [batch, 7, 300].
             # TODO: Fix it in the input file and stop swapaxes.
             event_data = torch.swapaxes(event_data, 1, 2)
-            event_data, meta_data, antenna_pos = (
-                event_data.to(self.device),
-                meta_data.to(self.device),
-                antenna_pos.to(self.device),
-            )
-            output_meta, output = output_meta.to(self.device), output.to(
-                self.device
-            )
 
             self.optimizer.zero_grad()
             pred_output_meta, pred_output = self.model(
