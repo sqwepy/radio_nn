@@ -19,7 +19,7 @@ def cart2sph(antenna_pos):
     module = get_module(antenna_pos)
     x = antenna_pos[:, 0]
     y = antenna_pos[:, 1]
-    rho = module.sqrt(x**2 + y**2)
+    rho = module.sqrt(x**2 + y**2) / 250
     phi = module.arctan2(y, x) / np.pi
     antenna_pos[:, 0] = rho
     antenna_pos[:, 1] = phi
@@ -28,7 +28,7 @@ def cart2sph(antenna_pos):
 
 def sph2cart(antenna_pos):
     module = get_module(antenna_pos)
-    rho = antenna_pos[:, 0]
+    rho = antenna_pos[:, 0] * 250
     phi = antenna_pos[:, 1] * np.pi
     antenna_pos[:, 0] = rho * module.cos(phi)
     antenna_pos[:, 1] = rho * module.sin(phi)
@@ -76,7 +76,7 @@ class DefaultTransform:
         return (
             event_data.T / 30,
             meta_data,
-            antenna_pos / 250,
+            antenna_pos,
             output_meta,
             output,
         )
