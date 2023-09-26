@@ -15,23 +15,22 @@ def get_module(array):
 
 
 def cart2sph(antenna_pos):
-    print(antenna_pos.dtype)
     module = get_module(antenna_pos)
-    x = antenna_pos[:, 0]
-    y = antenna_pos[:, 1]
+    x = antenna_pos.T[0]
+    y = antenna_pos.T[1]
     rho = module.sqrt(x**2 + y**2) / 250
     phi = module.arctan2(y, x) / np.pi
-    antenna_pos[:, 0] = rho
-    antenna_pos[:, 1] = phi
+    antenna_pos.T[0] = rho
+    antenna_pos.T[1] = phi
     return antenna_pos
 
 
 def sph2cart(antenna_pos):
     module = get_module(antenna_pos)
-    rho = antenna_pos[:, 0] * 250
-    phi = antenna_pos[:, 1] * np.pi
-    antenna_pos[:, 0] = rho * module.cos(phi)
-    antenna_pos[:, 1] = rho * module.sin(phi)
+    rho = antenna_pos.T[0] * 250
+    phi = antenna_pos.T[1] * np.pi
+    antenna_pos.T[0] = rho * module.cos(phi)
+    antenna_pos.T[1] = rho * module.sin(phi)
     return antenna_pos
 
 

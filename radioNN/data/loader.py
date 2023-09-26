@@ -154,7 +154,7 @@ class AntennaDataset(Dataset):
         one_shower_event_idx = one_shower
         inp_d = self.input_data[one_shower_event_idx]
         inp_m = np.copy(self.input_meta[one_shower_event_idx])
-        ant_pos = self.antenna_pos[one_shower_event_idx, :]
+        ant_pos = np.copy(self.antenna_pos[one_shower_event_idx, :])
         outp_m = self.output_meta[one_shower_event_idx]
         outp_d = self.output[one_shower_event_idx]
         (
