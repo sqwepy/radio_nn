@@ -6,6 +6,35 @@ import torch
 import numpy
 
 
+def get_module(array):
+    if isinstance(array, numpy.ndarray):
+        module = numpy
+    elif isinstance(array, torch.Tensor):
+        module = torch
+    return module
+
+
+def cart2sph(antenna_pos):
+    print(antenna_pos.dtype)
+    module = get_module(antenna_pos)
+    x = antenna_pos[:, 0]
+    y = antenna_pos[:, 1]
+    rho = module.sqrt(x**2 + y**2)
+    phi = module.arctan2(y, x) / np.pi
+    antenna_pos[:, 0] = rho
+    antenna_pos[:, 1] = phi
+    return antenna_pos
+
+
+def sph2cart(antenna_pos):
+    module = get_module(antenna_pos)
+    rho = antenna_pos[:, 0]
+    phi = antenna_pos[:, 1] * np.pi
+    antenna_pos[:, 0] = rho * module.cos(phi)
+    antenna_pos[:, 1] = rho * module.sin(phi)
+    return antenna_pos
+
+
 class Identity:
     """
     Identity transformation
@@ -18,11 +47,7 @@ class Identity:
 class DefaultTransform:
     def __call__(self, event_data, meta_data, antenna_pos, output_meta, output):
 
-        if isinstance(event_data, numpy.ndarray):
-            module = numpy
-        elif isinstance(event_data, torch.Tensor):
-            module = torch
-
+        module = get_module(event_data)
         # The transpose is so that this transform is generalized for various
         # input shapes
 
@@ -47,6 +72,7 @@ class DefaultTransform:
         # Event shape is flipped. It should be [batch, 300, 7] but it is
         # [batch, 7, 300].
         # TODO: Fix it in the input file and stop swapaxes.
+        antenna_pos = cart2sph(antenna_pos)
         return (
             event_data.T / 30,
             meta_data,
