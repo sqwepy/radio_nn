@@ -200,15 +200,15 @@ def read_longitudinal_profile(hdf5_file, long_file):
     dE_data = np.genfromtxt(dE_data_str)
     data_set = f_h5_long.create_dataset("NumberOfParticles", n_data.shape, dtype="f")
     data_set[...] = n_data
-    data_set.attrs[
-        "comment"
-    ] = "The collumns of the data set are: DEPTH, GAMMAS, POSITRONS, ELECTRONS, MU+, MU-, HADRONS, CHARGED, NUCLEI, CHERENKOV"
+    data_set.attrs["comment"] = (
+        "The collumns of the data set are: DEPTH, GAMMAS, POSITRONS, ELECTRONS, MU+, MU-, HADRONS, CHARGED, NUCLEI, CHERENKOV"
+    )
 
     data_set = f_h5_long.create_dataset("EnergyDeposit", dE_data.shape, dtype="f")
     data_set[...] = dE_data
-    data_set.attrs[
-        "comment"
-    ] = "The collumns of the data set are: DEPTH, GAMMA, EM IONIZ, EM CUT, MU IONIZ, MU CUT, HADR IONIZ, HADR CUT, NEUTRINO, SUM"
+    data_set.attrs["comment"] = (
+        "The collumns of the data set are: DEPTH, GAMMA, EM IONIZ, EM CUT, MU IONIZ, MU CUT, HADR IONIZ, HADR CUT, NEUTRINO, SUM"
+    )
 
     # read out hillas fit
     hillas_parameter = []
@@ -302,7 +302,12 @@ def calculate_and_write_ge_ce(f_h5):
         trace_ce = trace_vB[:, 1] / sin
         trace_geo = trace_vB[:, 0] - trace_vB[:, 1] * cotg
         trace_geo_ce = np.array(
-            [time_tr, trace_geo * c_el, trace_ce * c_el, np.zeros_like(trace_vB[:, 1])]
+            [
+                time_tr,
+                trace_geo * c_el,
+                trace_ce * c_el,
+                np.zeros_like(trace_vB[:, 1]),
+            ]
         )  # 0,1,2, 3: t, geo, ce, zeros
 
         data_set = traces_ge.create_dataset(label, trace_geo_ce.T.shape, dtype=float)
@@ -543,7 +548,8 @@ def write_coreas_highlevel_info(f_h5, args):
 
     B_strength = (Bx**2 + Bz**2) ** 0.5
     magnetic_field_vector = rdhelp.spherical_to_cartesian(
-        rdhelp.get_magneticfield_zenith(B_inclination), B_declination + np.pi * 0.5
+        rdhelp.get_magneticfield_zenith(B_inclination),
+        B_declination + np.pi * 0.5,
     )  # in auger cooordinates north is + 90 deg
 
     ctrans = coordinatesystems.cstrafo(
@@ -680,7 +686,11 @@ def write_coreas_highlevel_info(f_h5, args):
             data[:, 3] *= conversion_fieldstrength_cgs_to_SI
 
             # convert CORSIKA to AUGER coordinates (AUGER y = CORSIKA x, AUGER x = - CORSIKA y; cm to m
-            antenna_position[i, 0], antenna_position[i, 1], antenna_position[i, 2] = (
+            (
+                antenna_position[i, 0],
+                antenna_position[i, 1],
+                antenna_position[i, 2],
+            ) = (
                 -position[1] / 100.0,
                 position[0] / 100.0,
                 position[2] / 100.0,
@@ -729,7 +739,11 @@ def write_coreas_highlevel_info(f_h5, args):
             window = np.zeros(len(ff))
             window[(ff >= args.flow * 1e6) & (ff <= args.fhigh * 1e6)] = 1
             filtered_spec = np.array(
-                [spec[..., 0] * window, spec[..., 1] * window, spec[..., 2] * window]
+                [
+                    spec[..., 0] * window,
+                    spec[..., 1] * window,
+                    spec[..., 2] * window,
+                ]
             )
 
             # get filtered time series
@@ -768,7 +782,9 @@ def write_coreas_highlevel_info(f_h5, args):
                     maximum_bin = np.argmax(np.abs(filt_short[0]))
                     ishift += args.samples_before_pulse - maximum_bin
                     filt_short = np.roll(
-                        filt_short, args.samples_before_pulse - maximum_bin, axis=-1
+                        filt_short,
+                        args.samples_before_pulse - maximum_bin,
+                        axis=-1,
                     )
 
             # calcualte energy fluence and other observables
@@ -805,16 +821,12 @@ def write_coreas_highlevel_info(f_h5, args):
                 I_stokes = (
                     1
                     / np.sum(mask_stokes_window)
-                    * np.sum(
-                        (E_vxB**2 + E_vxB_hil**2 + E_vxvxB**2 + E_vxvxB_hil**2)
-                    )
+                    * np.sum((E_vxB**2 + E_vxB_hil**2 + E_vxvxB**2 + E_vxvxB_hil**2))
                 )
                 Q_stokes = (
                     1
                     / np.sum(mask_stokes_window)
-                    * np.sum(
-                        (E_vxB**2 + E_vxB_hil**2 - E_vxvxB**2 - E_vxvxB_hil**2)
-                    )
+                    * np.sum((E_vxB**2 + E_vxB_hil**2 - E_vxvxB**2 - E_vxvxB_hil**2))
                 )
                 U_stokes = (
                     2
@@ -950,7 +962,12 @@ def write_coreas_highlevel_info(f_h5, args):
         )
         f_h5_obsplane.attrs["comment"] = (
             "Trace-related quantities are in %s and bandpass filtered to %.1f - %.1f MHz with a resolution of %.1f kHz"
-            % (pol_string, args.flow, args.fhigh, actualFrequencyResolution * 1e-3)
+            % (
+                pol_string,
+                args.flow,
+                args.fhigh,
+                actualFrequencyResolution * 1e-3,
+            )
         )
         f_h5_obsplane.attrs["frequency_low"] = args.flow * 1e6
         f_h5_obsplane.attrs["frequency_high"] = args.fhigh * 1e6
@@ -1002,7 +1019,9 @@ def extract_files_to_tempfolder(sim_num):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="coreas hdf5 converter")
     parser.add_argument(
-        "input_sim", type=int, help="input sim - taken from default path using number"
+        "input_sim",
+        type=int,
+        help="input sim - taken from default path using number",
     )
 
     parser.add_argument(

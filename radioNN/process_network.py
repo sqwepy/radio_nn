@@ -12,6 +12,7 @@ import wandb
 
 from radioNN.data.loader import AntennaDataset, custom_collate_fn
 from radioNN.networks.antenna_fc_network import AntennaNetworkFC
+from RadioPlotter.radio_plotter import plot_pulses_interactive
 
 
 def fit_plane_and_return_3d_grid(pos):
@@ -35,6 +36,11 @@ class NetworkProcess:
         one_shower=None,
         model_class=AntennaNetworkFC,
         batch_size=4,
+        n_epochs=10,
+        lr=1e-3,
+        weight_decay=1e-6,
+        lr_scale=100,
+        lr_decay=0.5,
         wb=True,
         base_path="./runs/",
     ):
@@ -64,9 +70,7 @@ class NetworkProcess:
             radio_data_path = "/cr/work/sampathkumar/radio_data"
             memmap_mode = "r"
         assert os.path.exists(radio_data_path)
-        self.device = torch.device(
-            "cuda" if torch.cuda.is_available() else "cpu"
-        )
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         if one_shower is not None:
             print(
                 f"Using the data from {radio_data_path} in {self.device} with "
@@ -81,12 +85,8 @@ class NetworkProcess:
             )
         self.input_data_file = os.path.join(radio_data_path, "input_data.npy")
         self.input_meta_file = os.path.join(radio_data_path, "meta_data.npy")
-        self.antenna_pos_file = os.path.join(
-            radio_data_path, "antenna_pos_data.npy"
-        )
-        self.output_meta_file = os.path.join(
-            radio_data_path, "output_meta_data.npy"
-        )
+        self.antenna_pos_file = os.path.join(radio_data_path, "antenna_pos_data.npy")
+        self.output_meta_file = os.path.join(radio_data_path, "output_meta_data.npy")
         self.output_file = os.path.join(radio_data_path, "output_gece_data.npy")
         self.dataset = AntennaDataset(
             self.input_data_file,
@@ -99,12 +99,6 @@ class NetworkProcess:
             one_shower=one_shower,
             device=self.device,
         )
-        self.dataloader = DataLoader(
-            self.dataset,
-            batch_size=batch_size,
-            shuffle=True,
-            collate_fn=custom_collate_fn,
-        )
         self.output_channels = self.dataset.output.shape[-1]
         print(self.output_channels)
         assert 2 <= self.output_channels <= 3
@@ -114,18 +108,19 @@ class NetworkProcess:
         self.log_dir = f"{self.base_path}/{self.run_name}"
         self.model = model_class(self.output_channels).to(self.device)
         self.criterion = nn.L1Loss()
-        self.optimizer = optim.Adam(self.model.parameters(), lr=1e-3)
-        self.scheduler = optim.lr_scheduler.ReduceLROnPlateau(
-            self.optimizer,
-            verbose=True,
-            eps=1e-12,
-        )
         if self.wandb:
             wandb.init(
                 project="RadioNN",
                 name=self.run_name,
                 entity="pranavsampathkumar",
-                config={"batch_size": batch_size},
+                config={
+                    "n_epochs": n_epochs,
+                    "batch_size": batch_size,
+                    "lr": lr,
+                    "weight_decay": weight_decay,
+                    "lr_scale": lr_scale,
+                    "lr_decay": lr_decay,
+                },
                 save_code=True,
                 group=type(self.model).__name__,
             )
@@ -134,8 +129,32 @@ class NetworkProcess:
             except FileExistsError:
                 pass
             wandb.watch(self.model)
+            self.optimizer = optim.Adam(
+                self.model.parameters(),
+                lr=wandb.config.lr,
+                weight_decay=wandb.config.weight_decay,
+            )
+            self.scheduler = optim.lr_scheduler.ReduceLROnPlateau(
+                self.optimizer,
+                verbose=True,
+                eps=1e-12,
+            )
+        try:
+            self.dataloader = DataLoader(
+                self.dataset,
+                batch_size=wandb.config.batch_size,
+                shuffle=True,
+                collate_fn=custom_collate_fn,
+            )
+        except:
+            self.dataloader = DataLoader(
+                self.dataset,
+                batch_size=8,
+                shuffle=True,
+                collate_fn=custom_collate_fn,
+            )
 
-    def send_wandb_data(self, epoch, train_loss):
+    def send_wandb_data(self, epoch, train_loss, test_loss=None, real=None, sim=None):
         torch.save(self.model, f"{self.log_dir}/SavedModel")
         wandb.save(  # pylint: disable=unexpected-keyword-arg
             f"{self.log_dir}/SavedModel",
@@ -145,21 +164,36 @@ class NetworkProcess:
             {
                 "LearningRate": self.optimizer.param_groups[-1]["lr"],
                 "Train Loss": train_loss,
+                "Test Loss": test_loss,
             },
             step=epoch,
         )
+        if epoch % 50 == 0 and real is not None:
+            antennas = [7, 47, 79]
+            for ant in antennas:
+                figures = plot_pulses_interactive(real, sim, antenna=ant)
+                wandb.log(
+                    {
+                        f"Pol 1 {ant}": figures[0],
+                        f"Pol 2 {ant}": figures[1],
+                    },
+                    step=epoch,
+                )
 
-    def full_training(self, num_epochs):
+    def full_training(self):
+        num_epochs = wandb.config.n_epochs
         for epoch in tqdm.trange(num_epochs):
             train_loss = self.train()
-            tqdm.tqdm.write(
-                f"Epoch: {epoch + 1}/{num_epochs}, Loss: {train_loss}"
-            )
+            test_loss, pred_output, output = self.one_shower_loss()
+            tqdm.tqdm.write(f"Epoch: {epoch + 1}/{num_epochs}, Loss: {train_loss}")
+            tqdm.tqdm.write(f"Epoch: {epoch + 1}/{num_epochs}, Loss: {test_loss}")
             if self.optimizer.param_groups[-1]["lr"] <= 1e-11:
                 break
             self.scheduler.step(train_loss)
             if self.wandb:
-                self.send_wandb_data(epoch, train_loss)
+                self.send_wandb_data(
+                    epoch, train_loss, test_loss, real=output, sim=pred_output
+                )
 
     def train(self, loss_obj=False):
         """
@@ -211,6 +245,12 @@ class NetworkProcess:
 
         return running_loss / valid_batch_count
 
+    def one_shower_loss(self):
+        choice = torch.randint(high=26387, size=[1])
+        pred_output_meta, pred_output, output = self.pred_one_shower(choice)
+        loss_output = self.criterion(250 * pred_output, 250 * output)
+        return loss_output.item(), pred_output.cpu().numpy(), output.cpu().numpy()
+
     def pred_one_shower(self, one_shower):
         # TODO : Use dataloader.return_single_shower
         one_sh_dataset = AntennaDataset(
@@ -239,7 +279,7 @@ class NetworkProcess:
                     event_data, meta_data, antenna_pos
                 )
 
-            return pred_output_meta.cpu().numpy(), pred_output.cpu().numpy()
+            return (pred_output_meta, pred_output, output)
 
     def pred_one_shower_entire_array(self, one_shower):
         # TODO : Use dataloader.return_single_shower
@@ -272,12 +312,8 @@ class NetworkProcess:
             assert torch.all(meta_data == meta_data[0])
             with torch.no_grad():
                 pred_output_meta, pred_output = self.model(
-                    event_data[0].expand(
-                        antenna_pos.shape[0], *event_data[0].shape
-                    ),
-                    meta_data[0].expand(
-                        antenna_pos.shape[0], *meta_data[0].shape
-                    ),
+                    event_data[0].expand(antenna_pos.shape[0], *event_data[0].shape),
+                    meta_data[0].expand(antenna_pos.shape[0], *meta_data[0].shape),
                     antenna_pos,
                 )
 

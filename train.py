@@ -7,12 +7,22 @@ import torch
 from torch.autograd import profiler
 import tqdm
 
+from radioNN.networks.antenna_fc_network import AntennaNetworkFC
 from radioNN.networks.antenna_skipfc_network import AntennaNetworkSkipFC
 from radioNN.process_network import NetworkProcess
 from radioNN.tests.draw_graph import draw_graph
 
 
-def main(percentage=0.1, base_path="./runs/"):
+def main(
+    percentage=0.1,
+    base_path="./runs/",
+    batch_size=8,
+    n_epochs=500,
+    lr=1e-3,
+    weight_decay=1e-7,
+    lr_scale=300,
+    lr_decay=0.1,
+):
     """
     Run Code.
     Returns
@@ -20,14 +30,18 @@ def main(percentage=0.1, base_path="./runs/"):
 
     """
     process = NetworkProcess(
-        model_class=AntennaNetworkSkipFC,
+        model_class=AntennaNetworkFC,
         # one_shower=one_shower,
         percentage=percentage,
-        batch_size=8,
+        batch_size=batch_size,
+        n_epochs=n_epochs,
+        lr=lr,
+        weight_decay=weight_decay,
+        lr_scale=lr_scale,
+        lr_decay=lr_decay,
         base_path=base_path,
     )
-    num_epochs = 500
-    process.full_training(num_epochs)
+    process.full_training()
 
 
 def profile():
@@ -95,6 +109,37 @@ if __name__ == "__main__":
         help="Try to " "memorize a single shower",
     )
     parser.add_argument(
+        "--n_epochs",
+        type=int,
+        default=1000,
+        help="number of epochs of training",
+    )
+    parser.add_argument(
+        "--batch_size", type=int, default=64, help="size of the batches"
+    )
+    parser.add_argument(
+        "--iterate_steps",
+        type=int,
+        default=5,
+        help="number of steps to simulate for training",
+    )
+    parser.add_argument("--lr", type=float, default=0.0001, help="adam: learning rate")
+    parser.add_argument(
+        "--weight_decay", type=float, default=0.0001, help="adam: weight decay"
+    )
+    parser.add_argument(
+        "--lr_scale",
+        type=int,
+        default=100,
+        help="learning rate scheduler scale",
+    )
+    parser.add_argument(
+        "--lr_decay",
+        type=float,
+        default=0.5,
+        help="learning rate scheduler scale",
+    )
+    parser.add_argument(
         "--profile",
         action="store_true",
         help="Profile the network for performance hotspots",
@@ -118,4 +163,13 @@ if __name__ == "__main__":
         draw_graph()
         exit()
     print("No options provided, executing main training")
-    main(percentage=opt.percentage, base_path=opt.base_path)
+    main(
+        percentage=opt.percentage,
+        base_path=opt.base_path,
+        batch_size=opt.batch_size,
+        n_epochs=opt.n_epochs,
+        lr=opt.lr,
+        weight_decay=opt.weight_decay,
+        lr_scale=opt.lr_scale,
+        lr_decay=opt.lr_decay,
+    )
