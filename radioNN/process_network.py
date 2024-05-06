@@ -135,9 +135,7 @@ class NetworkProcess:
                 weight_decay=wandb.config.weight_decay,
             )
             self.scheduler = optim.lr_scheduler.ReduceLROnPlateau(
-                self.optimizer,
-                verbose=True,
-                eps=1e-12,
+                self.optimizer, verbose=True, eps=1e-12, patience=wandb.config.lr_scale
             )
         try:
             self.dataloader = DataLoader(
