@@ -246,8 +246,15 @@ class NetworkProcess:
         return running_loss / valid_batch_count
 
     def one_shower_loss(self):
-        choice = torch.randint(high=26387, size=[1])
-        pred_output_meta, pred_output, output = self.pred_one_shower(choice)
+        for _ in range(10):
+            try:
+                choice = torch.randint(high=26387, size=[1])
+                pred_output_meta, pred_output, output = self.pred_one_shower(choice)
+            except RuntimeError as e:
+                print(e)
+                print("Trying again")
+                continue
+            break
         loss_output = self.criterion(250 * pred_output, 250 * output)
         return loss_output.item(), pred_output.cpu().numpy(), output.cpu().numpy()
 
