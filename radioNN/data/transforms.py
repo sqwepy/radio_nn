@@ -64,7 +64,7 @@ class DefaultTransform:
         # 11: Primary Energy
         meta_data.T[11] = module.log(meta_data.T[11] + 1e-14)
 
-        meta_data = meta_data.T[1:].T
+        meta_data = meta_data.T
         output_meta = module.sign(output_meta) * module.log(
             module.abs(output_meta) + 1e-14
         )

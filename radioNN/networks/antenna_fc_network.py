@@ -12,7 +12,7 @@ class AntennaNetworkFC(nn.Module):
         input_sequence_size = 7 * 300
 
         self.fc_layers_encode = nn.Sequential(
-            nn.Linear(7, 64),
+            nn.Linear(11, 64),
             nn.LeakyReLU(),
             nn.Linear(64, 128),
             nn.LeakyReLU(),
@@ -50,10 +50,26 @@ class AntennaNetworkFC(nn.Module):
 
     def forward(self, event_data, meta_data, antenna_pos):
         """Forward pass which is called at model(data)."""
+        meta_indices = [
+            #    0, #"Sim number"
+            1,  # "Cos(Zenith Angle)"
+            2,  # "X_max"
+            3,  # "density at X_max"
+            4,  # "height at X_max"
+            5,  # "E_em"
+            6,  # "sin(geomagnetic_angle)"
+            #    7, #"B inclination"
+            #    8, #"B declination"
+            #    9, #"B strength"
+            #    10, #"primary particle"
+            11,  # "primary energy"
+            12,  # "Azimuthal angle"
+        ]
         event_data = event_data.reshape(event_data.size(0), -1)
         # combined_input = torch.cat((event_data, meta_data, antenna_pos), dim=1)
         combined_input = torch.cat(
-            (meta_data[:, [0, 1, 3, 10]].reshape((-1, 4)), antenna_pos), dim=1
+            (meta_data[:, meta_indices].reshape((-1, len(meta_indices))), antenna_pos),
+            dim=1,
         )
         combined_output = self.fc_layers_encode(combined_input)
 
