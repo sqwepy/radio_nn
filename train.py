@@ -91,7 +91,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-p",
         "--percentage",
-        default=0.1,
+        default=90,
         type=float,
         help="Percentage of dataset to use",
     )
@@ -116,12 +116,6 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--batch_size", type=int, default=64, help="size of the batches"
-    )
-    parser.add_argument(
-        "--iterate_steps",
-        type=int,
-        default=5,
-        help="number of steps to simulate for training",
     )
     parser.add_argument("--lr", type=float, default=0.0001, help="adam: learning rate")
     parser.add_argument(
