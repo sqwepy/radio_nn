@@ -82,10 +82,15 @@ class DefaultFilter:
         # return np.tile(np.arange(240), self.shower_indices.shape[0])
         return antenna_mask
 
+    def _get_shower_mask(self):
+        shower_mask = self.input_meta[:, 1] < 0.707  # Cos(Zenith) < cos(45deg)
+        return shower_mask  # np.ones(shape=self.input_data.shape[0], dtype=np.bool_)
+
     def _get_shower_indices(self):
-        num_samples = int(self.input_data.shape[0] * self.percentage / 100)
+        shower_mask = self._get_shower_mask()
+        num_samples = int(np.sum(shower_mask) * self.percentage / 100)
         return np.random.choice(
-            np.arange(self.input_data.shape[0], dtype=int),
+            np.arange(self.input_data.shape[0], dtype=int)[shower_mask],
             size=num_samples,
             replace=False,
         )
