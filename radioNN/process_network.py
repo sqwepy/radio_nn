@@ -15,6 +15,33 @@ from radioNN.networks.antenna_fc_network import AntennaNetworkFC
 from RadioPlotter.radio_plotter import plot_pulses_interactive
 
 
+class CustomWeightedLoss(torch.nn.Module):
+    """
+    MSE Loss after applying a log.
+
+    The loss goes though backpropagation.
+    """
+
+    def __init__(self, tol=1e-14):
+        super().__init__()
+        self.mse_loss = torch.nn.L1Loss()
+        self.fluence = lambda x: torch.sum(x**2)
+
+    def forward(self, inp, outp):
+        """Forward call."""
+        inp_pol1, outp_pol1 = inp.T[0].T, outp.T[0].T
+        inp_pol2, outp_pol2 = 10 * inp.T[1].T, 10 * outp.T[1].T
+        inp_pol3, outp_pol3 = 100 * inp.T[2].T, 100 * outp.T[2].T
+        pol1_mse = self.mse_loss(inp_pol1, outp_pol1)
+        pol2_mse = self.mse_loss(inp_pol2, outp_pol2)
+        pol3_mse = self.mse_loss(inp_pol3, outp_pol3)
+        # pol1_fluence = self.mse_loss(self.fluence(inp_pol1), self.fluence(outp_pol1))
+        # pol2_fluence = self.mse_loss(self.fluence(inp_pol2), self.fluence(outp_pol2))
+        # pol3_fluence = self.mse_loss(self.fluence(inp_pol3), self.fluence(outp_pol3))
+        return pol1_mse + pol2_mse + pol3_mse  # \
+        # +1e-3*( pol1_fluence + pol2_fluence + pol3_fluence)
+
+
 def fit_plane_and_return_3d_grid(pos):
     import numpy as np
     from scipy.sparse.linalg import lsqr
@@ -107,7 +134,8 @@ class NetworkProcess:
         self.base_path = base_path
         self.log_dir = f"{self.base_path}/{self.run_name}"
         self.model = model_class(self.output_channels).to(self.device)
-        self.criterion = nn.L1Loss()
+        # self.criterion = nn.L1Loss()
+        self.criterion = CustomWeightedLoss()
         if self.wandb:
             wandb.init(
                 project="RadioNN",
