@@ -5,11 +5,12 @@ from torch import nn
 class AntennaNetworkFC(nn.Module):
     """Antenna pulse generation network."""
 
-    def __init__(self, output_channels):
+    def __init__(self, output_channels=3):
         super().__init__()
 
         # Calculate the output size of the CNN module
         input_sequence_size = 7 * 300
+        self.output_channels = output_channels
 
         self.fc_layers_encode = nn.Sequential(
             nn.Linear(11, 64),
@@ -45,7 +46,7 @@ class AntennaNetworkFC(nn.Module):
             nn.LeakyReLU(),
             nn.Linear(1024, 1024),
             nn.LeakyReLU(),
-            nn.Linear(1024, 256 * output_channels),
+            nn.Linear(1024, 256 * self.output_channels),
         )
 
     def forward(self, event_data, meta_data, antenna_pos):
@@ -76,5 +77,5 @@ class AntennaNetworkFC(nn.Module):
         # Separate the output
         antenna_output_meta = self.fc_meta(combined_output)
         antenna_output = self.fc_layers_decode(combined_output)
-        antenna_output = antenna_output.reshape(-1, 256, 2)
+        antenna_output = antenna_output.reshape(-1, 256, self.output_channels)
         return antenna_output_meta, antenna_output
