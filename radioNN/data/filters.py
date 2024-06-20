@@ -52,6 +52,10 @@ def only_positive_vvb_axis(ant_pos):
     mask = np.abs(x_pos) < 10
     return mask
 
+def all_antennas(ant_pos):
+    x_pos = np.abs(ant_pos[:, 0])
+    mask = np.abs(x_pos) > 0
+    return mask
 
 class DefaultFilter:
     def __init__(
@@ -72,7 +76,7 @@ class DefaultFilter:
 
     def _get_antenna_mask(self, index):
         index_array = np.array([])
-        antenna_mask = only_positive_vvb_axis(self.antenna_pos[index])
+        antenna_mask = all_antennas(self.antenna_pos[index])
         antenna_mask &= thin_or_not(
             self.output[index],
             self.antenna_pos[index],
@@ -83,8 +87,12 @@ class DefaultFilter:
         return antenna_mask
 
     def _get_shower_mask(self):
-        shower_mask = self.input_meta[:, 1] < 0.707  # Cos(Zenith) < cos(45deg)
-        return shower_mask  # np.ones(shape=self.input_data.shape[0], dtype=np.bool_)
+        shower_mask = np.ones(shape=self.input_data.shape[0], dtype=np.bool_)
+        shower_mask &= (self.input_meta[:, 1] > 0.5)  # Cos(Zenith) < cos(45deg)
+        shower_mask &= (self.input_meta[:, 2] < 900)  #  xmax < 900
+        shower_mask &= (self.input_meta[:, 2] > 300)  #  xmax > 300
+        print("Total showers after filter", np.sum(shower_mask))
+        return shower_mask
 
     def _get_shower_indices(self):
         shower_mask = self._get_shower_mask()
