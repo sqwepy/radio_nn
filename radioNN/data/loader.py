@@ -1,20 +1,19 @@
-"""
-Dataloader classes.
-"""
+"""Dataloader classes."""
 import numpy as np
 import torch
 from torch.utils.data import Dataset
 from torch.utils.data.dataloader import default_collate
 
 from radioNN.data.filters import DefaultFilter
-from radioNN.data.transforms import Identity, DefaultTransform
+from radioNN.data.transforms import DefaultTransform, Identity
 
 
 def custom_collate_fn(batch):
     """
-    Filter the bad data
+    Filter the bad data.
 
     Used internally by the dataloader.
+
     Parameters
     ----------
     batch: Input patch
@@ -22,6 +21,7 @@ def custom_collate_fn(batch):
     Returns
     -------
     collated batch as an array.
+
     """
     filtered_batch = []
     for event_data, meta_data, antenna_pos, output_meta, output in batch:
@@ -47,9 +47,7 @@ def custom_collate_fn(batch):
 
 
 class AntennaDataset(Dataset):
-    """
-    Class to load the antenna dataset.
-    """
+    """Class to load the antenna dataset."""
 
     def __init__(
         self,
@@ -79,6 +77,7 @@ class AntennaDataset(Dataset):
         mmap_mode
         percentage
         one_shower
+
         """
         # TODO: Make this into a seperate class
         self.input_data = np.load(input_data_file, mmap_mode=mmap_mode)

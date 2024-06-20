@@ -1,15 +1,13 @@
-"""
-Process network class which takes of setup training and inference
-"""
+"""Process network class which takes of setup training and inference."""
 import os
 from datetime import datetime
 
-import tqdm
 import torch
-from torch import nn, optim
+import tqdm
+from torch import optim
 from torch.utils.data import DataLoader
-import wandb
 
+import wandb
 from radioNN.data.loader import AntennaDataset, custom_collate_fn
 from radioNN.networks.antenna_fc_network import AntennaNetworkFC
 from RadioPlotter.radio_plotter import plot_pulses_interactive
@@ -86,6 +84,7 @@ class NetworkProcess:
         device: cpu or gpu
         model: Model Class
         optimizer: Optimization Algorithm
+
         """
         self.wandb = wb
         radio_data_path = "/home/sampathkumar/radio_data"
@@ -224,7 +223,7 @@ class NetworkProcess:
 
     def train(self, loss_obj=False):
         """
-        Train the given model using given data, criteria and optimizer
+        Train the given model using given data, criteria and optimizer.
 
         Parameters
         ----------
@@ -254,7 +253,8 @@ class NetworkProcess:
                 event_data, meta_data, antenna_pos
             )
 
-            loss_meta = self.criterion(pred_output_meta, output_meta)
+            # TODO: instead of self.criterion(pred_output_meta, output_meta)
+            # add meta to criterion and handle via loss function
             loss_output = self.criterion(250 * pred_output, 250 * output)
             loss = loss_output  # + loss_meta
 

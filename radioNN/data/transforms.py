@@ -1,9 +1,7 @@
-"""
-Tranforms to be used by the dataloader class
-"""
+"""Tranforms to be used by the dataloader class."""
+import numpy
 import numpy as np
 import torch
-import numpy
 
 
 def get_module(array):
@@ -37,9 +35,7 @@ def sph2cart(antenna_pos):
 
 
 class Identity:
-    """
-    Identity transformation
-    """
+    """Identity transformation."""
 
     def __call__(self, event_data, meta_data, antenna_pos, output_meta, output):
         return event_data, meta_data, antenna_pos, output_meta, output

@@ -1,32 +1,30 @@
 """
-Unit tests for the network process
+Unit tests for the network process.
 
 Tests dataloading and training
 """
 import unittest
-import tqdm
 
 import numpy as np
 import torch
-from torch import nn, optim
+import tqdm
 
-from radioNN.networks.antenna_skipfc_network import AntennaNetworkSkipFC
 from radioNN.networks.antenna_cnn_network import AntennaNetworkCNN
 from radioNN.networks.antenna_fc_network import AntennaNetworkFC
 from radioNN.networks.antenna_resnet_network import AntennaNetworkResNet
+from radioNN.networks.antenna_skipfc_network import AntennaNetworkSkipFC
 from radioNN.process_network import NetworkProcess
 
 # TODO: Write seperate tests for dataloader classes
 
 
 class ProcessTest(unittest.TestCase):
-    """
-    Test the process class and setup for other network tests.
-    """
+    """Test the process class and setup for other network tests."""
 
     def test_process_init(self, percentage=0.01, one_shower=None) -> None:
         """
-        Setup for the tests
+        Setup for the tests.
+
         Returns
         -------
 
@@ -49,9 +47,7 @@ class ProcessTest(unittest.TestCase):
 
 
 class TestOneShower(ProcessTest, unittest.TestCase):
-    """
-    Test for the case of a single shower
-    """
+    """Test for the case of a single shower."""
 
     def setUp(self) -> None:
         """Fixure."""
@@ -129,9 +125,7 @@ class TestSmallDataset(ProcessTest, unittest.TestCase):
 
 @unittest.skip("Too slow to test by default, Try manually.")
 class TestEntireDataset(ProcessTest, unittest.TestCase):
-    """
-    Tests involving the entire dataset.
-    """
+    """Tests involving the entire dataset."""
 
     def test_dataloading(self):
         super().test_process_init(percentage=100)

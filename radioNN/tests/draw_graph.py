@@ -1,7 +1,4 @@
-"""
-Draw graph of the radio network
-"""
-from radioNN.networks.antenna_resnet_network import AntennaNetworkResNet
+"""Draw graph of the radio network."""
 from radioNN.networks.antenna_skipfc_network import AntennaNetworkSkipFC
 from radioNN.process_network import NetworkProcess
 
@@ -13,6 +10,7 @@ def draw_graph():
     Returns
     -------
     None
+
     """
     import radioNN.tests.bad_grad_viz as bgv
 
@@ -26,6 +24,6 @@ def draw_graph():
         params=dict(process.model.named_parameters()),
         show_attrs=True,
     )
-    dot.save(f"radio_nn.dot")
+    dot.save("radio_nn.dot")
     dot.render(format="pdf")
     print("Saved file to radio_nn.dot.pdf")

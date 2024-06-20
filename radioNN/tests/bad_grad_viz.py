@@ -1,6 +1,4 @@
-"""
-Draw a graph of the network highlighting gradient information.
-"""
+"""Draw a graph of the network highlighting gradient information."""
 import itertools
 import textwrap
 
@@ -13,7 +11,7 @@ SAVED_PREFIX = "_saved_"
 
 
 def hex_colour(red, green, blue):
-    """Return Colour from int to Hex"""
+    """Return Colour from int to Hex."""
     return f"#{red:02x}{green:02x}{blue:02x}"
 
 
@@ -136,7 +134,7 @@ def register_hooks(var):
         return "(" + ", ".join([f"{v}" for v in size]) + ")"
 
     def get_var_name(variab, param_map, name=None):
-        """Get variable name from object"""
+        """Get variable name from object."""
         if not name:
             name = param_map[id(variab)] if id(variab) in param_map else ""
         return f"{name}: {size_to_str(variab.size())} {torch.mean(variab):.1e}"

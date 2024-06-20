@@ -27,7 +27,6 @@ class AntennaNetworkSkipFC(nn.Module):
         super().__init__()
 
         # Calculate the output size of the CNN module
-        input_sequence_size = 7 * 300
 
         self.fc_layers_encode = nn.Sequential(
             nn.Linear(4, 64),

@@ -4,7 +4,8 @@ from torch import nn
 
 def make_layer(block, planes, blocks, stride=1, inplanes=64):
     """
-    Make Layer by repeating Blocks
+    Make Layer by repeating Blocks.
+
     Parameters
     ----------
     block
