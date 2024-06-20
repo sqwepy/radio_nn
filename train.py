@@ -124,7 +124,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--lr_scale",
         type=int,
-        default=10,
+        default=2,
         help="learning rate scheduler scale",
     )
     parser.add_argument(
