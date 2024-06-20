@@ -167,6 +167,14 @@ class NetworkProcess:
                 step_size=wandb.config.lr_scale,
                 gamma=wandb.config.lr_decay,
             )
+            # Convert the indices into wandb table
+            print(self.dataset.indices)
+            index_table = wandb.Table(
+                columns=["indices"],
+                data=self.dataset.indices.reshape(-1, 1),
+            )
+            wandb.log({"Indices": index_table})
+            print("Uploaded Index")
         try:
             self.dataloader = DataLoader(
                 self.dataset,
