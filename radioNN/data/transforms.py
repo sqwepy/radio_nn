@@ -11,6 +11,8 @@ def get_module(array):
         module = numpy
     elif isinstance(array, torch.Tensor):
         module = torch
+    else:
+        raise RuntimeError("Unexpected Format, Convert to Numpy array or torch Tensor")
     return module
 
 
