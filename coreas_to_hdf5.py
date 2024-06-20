@@ -200,15 +200,15 @@ def read_longitudinal_profile(hdf5_file, long_file):
     dE_data = np.genfromtxt(dE_data_str)
     data_set = f_h5_long.create_dataset("NumberOfParticles", n_data.shape, dtype="f")
     data_set[...] = n_data
-    data_set.attrs["comment"] = (
-        "The collumns of the data set are: DEPTH, GAMMAS, POSITRONS, ELECTRONS, MU+, MU-, HADRONS, CHARGED, NUCLEI, CHERENKOV"
-    )
+    data_set.attrs[
+        "comment"
+    ] = "The collumns of the data set are: DEPTH, GAMMAS, POSITRONS, ELECTRONS, MU+, MU-, HADRONS, CHARGED, NUCLEI, CHERENKOV"
 
     data_set = f_h5_long.create_dataset("EnergyDeposit", dE_data.shape, dtype="f")
     data_set[...] = dE_data
-    data_set.attrs["comment"] = (
-        "The collumns of the data set are: DEPTH, GAMMA, EM IONIZ, EM CUT, MU IONIZ, MU CUT, HADR IONIZ, HADR CUT, NEUTRINO, SUM"
-    )
+    data_set.attrs[
+        "comment"
+    ] = "The collumns of the data set are: DEPTH, GAMMA, EM IONIZ, EM CUT, MU IONIZ, MU CUT, HADR IONIZ, HADR CUT, NEUTRINO, SUM"
 
     # read out hillas fit
     hillas_parameter = []
@@ -821,12 +821,16 @@ def write_coreas_highlevel_info(f_h5, args):
                 I_stokes = (
                     1
                     / np.sum(mask_stokes_window)
-                    * np.sum((E_vxB**2 + E_vxB_hil**2 + E_vxvxB**2 + E_vxvxB_hil**2))
+                    * np.sum(
+                        (E_vxB**2 + E_vxB_hil**2 + E_vxvxB**2 + E_vxvxB_hil**2)
+                    )
                 )
                 Q_stokes = (
                     1
                     / np.sum(mask_stokes_window)
-                    * np.sum((E_vxB**2 + E_vxB_hil**2 - E_vxvxB**2 - E_vxvxB_hil**2))
+                    * np.sum(
+                        (E_vxB**2 + E_vxB_hil**2 - E_vxvxB**2 - E_vxvxB_hil**2)
+                    )
                 )
                 U_stokes = (
                     2
