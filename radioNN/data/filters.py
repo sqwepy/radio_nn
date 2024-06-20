@@ -87,9 +87,9 @@ class DefaultFilter:
 
     def _get_shower_mask(self):
         shower_mask = np.ones(shape=self.input_data.shape[0], dtype=np.bool_)
-        shower_mask &= self.input_meta[:, 1] > 0.5  # Cos(Zenith) < cos(45deg)
-        shower_mask &= self.input_meta[:, 2] < 900  #  xmax < 900
-        shower_mask &= self.input_meta[:, 2] > 300  #  xmax > 300
+        shower_mask &= self.input_meta[:, 1] > 0.5  # Throw away bad showers
+        shower_mask &= self.input_meta[:, 2] > 300  #  Throw away bad showers
+        # shower_mask &= self.input_meta[:, 2] < 900  #  xmax < 900
         print("Total showers after filter", np.sum(shower_mask))
         return shower_mask
 
