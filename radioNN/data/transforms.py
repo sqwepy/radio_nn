@@ -10,7 +10,7 @@ def get_module(array):
     elif isinstance(array, torch.Tensor):
         module = torch
     else:
-        raise RuntimeError("Unexpected Format, Convert to Numpy array or torch Tensor")
+        raise TypeError("Convert to Numpy array or torch Tensor")
     return module
 
 
