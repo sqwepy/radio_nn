@@ -290,7 +290,11 @@ class NetworkProcess:
 
             valid_batch_count += 1
 
-        return running_loss / valid_batch_count
+        if valid_batch_count != 0:
+            return running_loss / valid_batch_count
+        else:
+            raise RuntimeWarning("No valid batches use a different showers/rerun tests")
+            return None
 
     def one_shower_loss(self):
         for _ in range(10):
