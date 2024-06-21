@@ -21,7 +21,7 @@ class CustomWeightedLoss(torch.nn.Module):
     The loss goes though backpropagation.
     """
 
-    def __init__(self, tol=1e-14):
+    def __init__(self, tol=1e-14) -> None:
         super().__init__()
         self.mse_loss = torch.nn.L1Loss()
         self.fluence = lambda x: torch.sum(x**2)
@@ -69,7 +69,7 @@ class NetworkProcess:
         lr_decay=0.5,
         wb=True,
         base_path="./runs/",
-    ):
+    ) -> None:
         """
         Create the classes to be processed while training the network.
 
@@ -198,7 +198,9 @@ class NetworkProcess:
                 collate_fn=custom_collate_fn,
             )
 
-    def send_wandb_data(self, epoch, train_loss, test_loss=None, real=None, sim=None):
+    def send_wandb_data(
+        self, epoch, train_loss, test_loss=None, real=None, sim=None
+    ) -> None:
         torch.save(self.model, f"{self.log_dir}/SavedModel")
         wandb.save(  # pylint: disable=unexpected-keyword-arg
             f"{self.log_dir}/SavedModel",
@@ -224,7 +226,7 @@ class NetworkProcess:
                     step=epoch,
                 )
 
-    def full_training(self):
+    def full_training(self) -> None:
         num_epochs = wandb.config.n_epochs
         for epoch in tqdm.trange(num_epochs):
             train_loss = self.train()

@@ -5,7 +5,7 @@ from torch import nn
 class AntennaNetworkFC(nn.Module):
     """Antenna pulse generation network."""
 
-    def __init__(self, output_channels=3):
+    def __init__(self, output_channels=3) -> None:
         super().__init__()
 
         # Calculate the output size of the CNN module

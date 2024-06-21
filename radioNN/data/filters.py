@@ -67,7 +67,7 @@ class DefaultFilter:
         output_meta,
         output,
         percentage,
-    ):
+    ) -> None:
         self.input_data = input_data
         self.input_meta = input_meta
         self.antenna_pos = antenna_pos

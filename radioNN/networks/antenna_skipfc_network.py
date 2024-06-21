@@ -3,7 +3,7 @@ from torch import nn
 
 
 class SkipBlock(nn.Module):
-    def __init__(self, dimension, repeat=1):
+    def __init__(self, dimension, repeat=1) -> None:
         super().__init__()
         self.dimension = dimension
         self.repeat = repeat
@@ -23,7 +23,7 @@ class SkipBlock(nn.Module):
 class AntennaNetworkSkipFC(nn.Module):
     """Antenna pulse generation network."""
 
-    def __init__(self, output_channels):
+    def __init__(self, output_channels) -> None:
         super().__init__()
         self.output_channels = output_channels
         # Calculate the output size of the CNN module

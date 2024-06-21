@@ -7,10 +7,10 @@ from torch import nn
 class EventDataCNN(nn.Module):
     """CNN part of the AntennaNetwork."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.padding = 0
         self.kernel_size = 1
-        super(EventDataCNN, self).__init__()
+        super().__init__()
 
         self.conv_layers = nn.Sequential(
             nn.Conv1d(7, 32, self.kernel_size, padding=self.padding),
@@ -40,10 +40,10 @@ class EventDataCNN(nn.Module):
 class EventDataCNNDeConv(nn.Module):
     """CNN part of the AntennaNetwork."""
 
-    def __init__(self, input_channels, output_channels):
+    def __init__(self, input_channels, output_channels) -> None:
         self.padding = 0
         self.kernel_size = 1
-        super(EventDataCNNDeConv, self).__init__()
+        super().__init__()
 
         self.de_conv_layers = nn.Sequential(
             nn.Conv1d(input_channels, 32, self.kernel_size, padding=self.padding),
@@ -61,7 +61,7 @@ class EventDataCNNDeConv(nn.Module):
 class AntennaNetworkCNN(nn.Module):
     """Antenna pulse generation network."""
 
-    def __init__(self, output_channels):
+    def __init__(self, output_channels) -> None:
         super().__init__()
 
         self.output_channels = output_channels

@@ -54,19 +54,19 @@ class TestOneShower(ProcessTest, unittest.TestCase):
         """Fixure."""
         super().test_process_init(one_shower=np.random.randint(1, high=2158))
 
-    def test_training_cnn(self):
+    def test_training_cnn(self) -> None:
         """Test Training."""
         self.process.model = AntennaNetworkCNN(self.process.output_channels).to("cpu")
         train_loss = self.process.train()
         self.assertTrue(np.isfinite(train_loss))
 
-    def test_training_fc(self):
+    def test_training_fc(self) -> None:
         """Test Training."""
         self.process.model = AntennaNetworkFC(self.process.output_channels).to("cpu")
         train_loss = self.process.train()
         self.assertTrue(np.isfinite(train_loss))
 
-    def test_training_skipfc(self):
+    def test_training_skipfc(self) -> None:
         """Test Training."""
         self.process.model = AntennaNetworkSkipFC(self.process.output_channels).to(
             "cpu"
@@ -74,7 +74,7 @@ class TestOneShower(ProcessTest, unittest.TestCase):
         train_loss = self.process.train()
         self.assertTrue(np.isfinite(train_loss))
 
-    def test_training_resnet(self):
+    def test_training_resnet(self) -> None:
         """Test Training."""
         self.process.model = AntennaNetworkResNet(self.process.output_channels).to(
             "cpu"
@@ -88,18 +88,18 @@ class TestSmallDataset(ProcessTest, unittest.TestCase):
         """Fixure."""
         super().test_process_init(percentage=0.01)
 
-    def test_training_cnn(self):
+    def test_training_cnn(self) -> None:
         self.process.model = AntennaNetworkCNN(self.process.output_channels).to("cpu")
         train_loss = self.process.train()
         self.assertTrue(np.isfinite(train_loss))
 
-    def test_training_fc(self):
+    def test_training_fc(self) -> None:
         """Test Training."""
         self.process.model = AntennaNetworkFC(self.process.output_channels).to("cpu")
         train_loss = self.process.train()
         self.assertTrue(np.isfinite(train_loss))
 
-    def test_training_resnet(self):
+    def test_training_resnet(self) -> None:
         """Test Training."""
         self.process.model = AntennaNetworkResNet(self.process.output_channels).to(
             "cpu"
@@ -107,7 +107,7 @@ class TestSmallDataset(ProcessTest, unittest.TestCase):
         train_loss = self.process.train()
         self.assertTrue(np.isfinite(train_loss))
 
-    def test_training_skipfc(self):
+    def test_training_skipfc(self) -> None:
         """Test Training."""
         self.process.model = AntennaNetworkSkipFC(self.process.output_channels).to(
             "cpu"
@@ -120,7 +120,7 @@ class TestSmallDataset(ProcessTest, unittest.TestCase):
 class TestEntireDataset(ProcessTest, unittest.TestCase):
     """Tests involving the entire dataset."""
 
-    def test_dataloading(self):
+    def test_dataloading(self) -> None:
         super().test_process_init(percentage=100)
 
 

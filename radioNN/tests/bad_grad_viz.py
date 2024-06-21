@@ -11,12 +11,12 @@ none_count = itertools.count()
 SAVED_PREFIX = "_saved_"
 
 
-def hex_colour(red, green, blue):
+def hex_colour(red, green, blue) -> str:
     """Return Colour from int to Hex."""
     return f"#{red:02x}{green:02x}{blue:02x}"
 
 
-def iter_graph(root, callback):
+def iter_graph(root, callback) -> None:
     """Iterate over graph nodes from the root function."""
     queue = [root]
     seen = set()
@@ -113,10 +113,10 @@ def register_hooks(var):
         )
         return label
 
-    def hook_cb(function):
+    def hook_cb(function) -> None:
         """Hook callback to function."""
 
-        def register_grad(grad_input, grad_output):
+        def register_grad(grad_input, grad_output) -> None:
             fn_dict_input[function] = grad_input
             fn_dict_output[function] = grad_output
 
@@ -128,7 +128,7 @@ def register_hooks(var):
         """Convert size of tensor to string."""
         return "(" + ", ".join([f"{v}" for v in size]) + ")"
 
-    def get_var_name(variab, param_map, name=None):
+    def get_var_name(variab, param_map, name=None) -> str:
         """Get variable name from object."""
         if not name:
             name = param_map[id(variab)] if id(variab) in param_map else ""
@@ -166,7 +166,7 @@ def register_hooks(var):
         )
         dot = Digraph(node_attr=node_attr, graph_attr=dict(size="12,12"))
 
-        def build_graph(function):
+        def build_graph(function) -> None:
             """Build graph elements of a particular function."""
             if hasattr(function, "variable"):  # if GradAccumulator
                 label = get_var_html_label(function, param_map)

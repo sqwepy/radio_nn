@@ -4,7 +4,7 @@ from radioNN.networks.antenna_skipfc_network import AntennaNetworkSkipFC
 from radioNN.process_network import NetworkProcess
 
 
-def draw_graph():
+def draw_graph() -> None:
     """
     Draw a graph of the model to check for bad gradients.
 

@@ -64,7 +64,7 @@ class AntennaDataset(Dataset):
         transform=DefaultTransform,
         filter=DefaultFilter,
         device="cpu",
-    ):
+    ) -> None:
         """
         Initialize the antenna dataset as memmap arrays.
 
@@ -110,7 +110,7 @@ class AntennaDataset(Dataset):
             self.total_events = self.input_data.shape[0] * self.antenna_pos.shape[1]
             self.indices = self.filter.get_indices()
 
-    def __len__(self):
+    def __len__(self) -> int:
         if self.one_shower is not None:
             return self.total_events
         return len(self.indices)
@@ -123,7 +123,13 @@ class AntennaDataset(Dataset):
             selected_idx = self.indices[idx]
             event_idx = selected_idx // self.antenna_pos.shape[1]
             antenna_idx = selected_idx % self.antenna_pos.shape[1]
-        (event_data, meta_data, antenna_pos, output_meta, output,) = self.transform(
+        (
+            event_data,
+            meta_data,
+            antenna_pos,
+            output_meta,
+            output,
+        ) = self.transform(
             torch.tensor(self.input_data[event_idx], dtype=torch.float32).to(
                 self.device
             ),
@@ -175,7 +181,13 @@ class AntennaDataset(Dataset):
         selected_idx = indices
         event_idx = selected_idx // self.antenna_pos.shape[1]
         antenna_idx = selected_idx % self.antenna_pos.shape[1]
-        (event_data, meta_data, antenna_pos, output_meta, output,) = self.transform(
+        (
+            event_data,
+            meta_data,
+            antenna_pos,
+            output_meta,
+            output,
+        ) = self.transform(
             torch.tensor(self.input_data[event_idx], dtype=torch.float32),
             torch.tensor(np.copy(self.input_meta[event_idx]), dtype=torch.float32),
             torch.tensor(self.antenna_pos[event_idx, antenna_idx], dtype=torch.float32),

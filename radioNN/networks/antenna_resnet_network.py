@@ -54,8 +54,8 @@ def make_layer(block, planes, blocks, stride=1, inplanes=64):
 class BasicBlock(nn.Module):
     expansion = 1
 
-    def __init__(self, inplanes, outplanes, stride=1, downsample=None):
-        super(BasicBlock, self).__init__()
+    def __init__(self, inplanes, outplanes, stride=1, downsample=None) -> None:
+        super().__init__()
         self.conv1 = nn.Conv1d(
             inplanes, outplanes, kernel_size=3, padding=1, stride=stride
         )
@@ -89,8 +89,8 @@ class BasicBlock(nn.Module):
 class EventDataResCNN(nn.Module):
     """CNN part of the AntennaNetwork."""
 
-    def __init__(self):
-        super(EventDataResCNN, self).__init__()
+    def __init__(self) -> None:
+        super().__init__()
         self.conv1 = nn.Conv1d(7, 64, kernel_size=7, stride=2, padding=3, bias=False)
         self.bn1 = nn.BatchNorm1d(64)
         self.relu = nn.ReLU(inplace=True)
@@ -130,8 +130,8 @@ class EventDataResCNN(nn.Module):
 class EventDataCNNResDeConv(nn.Module):
     """CNN part of the AntennaNetwork."""
 
-    def __init__(self, input_channels, output_channels):
-        super(EventDataCNNResDeConv, self).__init__()
+    def __init__(self, input_channels, output_channels) -> None:
+        super().__init__()
         self.conv1 = nn.Conv1d(
             input_channels, 64, kernel_size=7, stride=1, padding=3, bias=False
         )
@@ -166,7 +166,7 @@ class EventDataCNNResDeConv(nn.Module):
 class AntennaNetworkResNet(nn.Module):
     """Antenna pulse generation network."""
 
-    def __init__(self, output_channels):
+    def __init__(self, output_channels) -> None:
         super().__init__()
 
         self.event_data_cnn = EventDataResCNN()
