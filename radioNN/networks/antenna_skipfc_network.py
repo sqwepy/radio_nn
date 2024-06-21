@@ -25,7 +25,7 @@ class AntennaNetworkSkipFC(nn.Module):
 
     def __init__(self, output_channels):
         super().__init__()
-
+        self.output_channels = output_channels
         # Calculate the output size of the CNN module
 
         self.fc_layers_encode = nn.Sequential(
@@ -69,7 +69,7 @@ class AntennaNetworkSkipFC(nn.Module):
             SkipBlock(1024, 2),
             nn.Linear(1024, 1024),
             nn.LeakyReLU(),
-            nn.Linear(1024, 256 * output_channels),
+            nn.Linear(1024, 256 * self.output_channels),
         )
 
     def forward(self, event_data, meta_data, antenna_pos):
@@ -85,5 +85,5 @@ class AntennaNetworkSkipFC(nn.Module):
         # Separate the output
         antenna_output_meta = self.fc_meta(combined_output)
         antenna_output = self.fc_layers_decode(combined_output)
-        antenna_output = antenna_output.reshape(-1, 256, 2)
+        antenna_output = antenna_output.reshape(-1, 256, self.output_channels)
         return antenna_output_meta, antenna_output
