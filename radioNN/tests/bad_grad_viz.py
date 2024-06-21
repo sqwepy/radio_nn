@@ -92,7 +92,7 @@ def register_hooks(var):
                         f"mean_grad_{i}"
                     ] = f"{torch.mean(grad_inp).item():.3e}"
             max_attr_chars = max(max_attr_chars, 3)
-            attr_params = [f"{k}: {str(v)}<BR/>" for (k, v) in attrs.items()]
+            attr_params = [f"{k}: {v!s}<BR/>" for (k, v) in attrs.items()]
         label = (
             r"""<
             <TABLE CELLPADDING="1" CELLBORDER="1" CELLSPACING="0"
