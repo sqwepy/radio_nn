@@ -16,12 +16,16 @@ from RadioPlotter.radio_plotter import plot_pulses_interactive
 
 class CustomWeightedLoss(torch.nn.Module):
     """
-    MSE Loss after applying a log.
+    L1 loss with different weights for different polarizations.
 
-    The loss goes though backpropagation.
+    The loss goes through backpropagation.
+
+    Returns
+    -------
+    loss: torch.nn.Tensor (loss which can be used for gradients)
     """
 
-    def __init__(self, tol=1e-14) -> None:
+    def __init__(self:"CustomWeightedLoss") -> None:
         super().__init__()
         self.mse_loss = torch.nn.L1Loss()
         self.fluence = lambda x: torch.sum(x**2)
