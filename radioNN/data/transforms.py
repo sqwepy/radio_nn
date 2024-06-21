@@ -1,4 +1,5 @@
 """Tranforms to be used by the dataloader class."""
+
 import numpy
 import numpy as np
 import torch
@@ -43,7 +44,6 @@ class Identity:
 
 class DefaultTransform:
     def __call__(self, event_data, meta_data, antenna_pos, output_meta, output):
-
         module = get_module(event_data)
         # The transpose is so that this transform is generalized for various
         # input shapes

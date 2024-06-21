@@ -1,4 +1,5 @@
 """Process network class which takes of setup training and inference."""
+
 import os
 from datetime import datetime
 

@@ -3,6 +3,7 @@ Unit tests for the network process.
 
 Tests dataloading and training
 """
+
 import unittest
 
 import numpy as np
@@ -55,33 +56,29 @@ class TestOneShower(ProcessTest, unittest.TestCase):
 
     def test_training_cnn(self):
         """Test Training."""
-        self.process.model = AntennaNetworkCNN(self.process.output_channels).to(
-            "cpu"
-        )
+        self.process.model = AntennaNetworkCNN(self.process.output_channels).to("cpu")
         train_loss = self.process.train()
         self.assertTrue(np.isfinite(train_loss))
 
     def test_training_fc(self):
         """Test Training."""
-        self.process.model = AntennaNetworkFC(self.process.output_channels).to(
-            "cpu"
-        )
+        self.process.model = AntennaNetworkFC(self.process.output_channels).to("cpu")
         train_loss = self.process.train()
         self.assertTrue(np.isfinite(train_loss))
 
     def test_training_skipfc(self):
         """Test Training."""
-        self.process.model = AntennaNetworkSkipFC(
-            self.process.output_channels
-        ).to("cpu")
+        self.process.model = AntennaNetworkSkipFC(self.process.output_channels).to(
+            "cpu"
+        )
         train_loss = self.process.train()
         self.assertTrue(np.isfinite(train_loss))
 
     def test_training_resnet(self):
         """Test Training."""
-        self.process.model = AntennaNetworkResNet(
-            self.process.output_channels
-        ).to("cpu")
+        self.process.model = AntennaNetworkResNet(self.process.output_channels).to(
+            "cpu"
+        )
         train_loss = self.process.train()
         self.assertTrue(np.isfinite(train_loss))
 
@@ -92,33 +89,29 @@ class TestSmallDataset(ProcessTest, unittest.TestCase):
         super().test_process_init(percentage=0.01)
 
     def test_training_cnn(self):
-        self.process.model = AntennaNetworkCNN(self.process.output_channels).to(
-            "cpu"
-        )
+        self.process.model = AntennaNetworkCNN(self.process.output_channels).to("cpu")
         train_loss = self.process.train()
         self.assertTrue(np.isfinite(train_loss))
 
     def test_training_fc(self):
         """Test Training."""
-        self.process.model = AntennaNetworkFC(self.process.output_channels).to(
-            "cpu"
-        )
+        self.process.model = AntennaNetworkFC(self.process.output_channels).to("cpu")
         train_loss = self.process.train()
         self.assertTrue(np.isfinite(train_loss))
 
     def test_training_resnet(self):
         """Test Training."""
-        self.process.model = AntennaNetworkResNet(
-            self.process.output_channels
-        ).to("cpu")
+        self.process.model = AntennaNetworkResNet(self.process.output_channels).to(
+            "cpu"
+        )
         train_loss = self.process.train()
         self.assertTrue(np.isfinite(train_loss))
 
     def test_training_skipfc(self):
         """Test Training."""
-        self.process.model = AntennaNetworkSkipFC(
-            self.process.output_channels
-        ).to("cpu")
+        self.process.model = AntennaNetworkSkipFC(self.process.output_channels).to(
+            "cpu"
+        )
         train_loss = self.process.train()
         self.assertTrue(np.isfinite(train_loss))
 

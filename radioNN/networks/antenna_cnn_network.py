@@ -1,4 +1,5 @@
 """Antenna Pulse Generation Network."""
+
 import torch
 from torch import nn
 

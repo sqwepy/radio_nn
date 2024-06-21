@@ -1,4 +1,5 @@
 """Draw graph of the radio network."""
+
 from radioNN.networks.antenna_skipfc_network import AntennaNetworkSkipFC
 from radioNN.process_network import NetworkProcess
 

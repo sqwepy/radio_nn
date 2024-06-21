@@ -91,9 +91,7 @@ class EventDataResCNN(nn.Module):
 
     def __init__(self):
         super(EventDataResCNN, self).__init__()
-        self.conv1 = nn.Conv1d(
-            7, 64, kernel_size=7, stride=2, padding=3, bias=False
-        )
+        self.conv1 = nn.Conv1d(7, 64, kernel_size=7, stride=2, padding=3, bias=False)
         self.bn1 = nn.BatchNorm1d(64)
         self.relu = nn.ReLU(inplace=True)
         self.maxpool = nn.MaxPool1d(kernel_size=3, stride=2, padding=1)
@@ -174,7 +172,7 @@ class AntennaNetworkResNet(nn.Module):
         self.event_data_cnn = EventDataResCNN()
 
         # Calculate the output size of the CNN module
-        cnn_output_size = 2560 # it is 512 * (300 // 2 // 2 // 2 // 2 //2 // 2) but
+        cnn_output_size = 2560  # it is 512 * (300 // 2 // 2 // 2 // 2 //2 // 2) but
         # round up
 
         self.output_channels = output_channels
@@ -204,8 +202,9 @@ class AntennaNetworkResNet(nn.Module):
             nn.ReLU(),
         )
 
-        self.deconv = EventDataCNNResDeConv(self.cnn_inner_channels,
-                                            self.output_channels)
+        self.deconv = EventDataCNNResDeConv(
+            self.cnn_inner_channels, self.output_channels
+        )
 
     def forward(self, event_data, meta_data, antenna_pos):
         """Forward pass which is called at model(data)."""
@@ -228,7 +227,9 @@ class AntennaNetworkResNet(nn.Module):
         assert self._antenna_pos_size == antenna_pos.shape[-1]
         event_data = self.event_data_cnn(event_data)
         event_data = event_data.view(event_data.size(0), -1)
-        combined_input = torch.cat((event_data, meta_data[:, meta_indices], antenna_pos), dim=1)
+        combined_input = torch.cat(
+            (event_data, meta_data[:, meta_indices], antenna_pos), dim=1
+        )
         combined_output = self.fc_layers(combined_input)
 
         # Separate the output
