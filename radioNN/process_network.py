@@ -136,7 +136,14 @@ class NetworkProcess:
         self.model = model_class(self.output_channels).to(self.device)
         # self.criterion = nn.L1Loss()
         self.criterion = CustomWeightedLoss()
+        self.optimizer = optim.Adam(
+            self.model.parameters(),
+            lr=1e-3,
+            weight_decay=1e-6,
+        )
         if self.wandb:
+            # TODO: Do this better
+            # Weird ordering of things to do, the non-wandb mode is very adhoc as is
             wandb.init(
                 project="RadioNN",
                 name=self.run_name,
