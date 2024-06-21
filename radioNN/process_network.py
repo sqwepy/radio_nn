@@ -56,6 +56,12 @@ def fit_plane_and_return_3d_grid(pos):
 
 
 class NetworkProcess:
+    """
+    A class for training and testing the given network.
+
+    Also used for making predictions with a network in certain ways.
+    """
+
     def __init__(
         self,
         percentage=100,
@@ -71,7 +77,7 @@ class NetworkProcess:
         base_path="./runs/",
     ) -> None:
         """
-        Create the classes to be processed while training the network.
+        Initialize the classes to be processed while training the network.
 
         Parameters
         ----------
@@ -226,8 +232,18 @@ class NetworkProcess:
                     step=epoch,
                 )
 
-    def full_training(self) -> None:
+    def full_training(self:"NetworkProcess") -> None:
+        """
+        Do full training by loop over total number of epochs.
+
+        Also upload data to wandb.
+
+        Returns
+        -------
+        None
+        """
         num_epochs = wandb.config.n_epochs
+        #TODO: Fix this for non wandb cases.
         for epoch in tqdm.trange(num_epochs):
             train_loss = self.train()
             test_loss, pred_output, output = self.one_shower_loss()
@@ -241,21 +257,17 @@ class NetworkProcess:
                     epoch, train_loss, test_loss, real=output, sim=pred_output
                 )
 
-    def train(self, loss_obj=False):
+    def train(self: "NetworkProcess", loss_obj: bool = False) -> float:
         """
-        Train the given model using given data, criteria and optimizer.
+        Train the given model for one epoch.
 
         Parameters
         ----------
-        model: Model Class
-        dataloader: Dataloader Class to load data.
-        criterion: Loss function
-        optimizer: Optimization Algorithm
-        device: cpu or gpu
-        loss_obj: If True, just return a single batch loss.
+        loss_obj: Bool - If True, just return a single batch loss.
 
         Returns
         -------
+        loss: Float - average loss over all batches
 
         """
         running_loss = 0.0
@@ -294,7 +306,6 @@ class NetworkProcess:
             return running_loss / valid_batch_count
         else:
             raise RuntimeWarning("No valid batches use a different showers/rerun tests")
-            return None
 
     def one_shower_loss(self):
         for _ in range(10):
