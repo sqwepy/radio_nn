@@ -212,8 +212,21 @@ class NetworkProcess:
         self, epoch, train_loss, test_loss=None, real=None, sim=None
     ) -> None:
         torch.save(self.model, f"{self.log_dir}/SavedModel")
+        torch.save({
+            'epoch': epoch,
+            'model_state_dict': self.model.state_dict(),
+            'optimizer_state_dict': self.optimizer.state_dict(),
+            'loss': train_loss,
+            }, f"{self.log_dir}/SavedState")
+        model_scripted = torch.jit.script(self.model) # Export to TorchScript
+        model_scripted.save(f'{self.log_dir}/model_scripted.pt') # Save
+        wandb.save(f'{self.log_dir}/model_scripted.pt') # Save
         wandb.save(  # pylint: disable=unexpected-keyword-arg
             f"{self.log_dir}/SavedModel",
+            # base_path=f"runs",
+        )
+        wandb.save(  # pylint: disable=unexpected-keyword-arg
+            f"{self.log_dir}/SavedState",
             # base_path=f"runs",
         )
         wandb.log(
