@@ -221,15 +221,19 @@ class NetworkProcess:
         self, epoch, train_loss, test_loss=None, real=None, sim=None
     ) -> None:
         torch.save(self.model, f"{self.log_dir}/SavedModel")
-        torch.save({
-            'epoch': epoch,
-            'model_state_dict': self.model.state_dict(),
-            'optimizer_state_dict': self.optimizer.state_dict(),
-            'loss': train_loss,
-            }, f"{self.log_dir}/SavedState")
-        model_scripted = torch.jit.script(self.model) # Export to TorchScript
-        model_scripted.save(f'{self.log_dir}/model_scripted.pt') # Save
-        wandb.save(f'{self.log_dir}/model_scripted.pt') # Save
+        torch.save(
+            {
+                "epoch": epoch,
+                "model_state_dict": self.model.state_dict(),
+                "optimizer_state_dict": self.optimizer.state_dict(),
+                "loss": train_loss,
+                "indices": self.dataset.indices,
+            },
+            f"{self.log_dir}/SavedState",
+        )
+        model_scripted = torch.jit.script(self.model)  # Export to TorchScript
+        model_scripted.save(f"{self.log_dir}/model_scripted.pt")  # Save
+        wandb.save(f"{self.log_dir}/model_scripted.pt")  # Save
         wandb.save(  # pylint: disable=unexpected-keyword-arg
             f"{self.log_dir}/SavedModel",
             # base_path=f"runs",
@@ -258,7 +262,7 @@ class NetworkProcess:
                     step=epoch,
                 )
 
-    def full_training(self:"NetworkProcess") -> None:
+    def full_training(self: "NetworkProcess") -> None:
         """
         Do full training by loop over total number of epochs.
 
@@ -269,12 +273,14 @@ class NetworkProcess:
         None
         """
         num_epochs = wandb.config.n_epochs
-        #TODO: Fix this for non wandb cases.
+        # TODO: Fix this for non wandb cases.
         for epoch in tqdm.trange(num_epochs):
             train_loss = self.train()
             test_loss, pred_output, output = self.one_shower_loss()
-            tqdm.tqdm.write(f"Epoch: {epoch + 1}/{num_epochs}, Loss: {train_loss}")
-            tqdm.tqdm.write(f"Epoch: {epoch + 1}/{num_epochs}, Loss: {test_loss}")
+            tqdm.tqdm.write(
+                f"Epoch: {epoch + 1}/{num_epochs}, Train Loss: {train_loss}"
+            )
+            tqdm.tqdm.write(f"Epoch: {epoch + 1}/{num_epochs}, Test Loss: {test_loss}")
             if self.optimizer.param_groups[-1]["lr"] <= 1e-11:
                 break
             self.scheduler.step()
@@ -334,16 +340,20 @@ class NetworkProcess:
             raise RuntimeWarning("No valid batches use a different showers/rerun tests")
 
     def one_shower_loss(self):
+        test_loss = CustomWeightedLoss()
         for _ in range(10):
             try:
-                choice = torch.randint(high=26387, size=[1])
+                train_indices = torch.unique(torch.Tensor(self.dataset.indices // 240))
+                indices = [x for x in range(26387) if x not in train_indices]
+                choice = indices[torch.randint(high=len(indices), size=[1])]
                 pred_output_meta, pred_output, output = self.pred_one_shower(choice)
             except RuntimeError as e:
                 print(e)
                 print("Trying again")
                 continue
             break
-        loss_output = self.criterion(250 * pred_output, 250 * output)
+        loss_output = test_loss(250 * pred_output, 250 * output)
+        print(f"Choosing shower {choice}")
         return loss_output.item(), pred_output.cpu().numpy(), output.cpu().numpy()
 
     def pred_one_shower(self, one_shower):

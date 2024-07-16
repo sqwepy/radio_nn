@@ -40,19 +40,54 @@ def thin_or_not(pulses, pos_array, outp_meta, antenna_mask, index=0):
     return fin_ans
 
 
-def skip_vb_axis(ant_pos):
+def skip_vb_axis(ant_pos: np.ndarray) -> np.ndarray:
+    """
+    Mask for skipping the vb axis.
+
+    Parameters
+    ----------
+    ant_pos : np.ndarray - Positions of antennas
+
+    Returns
+    -------
+    np.ndarray - Bool - Mask
+    """
+    tan_value_close_to_xaxis = 0.5
     x_pos = np.abs(ant_pos[:, 0])
     y_pos = np.abs(ant_pos[:, 1])
-    return (np.abs(np.arctan2(y_pos, x_pos)) > 0.5).flatten()
+    return (np.abs(np.arctan2(y_pos, x_pos)) > tan_value_close_to_xaxis).flatten()
 
 
-def only_positive_vvb_axis(ant_pos):
+def only_positive_vvb_axis(ant_pos: np.ndarray) -> np.ndarray:
+    """
+    Mask for keeping only the vvb axis.
+
+    Parameters
+    ----------
+    ant_pos : np.ndarray - Positions of antennas
+
+    Returns
+    -------
+    np.ndarray - Bool - Mask
+    """
     x_pos = np.abs(ant_pos[:, 0])
-    mask = np.abs(x_pos) < 10
+    xvalue_close_to_yaxis = 10
+    mask = np.abs(x_pos) < xvalue_close_to_yaxis
     return mask
 
 
-def all_antennas(ant_pos):
+def all_antennas(ant_pos: np.ndarray) -> np.ndarray:
+    """
+    Mask for keeping all antennas.
+
+    Parameters
+    ----------
+    ant_pos : np.ndarray - Positions of antennas
+
+    Returns
+    -------
+    np.ndarray - Bool - Mask
+    """
     x_pos = np.abs(ant_pos[:, 0])
     mask = np.abs(x_pos) > 0
     return mask
