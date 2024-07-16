@@ -25,24 +25,30 @@ class CustomWeightedLoss(torch.nn.Module):
     loss: torch.nn.Tensor (loss which can be used for gradients)
     """
 
-    def __init__(self:"CustomWeightedLoss") -> None:
+    def __init__(self: "CustomWeightedLoss", fluence_weight: float = 0) -> None:
         super().__init__()
         self.mse_loss = torch.nn.L1Loss()
-        self.fluence = lambda x: torch.sum(x**2)
+        self.fluence_weight = fluence_weight
+        CONVERSION_FACTOR = 2.65441729e-3 * 6.24150934e18 * 1e-9  # c*e0*delta_t
+        self.fluence = lambda x: torch.sum(x**2) * CONVERSION_FACTOR
 
     def forward(self, inp, outp):
         """Forward call."""
         inp_pol1, outp_pol1 = inp.T[0].T, outp.T[0].T
         inp_pol2, outp_pol2 = 10 * inp.T[1].T, 10 * outp.T[1].T
-        inp_pol3, outp_pol3 = 100 * inp.T[2].T, 100 * outp.T[2].T
+        inp_pol3, outp_pol3 = 10 * inp.T[2].T, 10 * outp.T[2].T
         pol1_mse = self.mse_loss(inp_pol1, outp_pol1)
         pol2_mse = self.mse_loss(inp_pol2, outp_pol2)
         pol3_mse = self.mse_loss(inp_pol3, outp_pol3)
-        # pol1_fluence = self.mse_loss(self.fluence(inp_pol1), self.fluence(outp_pol1))
-        # pol2_fluence = self.mse_loss(self.fluence(inp_pol2), self.fluence(outp_pol2))
-        # pol3_fluence = self.mse_loss(self.fluence(inp_pol3), self.fluence(outp_pol3))
-        return pol1_mse + pol2_mse + pol3_mse  # \
-        # +1e-3*( pol1_fluence + pol2_fluence + pol3_fluence)
+        pol1_fluence = self.mse_loss(self.fluence(inp_pol1), self.fluence(outp_pol1))
+        pol2_fluence = self.mse_loss(self.fluence(inp_pol2), self.fluence(outp_pol2))
+        pol3_fluence = self.mse_loss(self.fluence(inp_pol3), self.fluence(outp_pol3))
+        return (
+            pol1_mse
+            + pol2_mse
+            + pol3_mse
+            + self.fluence_weight * (pol1_fluence + pol2_fluence + pol3_fluence)
+        )
 
 
 def fit_plane_and_return_3d_grid(pos):
@@ -77,6 +83,7 @@ class NetworkProcess:
         weight_decay=1e-6,
         lr_scale=100,
         lr_decay=0.5,
+        flu_weight=0,
         wb=True,
         base_path="./runs/",
     ) -> None:
@@ -146,7 +153,7 @@ class NetworkProcess:
         self.log_dir = f"{self.base_path}/{self.run_name}"
         self.model = model_class(self.output_channels).to(self.device)
         # self.criterion = nn.L1Loss()
-        self.criterion = CustomWeightedLoss()
+        self.criterion = CustomWeightedLoss(fluence_weight=flu_weight)
         self.optimizer = optim.Adam(
             self.model.parameters(),
             lr=1e-3,
@@ -166,6 +173,7 @@ class NetworkProcess:
                     "weight_decay": weight_decay,
                     "lr_scale": lr_scale,
                     "lr_decay": lr_decay,
+                    "flu_weight": flu_weight,
                 },
                 save_code=True,
                 group=type(self.model).__name__,
@@ -180,6 +188,7 @@ class NetworkProcess:
                 lr=wandb.config.lr,
                 weight_decay=wandb.config.weight_decay,
             )
+            self.criterion = CustomWeightedLoss(fluence_weight=wandb.config.flu_weight)
             self.scheduler = optim.lr_scheduler.StepLR(
                 self.optimizer,
                 step_size=wandb.config.lr_scale,

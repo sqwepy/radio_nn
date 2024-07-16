@@ -22,6 +22,7 @@ def main(
     weight_decay=1e-7,
     lr_scale=300,
     lr_decay=0.1,
+    flu_weight=0,
 ):
     """
     Run Code.
@@ -39,6 +40,7 @@ def main(
         weight_decay=weight_decay,
         lr_scale=lr_scale,
         lr_decay=lr_decay,
+        flu_weight=flu_weight,
         base_path=base_path,
     )
     process.full_training()
@@ -117,6 +119,9 @@ if __name__ == "__main__":
     parser.add_argument(
         "--batch_size", type=int, default=64, help="size of the batches"
     )
+    parser.add_argument(
+        "--flu_weight", type=float, default=0, help="loss: fluence weight"
+    )
     parser.add_argument("--lr", type=float, default=0.0001, help="adam: learning rate")
     parser.add_argument(
         "--weight_decay", type=float, default=0.0001, help="adam: weight decay"
@@ -166,4 +171,5 @@ if __name__ == "__main__":
         weight_decay=opt.weight_decay,
         lr_scale=opt.lr_scale,
         lr_decay=opt.lr_decay,
+        flu_weight=opt.flu_weight,
     )
