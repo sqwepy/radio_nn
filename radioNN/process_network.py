@@ -36,18 +36,18 @@ class CustomWeightedLoss(torch.nn.Module):
         """Forward call."""
         inp_pol1, outp_pol1 = inp.T[0].T, outp.T[0].T
         inp_pol2, outp_pol2 = 10 * inp.T[1].T, 10 * outp.T[1].T
-        inp_pol3, outp_pol3 = 10 * inp.T[2].T, 10 * outp.T[2].T
+        #inp_pol3, outp_pol3 = inp.T[2].T, outp.T[2].T
         pol1_mse = self.mse_loss(inp_pol1, outp_pol1)
         pol2_mse = self.mse_loss(inp_pol2, outp_pol2)
-        pol3_mse = self.mse_loss(inp_pol3, outp_pol3)
+        #pol3_mse = self.mse_loss(inp_pol3, outp_pol3)
         pol1_fluence = self.mse_loss(self.fluence(inp_pol1), self.fluence(outp_pol1))
         pol2_fluence = self.mse_loss(self.fluence(inp_pol2), self.fluence(outp_pol2))
-        pol3_fluence = self.mse_loss(self.fluence(inp_pol3), self.fluence(outp_pol3))
+        #pol3_fluence = self.mse_loss(self.fluence(inp_pol3), self.fluence(outp_pol3))
         return (
             pol1_mse
             + pol2_mse
-            + pol3_mse
-            + self.fluence_weight * (pol1_fluence + pol2_fluence + pol3_fluence)
+        #    + pol3_mse
+            + self.fluence_weight * torch.sqrt(pol1_fluence + pol2_fluence)
         )
 
 
@@ -144,7 +144,7 @@ class NetworkProcess:
             one_shower=one_shower,
             device=self.device,
         )
-        self.output_channels = self.dataset.output.shape[-1]
+        self.output_channels = 2 #self.dataset.output.shape[-1]
         print(self.output_channels)
         assert 2 <= self.output_channels <= 3
         print(f"Using {model_class}")

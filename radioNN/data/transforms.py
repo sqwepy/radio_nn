@@ -75,5 +75,5 @@ class DefaultTransform:
             meta_data,
             antenna_pos,
             output_meta,
-            output,
+            output.T[:2].T,
         )
