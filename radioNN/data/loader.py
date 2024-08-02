@@ -148,6 +148,29 @@ class AntennaDataset(Dataset):
         )
         return event_data, meta_data, antenna_pos, output_meta, output
 
+    def return_hfit_of_shower(self : "AntennaDataset", one_shower : int) -> np.poly1d:
+        """
+        Return fit for xmax to height conversion.
+
+        Parameters
+        ----------
+        one_shower: Int - Shower index
+
+        Returns
+        -------
+        np.poly1d: Class which has the fit for the conversion
+        """
+        mask_indices = (np.array([str(i)[:-2] for i in np.int64(self.input_meta[:, 0])],
+                                 dtype=str) == str(
+            np.int64(self.input_meta[one_shower, 0]))[:-2])
+        x = self.input_meta[mask_indices, 2] / 700
+        y = self.input_meta[mask_indices, 4] / 7e5
+        # plt.scatter(x,y)
+        fitparam_1, res_1, rank_1, singval_1, rcond_1 = np.polyfit(x, y, 2,
+                                                                   full=True)
+        pfit_1 = np.poly1d(fitparam_1)
+        return pfit_1
+
     def data_of_single_shower(self, one_shower):
         one_shower_event_idx = one_shower
         inp_d = self.input_data[one_shower_event_idx]

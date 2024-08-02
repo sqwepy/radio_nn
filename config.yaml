@@ -2,7 +2,7 @@ program: train.py
 method: bayes
 metric:
   goal: minimize
-  name: Test Loss
+  name: Xmax Loss
 parameters:
   lr_scale:
     distribution: q_uniform
@@ -14,8 +14,8 @@ parameters:
   batch_size:
     values : [32, 64, 128]
   flu_weight:
-    min: 0.00000000000001
-    max: 0.000000000001
+    min: 0.000000000000001
+    max: 0.0000000001
   weight_decay:
     min: 0.0000000001
     max: 0.01

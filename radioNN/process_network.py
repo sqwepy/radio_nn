@@ -11,7 +11,7 @@ from torch.utils.data import DataLoader
 import wandb
 from radioNN.data.loader import AntennaDataset, custom_collate_fn
 from radioNN.networks.antenna_fc_network import AntennaNetworkFC
-from RadioPlotter.radio_plotter import plot_pulses_interactive
+from RadioPlotter.radio_plotter import plot_hist, plot_pulses_interactive
 
 
 class CustomWeightedLoss(torch.nn.Module):
@@ -277,17 +277,39 @@ class NetworkProcess:
         for epoch in tqdm.trange(num_epochs):
             train_loss = self.train()
             test_loss, pred_output, output = self.one_shower_loss()
+            bias, resolution, xmax_dist = self.xmax_reco_loss()
             tqdm.tqdm.write(
                 f"Epoch: {epoch + 1}/{num_epochs}, Train Loss: {train_loss}"
             )
             tqdm.tqdm.write(f"Epoch: {epoch + 1}/{num_epochs}, Test Loss: {test_loss}")
+            tqdm.tqdm.write(f"Epoch: {epoch + 1}/{num_epochs}, Xmax Bias: {bias}")
+            tqdm.tqdm.write(f"Epoch: {epoch + 1}/{num_epochs}, Xmax Res.: {resolution}")
             if self.optimizer.param_groups[-1]["lr"] <= 1e-11:
                 break
             self.scheduler.step()
             if self.wandb:
+                self.send_wandb_xmax(epoch, bias, resolution, xmax_dist)
                 self.send_wandb_data(
                     epoch, train_loss, test_loss, real=output, sim=pred_output
                 )
+
+    def send_wandb_xmax(self, epoch, bias, resolution, xmax_dist):
+        if self.wandb:
+            wandb.log(
+                {
+                    "Xmax Loss": abs(bias) + abs(resolution),
+                    "Xmax bias": bias,
+                    "Xmax resolution": resolution,
+                },
+                step=epoch,
+            )
+            fig = plot_hist(xmax_dist)
+            wandb.log(
+                {
+                    f"Xmax Hist": fig,
+                },
+                step=epoch,
+            )
 
     def train(self: "NetworkProcess", loss_obj: bool = False) -> float:
         """
@@ -338,6 +360,58 @@ class NetworkProcess:
             return running_loss / valid_batch_count
         else:
             raise RuntimeWarning("No valid batches use a different showers/rerun tests")
+
+    def xmax_reco(self, index):
+        import numpy as np
+        from scipy.optimize import minimize_scalar
+        (event_data, meta_data, antenna_pos, output_meta, output) =\
+        self.dataset.data_of_single_shower(index)
+        xmax = meta_data[2]
+        xmax_min = 550/700
+        xmax_max = 1150/700
+        # print(make_table(meta_data[index]))
+        # print(xmax, xmax_min, xmax_max)
+        # Filters
+        # Chi Square
+        xmax_list = []
+        chi2 = []
+        hfit = self.dataset.return_hfit_of_shower(index)
+        for xmax_bin in np.linspace(xmax_min, xmax_max, 200):
+            event_data_t = torch.Tensor(np.repeat([event_data.T], 240,
+                                                            axis=0).T)
+            meta_data_inp = torch.Tensor(
+                np.copy(np.repeat([meta_data], 240, axis=0)))
+            meta_data_inp.T[2] = torch.Tensor(np.repeat([xmax_bin], 240,
+                                                                  axis=0).T)
+            meta_data_inp.T[4] = torch.Tensor(hfit(meta_data_inp.T[2]))
+            antenna_pos = torch.Tensor(np.copy(antenna_pos))
+            pred_output_meta, pred_output = self.model(event_data_t, meta_data_inp,
+                                                       antenna_pos)
+            pred_output = pred_output.detach().numpy()
+            res = minimize_scalar(lambda x: np.sum(((x ** 2) * np.sum(
+                pred_output[:, :, 0] ** 2, axis=1) - np.sum(
+                output[:, :, 0] ** 2, axis=1)) ** 2) * 1e10)
+            # print(res.x)
+            res2 = minimize_scalar(lambda x: np.sum(((x ** 2) * np.sum(
+                pred_output[:, :, 1] ** 2, axis=1) - np.sum(
+                output[:, :, 1] ** 2, axis=1)) ** 2) * 1e10)
+
+            xmax_list.append(xmax_bin)
+            chi2.append(res.fun + res2.fun)
+
+        return (meta_data[2] - np.array(xmax_list)[np.argmin(np.array(chi2))])*700
+
+    def xmax_reco_loss(self):
+        import numpy as np
+        reco_accuray_nn_full = np.full((2000), np.nan)
+        for i, index in tqdm.tqdm(enumerate(np.random.choice(
+                np.unique(self.dataset.indices//240),
+                                                         size=50)),
+                             total=50):
+            reco_accuray_nn_full[i] = self.xmax_reco(index)
+        bias = np.mean(reco_accuray_nn_full[np.isfinite(reco_accuray_nn_full)])
+        resolution = np.std(reco_accuray_nn_full[np.isfinite(reco_accuray_nn_full)])
+        return bias, resolution, reco_accuray_nn_full[np.isfinite(reco_accuray_nn_full)]
 
     def one_shower_loss(self):
         test_loss = CustomWeightedLoss()
