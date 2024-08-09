@@ -125,18 +125,18 @@ if __name__ == "__main__":
     )
     parser.add_argument("--lr", type=float, default=0.0001, help="adam: learning rate")
     parser.add_argument(
-        "--weight_decay", type=float, default=0.0001, help="adam: weight decay"
+        "--weight_decay", type=float, default=0.00005, help="adam: weight decay"
     )
     parser.add_argument(
         "--lr_scale",
         type=int,
-        default=5,
+        default=2,
         help="learning rate scheduler scale",
     )
     parser.add_argument(
         "--lr_decay",
         type=float,
-        default=0.5,
+        default=0.33,
         help="learning rate scheduler scale",
     )
     parser.add_argument(
