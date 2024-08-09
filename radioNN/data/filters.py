@@ -75,6 +75,23 @@ def only_positive_vvb_axis(ant_pos: np.ndarray) -> np.ndarray:
     mask = np.abs(x_pos) < xvalue_close_to_yaxis
     return mask
 
+def peak_cutoff(pulses: np.ndarray) -> np.ndarray:
+    """
+    Mask for keeping only high amplitude pulses.
+
+    Parameters
+    ----------
+    pulses : np.ndarray - Positions of antennas
+
+    Returns
+    -------
+    np.ndarray - Bool - Mask
+    """
+    cutoff_value = 1e-5
+    peak = np.max(pulses[: , : , 0], axis=1)
+    return peak > cutoff_value
+
+
 
 def all_antennas(ant_pos: np.ndarray) -> np.ndarray:
     """
@@ -112,12 +129,13 @@ class DefaultFilter:
 
     def _get_antenna_mask(self, index):
         antenna_mask = all_antennas(self.antenna_pos[index])
-        antenna_mask &= thin_or_not(
-            self.output[index],
-            self.antenna_pos[index],
-            self.output_meta[index],
-            antenna_mask,
-        )
+        #antenna_mask &= thin_or_not(
+        #    self.output[index],
+        #    self.antenna_pos[index],
+        #    self.output_meta[index],
+        #    antenna_mask,
+        #)
+        antenna_mask &= peak_cutoff(self.output[index])
         # return np.tile(np.arange(240), self.shower_indices.shape[0])
         return antenna_mask
 
