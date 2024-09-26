@@ -135,7 +135,7 @@ class DefaultFilter:
         #    self.output_meta[index],
         #    antenna_mask,
         #)
-        antenna_mask &= peak_cutoff(self.output[index])
+        # antenna_mask &= peak_cutoff(self.output[index])
         # return np.tile(np.arange(240), self.shower_indices.shape[0])
         return antenna_mask
 
