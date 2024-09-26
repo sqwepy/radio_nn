@@ -164,6 +164,7 @@ class NetworkProcess:
             lr=1e-3,
             weight_decay=1e-6,
         )
+        self.timing_mode = True
         if self.wandb:
             # TODO: Do this better
             # Weird ordering of things to do, the non-wandb mode is very adhoc as is
@@ -255,17 +256,18 @@ class NetworkProcess:
             },
             step=epoch,
         )
-        if epoch % 2 == 0 and real is not None:
-            antennas = [7, 47, 79]
-            for ant in antennas:
-                figures = plot_pulses_interactive(real, sim, antenna=ant)
-                wandb.log(
-                    {
-                        f"Pol 1 {ant}": figures[0],
-                        f"Pol 2 {ant}": figures[1],
-                    },
-                    step=epoch,
-                )
+        if not self.timing_mode:
+            if epoch % 2 == 0 and real is not None:
+                antennas = [7, 47, 79]
+                for ant in antennas:
+                    figures = plot_pulses_interactive(real, sim, antenna=ant)
+                    wandb.log(
+                        {
+                            f"Pol 1 {ant}": figures[0],
+                            f"Pol 2 {ant}": figures[1],
+                        },
+                        step=epoch,
+                    )
 
     def full_training(self: "NetworkProcess") -> None:
         """
@@ -282,18 +284,20 @@ class NetworkProcess:
         for epoch in tqdm.trange(num_epochs):
             train_loss = self.train()
             test_loss, pred_output, output = self.one_shower_loss()
-            bias, resolution, xmax_dist = self.xmax_reco_loss()
             tqdm.tqdm.write(
                 f"Epoch: {epoch + 1}/{num_epochs}, Train Loss: {train_loss}"
             )
             tqdm.tqdm.write(f"Epoch: {epoch + 1}/{num_epochs}, Test Loss: {test_loss}")
-            tqdm.tqdm.write(f"Epoch: {epoch + 1}/{num_epochs}, Xmax Bias: {bias}")
-            tqdm.tqdm.write(f"Epoch: {epoch + 1}/{num_epochs}, Xmax Res.: {resolution}")
+            if not self.timing_mode:
+                bias, resolution, xmax_dist = self.xmax_reco_loss()
+                tqdm.tqdm.write(f"Epoch: {epoch + 1}/{num_epochs}, Xmax Bias: {bias}")
+                tqdm.tqdm.write(f"Epoch: {epoch + 1}/{num_epochs}, Xmax Res.: {resolution}")
+                if self.wandb:
+                    self.send_wandb_xmax(epoch, bias, resolution, xmax_dist)
             if self.optimizer.param_groups[-1]["lr"] <= 1e-11:
                 break
             self.scheduler.step()
             if self.wandb:
-                self.send_wandb_xmax(epoch, bias, resolution, xmax_dist)
                 self.send_wandb_data(
                     epoch, train_loss, test_loss, real=output, sim=pred_output
                 )
