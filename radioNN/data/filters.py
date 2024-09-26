@@ -106,7 +106,7 @@ def all_antennas(ant_pos: np.ndarray) -> np.ndarray:
     np.ndarray - Bool - Mask
     """
     x_pos = np.abs(ant_pos[:, 0])
-    mask = np.abs(x_pos) > 0
+    mask = np.abs(x_pos) >= 0
     return mask
 
 
