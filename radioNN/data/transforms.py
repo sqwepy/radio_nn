@@ -63,9 +63,8 @@ class DefaultTransform:
         meta_data.T[11] = module.log(meta_data.T[11] + 1e-14)
 
         meta_data = meta_data.T
-        output_meta = module.sign(output_meta) * module.log(
-            module.abs(output_meta) + 1e-14
-        )
+        output_meta = output_meta/5e-7 #diviing timing by 500 ns
+
         # Event shape is flipped. It should be [batch, 300, 7] but it is
         # [batch, 7, 300].
         # TODO: Fix it in the input file and stop swapaxes.
