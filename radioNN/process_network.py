@@ -32,7 +32,7 @@ class CustomWeightedLoss(torch.nn.Module):
         CONVERSION_FACTOR = 2.65441729e-3 * 6.24150934e18 * 1e-9  # c*e0*delta_t
         self.fluence = lambda x: torch.sum(x**2) * CONVERSION_FACTOR
 
-    def forward(self, inp, outp):
+    def forward(self, inp, outp, inp_meta, outp_meta):
         """Forward call."""
         inp_pol1, outp_pol1 = inp.T[0].T, outp.T[0].T
         inp_pol2, outp_pol2 = 10 * inp.T[1].T, 10 * outp.T[1].T
@@ -43,11 +43,16 @@ class CustomWeightedLoss(torch.nn.Module):
         pol1_fluence = self.mse_loss(self.fluence(inp_pol1), self.fluence(outp_pol1))
         pol2_fluence = self.mse_loss(self.fluence(inp_pol2), self.fluence(outp_pol2))
         #pol3_fluence = self.mse_loss(self.fluence(inp_pol3), self.fluence(outp_pol3))
+        meta_loss = self.mse_loss(inp_meta, outp_meta)
+
+        #TODO: Give weight to meta
+        return meta_loss
         return (
             pol1_mse
             + pol2_mse
         #    + pol3_mse
             + self.fluence_weight * torch.sqrt(pol1_fluence + pol2_fluence)
+            + meta_loss
         )
 
 
@@ -339,9 +344,8 @@ class NetworkProcess:
                 event_data, meta_data, antenna_pos
             )
 
-            # TODO: instead of self.criterion(pred_output_meta, output_meta)
-            # add meta to criterion and handle via loss function
-            loss_output = self.criterion(250 * pred_output, 250 * output)
+            loss_output = self.criterion(250 * pred_output, 250 * output,
+                                         pred_output_meta, output_meta)
             loss = loss_output  # + loss_meta
 
             if loss_obj:
@@ -420,13 +424,14 @@ class NetworkProcess:
                 train_indices = torch.unique(torch.Tensor(self.dataset.indices // 240))
                 indices = [x for x in range(26387) if x not in train_indices]
                 choice = indices[torch.randint(high=len(indices), size=[1])]
-                pred_output_meta, pred_output, output = self.pred_one_shower(choice)
+                pred_output_meta, pred_output, output_meta, output = (
+                    self.pred_one_shower(choice))
             except RuntimeError as e:
                 print(e)
                 print("Trying again")
                 continue
             break
-        loss_output = test_loss(250 * pred_output, 250 * output)
+        loss_output = test_loss(250 * pred_output, 250 * output, pred_output_meta, output_meta)
         print(f"Choosing shower {choice}")
         return loss_output.item(), pred_output.cpu().numpy(), output.cpu().numpy()
 
@@ -458,7 +463,7 @@ class NetworkProcess:
                     event_data, meta_data, antenna_pos
                 )
 
-            return (pred_output_meta, pred_output, output)
+            return (pred_output_meta, pred_output,output_meta, output)
 
     def pred_one_shower_entire_array(self, one_shower):
         # TODO : Use dataloader.return_single_shower
