@@ -14,27 +14,11 @@ class AntennaNetworkFC(nn.Module):
         self.fc_layers_encode = nn.Sequential(
             nn.Linear(10, 64),
             nn.LeakyReLU(),
-            nn.Linear(64, 128),
-            nn.LeakyReLU(),
-            nn.Linear(128, 512),
-            nn.LeakyReLU(),
-            nn.Linear(512, 512),
-            nn.LeakyReLU(),
-            nn.Linear(512, 256 * 2),
-            nn.LeakyReLU(),
         )
 
         self.fc_meta = nn.Sequential(
-            nn.Linear(512, 256),
-            nn.ReLU(),
-            nn.Linear(256, 128),
-            nn.ReLU(),
-            nn.Linear(128, 64),
-            nn.ReLU(),
-            nn.Linear(64, 32),
-            nn.ReLU(),
-            nn.Linear(32, 16),
-            nn.ReLU(),
+            nn.Linear(64, 16),
+            nn.LeakyReLU(),
             nn.Linear(16, 2),
         )
 
