@@ -165,3 +165,59 @@ class DefaultFilter:
             overall_index = int(index * 240) + antenna_indices
             indices = np.concatenate((indices, overall_index))
         return np.sort(indices)
+
+class LOFARFilter(DefaultFilter):
+    def __init__(
+        self,
+        input_data,
+        input_meta,
+        antenna_pos,
+        output_meta,
+        output,
+        percentage,
+    ) -> None:
+        super().__init__(input_data,
+        input_meta,
+        antenna_pos,
+        output_meta,
+        output,
+        percentage,)
+
+    def _get_antenna_mask(self, index):
+        antenna_mask = all_antennas(self.antenna_pos[index])
+        #antenna_mask &= thin_or_not(
+        #    self.output[index],
+        #    self.antenna_pos[index],
+        #    self.output_meta[index],
+        #    antenna_mask,
+        #)
+        # antenna_mask &= peak_cutoff(self.output[index])
+        # return np.tile(np.arange(240), self.shower_indices.shape[0])
+        return antenna_mask
+
+    def _get_shower_mask(self):
+        shower_mask = np.ones(shape=self.input_data.shape[0], dtype=np.bool_)
+        # shower_mask &= self.input_meta[:, 1] > 0.5  # Throw away bad showers
+        # shower_mask &= self.input_meta[:, 2] > 300  #  Throw away bad showers
+        # shower_mask &= self.input_meta[:, 2] < 900  #  xmax < 900
+        print("Total showers after filter", np.sum(shower_mask))
+        return shower_mask
+
+    def _get_shower_indices(self):
+        shower_mask = self._get_shower_mask()
+        num_samples = int(np.sum(shower_mask) * self.percentage / 100)
+        return np.random.choice(
+            np.arange(self.input_data.shape[0], dtype=int)[shower_mask],
+            size=num_samples,
+            replace=False,
+        )
+
+    def get_indices(self):
+        shower_indices = self._get_shower_indices()
+        indices = np.array([], dtype=int)
+        for index in tqdm(shower_indices):
+            antenna_mask = self._get_antenna_mask(index)
+            antenna_indices = np.arange(160, dtype=int)[antenna_mask]
+            overall_index = int(index * 160) + antenna_indices
+            indices = np.concatenate((indices, overall_index))
+        return np.sort(indices)
