@@ -79,7 +79,7 @@ def one_shower_training(one_shower=1):
     process = NetworkProcess(one_shower=one_shower)
     num_epochs = 1000
 
-    for epoch in tqdm.autonotebook.trange(num_epochs):
+    for epoch in tqdm.trange(num_epochs):
         train_loss = process.train()
         tqdm.tqdm.write(f"Epoch: {epoch + 1}/{num_epochs}, Loss: {train_loss}")
         process.scheduler.step(train_loss)

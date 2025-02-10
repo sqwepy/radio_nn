@@ -10,6 +10,7 @@ from torch.utils.data import DataLoader
 
 import wandb
 from radioNN.data.loader import AntennaDataset, custom_collate_fn
+from radioNN.data.filters import LOFARFilter
 from radioNN.networks.antenna_fc_network import AntennaNetworkFC
 from RadioPlotter.radio_plotter import plot_hist, plot_pulses_interactive
 
@@ -110,7 +111,7 @@ class NetworkProcess:
 
         """
         self.wandb = wb
-        radio_data_path = "/home/sampathkumar/radio_data"
+        radio_data_path = "/Users/keito/Projects/phd/radio-ift/codes/radio_nn/Changed_Data/memmaps/177113844/1"
         memmap_mode = "r"
         if not os.path.exists(radio_data_path):
             radio_data_path = "/home/pranav/work-stuff-unsynced/radio_data"
@@ -148,6 +149,7 @@ class NetworkProcess:
             percentage=percentage,
             one_shower=one_shower,
             device=self.device,
+            filter=LOFARFilter,
         )
         self.output_channels = 2 #self.dataset.output.shape[-1]
         print(self.output_channels)
@@ -336,7 +338,7 @@ class NetworkProcess:
         running_loss = 0.0
         valid_batch_count = 0
 
-        for batch in tqdm.autonotebook.tqdm(self.dataloader, leave=False):
+        for batch in tqdm.tqdm(self.dataloader, leave=False):
             if batch is None:
                 tqdm.tqdm.write(f"Skipped batch {batch}")
                 continue
