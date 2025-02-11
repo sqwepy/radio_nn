@@ -10,9 +10,26 @@ import argparse
 import os
 import fnmatch
 import re
+import csv
+
+csv_file_path = '/Users/denis/Desktop/BachelorThesis/csv'
 
 RADIO_DATA_PATH = "/Users/denis/Desktop/BachelorThesis/data/177113844/1"
 
+def write_csv_file(name, path_, item1, item2):
+    
+    file_path = os.path.join(path_, f"{name}.csv")
+
+    file_exists = os.path.isfile(file_path)
+
+    with open(file_path, mode='a', newline='') as file:  # Open in append mode
+        writer = csv.writer(file)
+        
+        # Write header if file is newly created
+        if not file_exists:
+            writer.writerow(["Item1", "Item2"])
+        
+        writer.writerow([item1, item2])  # Write items in separate columns
 
 def density_at_Xmax(f_h5):
     x_max = f_h5['atmosphere'].attrs['Gaisser-Hillas-Fit'][2]
@@ -141,6 +158,10 @@ def flush_antenna_pos(output_path,f_h5, index, dtypeInit):
         if label.split("_")[0] != "pos":
             continue
         assert 0 <= label_index < 160
+        
+        if index == 0:
+            write_csv_file('AntennaPos_vs_Index',csv_file_path,label,label_index)
+            
         antenna_pos[index, label_index] = antennas_pos_f_h5[label]
         label_index += 1
     antenna_pos.flush()
