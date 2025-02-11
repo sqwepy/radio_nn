@@ -11,6 +11,15 @@ import argparse
 import h5py
 import math
 from scipy import integrate
+from scipy.signal import hilbert
+from scipy import optimize
+from radiotools import helper as rdhelp
+from radiotools import coordinatesystems
+from radiotools.atmosphere.models import atm_models
+from radiotools.atmosphere.models import Atmosphere
+import fnmatch
+atmo = Atmosphere()
+
 
 conversion_factor_integrated_signal = (
     2.65441729e-3 * 6.24150934e18
@@ -20,7 +29,7 @@ conversion_fieldstrength_cgs_to_SI = 2.99792458e4
 VERSION_MAJOR = 0
 VERSION_MINOR = 4
 
-RADIO_DATA_PATH = "/home/pranav/work-stuff-unsynced/radio_data"
+RADIO_DATA_PATH = "/Users/denis/Desktop/BachelorThesis/data/177113844/1"
 
 
 def gaisser_hillas(X, N, X0, Xmax, p0, p1=0, p2=0):
@@ -52,7 +61,7 @@ def gaisser_hillas(X, N, X0, Xmax, p0, p1=0, p2=0):
         return result
 
 
-def read_input_file(hdf5_file, inp_file):
+def read_input_file(hdf5_file, inp_file): #IRRELEVANT
 
     if not isinstance(inp_file, io.IOBase):
         inp_file = open(inp_file, "r")
@@ -110,7 +119,7 @@ def read_input_file(hdf5_file, inp_file):
         f_h5_inputs.attrs["ATMOD"] = 1  # CORSIKA default, U.S standard by Linsley
 
 
-def read_reas_file(hdf5_file, reas_file):
+def read_reas_file(hdf5_file, reas_file): #IRRELEVANT
 
     if not isinstance(reas_file, io.IOBase):
         reas_file = open(reas_file, "r")
@@ -173,7 +182,7 @@ def read_reas_file(hdf5_file, reas_file):
             f_h5_reas.attrs[key] = value
 
 
-def read_longitudinal_profile(hdf5_file, long_file):
+def read_longitudinal_profile(hdf5_file, long_file): #IRRELEVANT
 
     if not isinstance(long_file, io.IOBase):
         long_file = io.open(long_file, "r", encoding="UTF-8")
@@ -222,6 +231,7 @@ def read_longitudinal_profile(hdf5_file, long_file):
     long_file.close()
 
 
+#CALCULATION OF DENSITY, easy to understand, HAve to calculate it without the Model
 def get_density(
     h,
     atm_model,
@@ -240,44 +250,52 @@ def get_density(
     else:
         y = b[0] * np.exp(-1 * h / c[0]) / c[0]
 
-    y = np.where(h < layers[1], y, b[0] * np.exp(-1 * (h / 1000) / c[0]) / c[0])
-    y = np.where(h < layers[2], y, b[1] * np.exp(-1 * (h / 1000) / c[1]) / c[1])
-    y = np.where(h < layers[3], y, b[2] * np.exp(-1 * (h / 1000) / c[2]) / c[2])
-    y = np.where(h < layers[4], y, b[3] * np.exp(-1 * (h / 1000) / c[3]) / c[3])
+    y = np.where(h < layers[0], y, b[0] * np.exp(-1 * (h / 1000) / c[0]) / c[0])
+    y = np.where(h < layers[1], y, b[1] * np.exp(-1 * (h / 1000) / c[1]) / c[1])
+    y = np.where(h < layers[2], y, b[2] * np.exp(-1 * (h / 1000) / c[2]) / c[2])
+    y = np.where(h < layers[3], y, b[3] * np.exp(-1 * (h / 1000) / c[3]) / c[3])
     y = np.where(h < h_max, y, b[4] / c[4])
     # y = np.where(h < h_max, y, 0)
 
     return y
 
 
-def get_atmosphere_model():
+#WHERE MODELL????
+def get_atmosphere_model(f_h5):
     """Read the GDAS file and get the atmosphere model."""
-    log_filename = (
-        "GDAS" + os.path.splitext(os.path.basename(reas_filename))[0][3:-2] + "00.txt"
-    )
-    log_filename = os.path.join(os.path.dirname(reas_filename), log_filename)
-    model = np.loadtxt(log_filename, skiprows=1, max_rows=4)
-    ref_index = np.loadtxt(log_filename, skiprows=6)
-    atm_model = {"h": model[0], "a": model[1], "b": model[2], "c": model[3]}
-    return atm_model, ref_index
+    #log_filename = (
+    #    "GDAS" + os.path.splitext(os.path.basename(reas_filename))[0][3:-2] + "00.txt"
+    #)
+    #log_filename = os.path.join(os.path.dirname(reas_filename), log_filename)
+    #model = np.loadtxt(log_filename, skiprows=1, max_rows=4)
+    model_number = float(f_h5["inputs"].attrs['ATMOD'])
+    #print(atm_models)
+    atm_model = atm_models[int(model_number)]
+    
+    return atm_model
 
+def get_ref_index(h):
+    ref_ind = atmo.get_n(np.array(h))
+    return ref_ind
+    
 
-def correct_geomag_Eem_density(f_h5):
+#WHERE TRACES -> down in the code
+def correct_geomag_Eem_density(f_h5): #THIS ALL IS ALMOST LAST CODE AFTER HIGHLEVEL
     traces = f_h5["highlevel/traces"]
-    traces_ge_ce = f_h5["highlevel/traces/ge_ce"]
+    traces_ge_ce = f_h5["highlevel/traces/ge_ce"] #GETS WRITTEN under this in write_ge_ce
     trace_scaled = traces.create_group("scaled")
     for index, label in enumerate(traces_ge_ce):
         trace = traces_ge_ce[label]
         trace /= np.sin(f_h5["highlevel"].attrs["geomagnetic_angle"])
-        trace /= f_h5["highlevel"].attrs["Eem"]
+        trace /= f_h5["highlevel"].attrs["Eem"] # GETS WRITTEN LATER ON IN ENERGY
         data_set = trace_scaled.create_dataset(label, trace.shape, dtype=float)
         data_set[...] = trace
     return f_h5
 
 
 def calculate_and_write_ge_ce(f_h5):
-    antennas = f_h5["CoREAS/observers"]
-    antennas_time = f_h5["/highlevel/obsplane_na_na_vB_vvB"]["times_filtered"]
+    antennas = f_h5["CoREAS"]["observers"]
+    antennas_time = f_h5["/highlevel/obsplane_na_na_vB_vvB"]["times_filtered"] #THIS ALL IS DOWN IN WRITE HIGHLEVEL
     antennas_trace = f_h5["/highlevel/obsplane_na_na_vB_vvB"]["traces_filtered"]
     antennas_pos = f_h5["/highlevel/obsplane_na_na_vB_vvB"]["antenna_position_vBvvB"]
     traces = f_h5["highlevel"].create_group("traces")
@@ -331,43 +349,56 @@ def calculate_and_write_ge_ce(f_h5):
     return f_h5
 
 
-def read_height2X_from_C7log(f_h5, log_file):
+def read_height2X_from_C7log(f_h5): #WHATS GOING ON HERE???
     X_steps = len(f_h5["atmosphere"]["EnergyDeposit"])
-    if not isinstance(log_file, io.IOBase):
-        log_file = open(log_file, "r")
+    #if not isinstance(log_file, io.IOBase):
+    #    log_file = open(log_file, "r")
 
-    lines = [item for item in log_file.readlines() if item != "\n"]  # skip  empty lines
-    lines = np.array(
-        [item for item in lines if not item.startswith("#")]
-    )  # skip comments
-    log_file.close()
-
+    #lines = [item for item in log_file.readlines() if item != "\n"]  # skip  empty lines
+    #lines = np.array(
+    #    [item for item in lines if not item.startswith("#")]
+    #)  # skip comments
+    #log_file.close()
     start = False
     count = 0
-    shower_dev = np.zeros((X_steps + 1, 3))
-    for line in lines:
-        ll = line.strip().split()
-        if (
-            not start
-            and len(ll) == 4
-            and ll[0] == "(I)"
-            and ll[1] == "HLONG(I)"
-            and ll[2] == "THCKRL(I)"
-            and ll[3] == "RLONG(I)"
-        ):
-            start = True
-            continue
-
-        if not start and len(ll) == 4 and ll[0] == str(count):
-            start = True
-
-        if start:
-            if len(ll) != 4 or (len(ll) != 0 and ll[0] != str(count)):
-                start = False
-                continue
-            shower_dev[count] = float(ll[1]), float(ll[2]), float(ll[3])
-            count = count + 1
-
+    #for line in lines:
+    #    ll = line.strip().split()
+    #    if (
+    #        not start
+    #        and len(ll) == 4
+    #        and ll[0] == "(I)"
+    #        and ll[1] == "HLONG(I)"
+    #        and ll[2] == "THCKRL(I)"
+    #        and ll[3] == "RLONG(I)" #vertical height xmax
+    #    ):
+    #        start = True
+    #        continue
+#
+    #    if not start and len(ll) == 4 and ll[0] == str(count):
+    #        start = True
+#
+    #    if start:
+    #        if len(ll) != 4 or (len(ll) != 0 and ll[0] != str(count)):
+    #            start = False
+    #            continue
+    #        shower_dev[count] = float(ll[1]), float(ll[2]), float(ll[3])
+    #        count = count + 1
+    
+    
+    x = f_h5["atmosphere"]["NumberOfParticles"][:, 0]
+    h = []
+    shower_dev = []
+    for i in x:
+        h_i = atmo._get_vertical_height(f_h5['CoREAS'].attrs["ShowerZenithAngle"],i)
+        h.append(h_i)
+        shower_dev.append([i,h_i])
+    
+    
+    #print(f'X_array = {x}')
+    #print(f'h_array = {h}')
+    #print(shower_dev)
+    shower_dev = np.array(shower_dev)
+    
     atmos = f_h5["atmosphere"]
     data_set = atmos.create_dataset("Atmosphere", shower_dev.shape, dtype=float)
     data_set[...] = shower_dev
@@ -375,7 +406,7 @@ def read_height2X_from_C7log(f_h5, log_file):
     return f_h5
 
 
-def read_antenna_data(hdf5_file, list_file, antenna_folder):
+def read_antenna_data(hdf5_file, list_file, antenna_folder): #UNINTERESTING
 
     if not isinstance(list_file, io.IOBase):
         list_file = open(list_file, "r")
@@ -407,14 +438,16 @@ def read_antenna_data(hdf5_file, list_file, antenna_folder):
             data_set.attrs["additional_arguments"] = [a.encode("utf8") for a in ll[6:]]
 
 
-def write_density_n_refindex_from_gdas(f_h5):
-    atm_model, ref_index = get_atmosphere_model()
-    h = f_h5["atmosphere"]["Atmosphere"][:-1, 0]
-    ids = np.array([np.nanargmin(np.abs(ref_index[:, 0] - hh)) for hh in h])
+def write_density_n_refindex_from_gdas(f_h5): #IMPORTNAT, but where MODELL
+    atm_model = get_atmosphere_model(f_h5)
+    h = np.array(f_h5["atmosphere"]["Atmosphere"][:, 1])
+    print(h)
+    #ids = np.array([np.nanargmin(np.abs(ref_index[:, 0] - hh)) for hh in h])#???
 
-    ref_in = ref_index[ids, 1]
+    ref_in = get_ref_index(h) #refractive index
+    print(f'REFRACTIVE INDEX {ref_in}')
     atmos = f_h5["atmosphere"]
-    data_set = atmos.create_dataset("Ref Index", ref_in.shape, dtype=float)
+    data_set = atmos.create_dataset("Ref Index", shape = ref_in.shape, dtype=float)
     data_set[...] = ref_in
     data_set.attrs["comment"] = (
         "Refractive Index at height closest to the " "grammage steps"
@@ -427,7 +460,7 @@ def write_density_n_refindex_from_gdas(f_h5):
     return f_h5
 
 
-def write_coreas_hdf5_file(reas_filename, output_filename, f_h5=None):
+def write_coreas_hdf5_file(reas_filename, output_filename, f_h5=None): #UNINTERESTING
 
     # create hdf5 file
     if f_h5 is None:
@@ -472,12 +505,16 @@ def write_coreas_hdf5_file(reas_filename, output_filename, f_h5=None):
     log_filename = os.path.splitext(os.path.basename(inp_filename))[0] + ".log"
     log_filename = os.path.join(os.path.dirname(reas_filename), log_filename)
     log_file = open(log_filename, "r")
+    
     read_height2X_from_C7log(f_h5, log_file)
     write_density_n_refindex_from_gdas(f_h5)
     return f_h5
 
 
-def write_highlevel_attributes(f_h5_hl, f_h5):
+def write_highlevel_attributes(f_h5_hl , f_h5): #writes energy highlevel VERY USEFUL
+    '''
+    f_h5_hl = f_h5[highlevel]
+    '''
 
     # compute high level quantities from longitudinal profile
     dE_data = f_h5["atmosphere"]["EnergyDeposit"]
@@ -531,7 +568,7 @@ def write_highlevel_attributes(f_h5_hl, f_h5):
     f_h5_hl.attrs["gaisser_hillas_dEdX"] = popt
 
 
-def write_coreas_highlevel_info(f_h5, args):
+def write_coreas_highlevel_info(f_h5, args): #writes traces highlevel VERY IMPORTANT
 
     # create file
     f_h5_hl = f_h5.create_group("highlevel")
@@ -603,7 +640,7 @@ def write_coreas_highlevel_info(f_h5, args):
             )
         planes_unique = np.unique(planes)
 
-    if args.use_vB_vvB_polarization:
+    if args.use_vB_vvB_polarization: #WHATS THIS???
         print(
             "Traces are stored and all relevent quantities are determined in vxB, vxvxB, and v polarization!"
         )
@@ -1004,144 +1041,255 @@ def write_coreas_highlevel_info(f_h5, args):
             f_h5_obsplane["traces_filtered"] = traces_filtered
 
 
-def extract_files_to_tempfolder(sim_num):
-    import tarfile
-
-    tar_filename = (
-        f"{RADIO_DATA_PATH}/"
-        f"SIMOUTPUT{sim_num//100:04d}00/"
-        f"SIMOUTPUT{sim_num:06d}.tar.gz"
-    )
-    os.mkdir("./tmpppp")
-    with tarfile.open(tar_filename) as tar_file:
-        tar_file.extractall(path="./tmpppp/")
-    reas_file = f"./tmpppp/SIM{sim_num:06d}.reas"
+def extract_files_to_tempfolder(sim_num): #UNINTERESTING
+    #import tarfile
+    #tar_filename = (
+    #    f"{RADIO_DATA_PATH}/"
+    #    f"SIMOUTPUT{sim_num//100:04d}00/"
+    #    f"SIMOUTPUT{sim_num:06d}.tar.gz"
+    #)
+    #os.mkdir("./tmpppp")
+    #with tarfile.open(tar_filename) as tar_file:
+    #    tar_file.extractall(path="./tmpppp/")
+    reas_file = 0
     output_file = f"./SIM{sim_num:06d}.hdf5"
     return reas_file, output_file
 
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="coreas hdf5 converter")
-    parser.add_argument(
-        "input_sim",
-        type=int,
-        help="input sim - taken from default path using number",
-    )
-
-    parser.add_argument(
-        "--store_traces",
-        action="store_true",
-        help="Stores rotated, filted, and resampled traces in highlevel file",
-    )
-    parser.add_argument(
-        "--not_store_full_simulation",
-        action="store_false",
-        dest="store_full_simulation_in_hdf5",
-        help="If set, the full, converter simulation will not be"
-        " stored in a hdf5 file and only the highlevel file is written to disk.",
-    )
-
-    parser.add_argument(
-        "--flow", type=float, default=30.0, help="low " "frequency cut in MHz"
-    )
-    parser.add_argument(
-        "--fhigh", type=float, default=80.0, help="high " "frequency cut in MHz"
-    )
-
-    parser.add_argument(
-        "--samplingFrequency",
-        dest="sampling_frequency",
-        type=float,
-        default=1.0,
-        help="Sampling frequency in Gsamples/second",
-    )
-    parser.add_argument(
-        "--frequencyResolution",
-        type=float,
-        default=100.0,
-        help="To increase precision, the frequency spectrum is padded prior appling a bandpass filter."
-        " Set maximum allowed frequency resolution in kHz (default: 100 kHz)",
-    )
-
-    parser.add_argument(
-        "--NSamples",
-        dest="number_of_samples",
-        type=int,
-        default=256,
-        help="the number of samples that should be kept for the downsampled trace",
-    )
-    parser.add_argument(
-        "--NSamplesBeforePulse",
-        dest="samples_before_pulse",
-        type=int,
-        default=None,
-        help="the number of samples before the pulse",
-    )
-
-    parser.add_argument(
-        "--norad",
-        action="store_false",
-        dest="compute_radiation_energy",
-        help="Do not compute radiation energy?",
-    )
-    parser.add_argument(
-        "--novB_vvB",
-        action="store_false",
-        dest="use_vB_vvB_polarization",
-        help="Return trace-related quantities in N, W, vertical instead of vxB, vxvxB and v polarizations",
-    )
-
-    parser.add_argument(
-        "--stokes",
-        action="store_true",
-        dest="calculate_stokes_parameter",
-        help="Calculates Stokes' parameter, in eV/m2",
-    )
-    parser.add_argument(
-        "--stokes_window",
-        type=float,
-        default=25.0,
-        help="window around highest peak to calculate stokes parameter, in ns",
-    )
-
-    args = parser.parse_args()
-
-    # Calculate highlevel quantities and convert simulation to hdf5 format (if input is a '.reas' file and store_simulation_in_hdf5_file is True)
-    reas_filename, output_filename = extract_files_to_tempfolder(args.input_sim)
-
-    f_h5 = write_coreas_hdf5_file(reas_filename, output_filename)
-
-    try:
-        from radiotools import helper as rdhelp
-        from radiotools import coordinatesystems
-    except ModuleNotFoundError as e:
-        sys.exit(
-            "Could not find the radiotools module: '{}'\n"
-            "You can get this module from https://github.com/nu-radio/radiotools.\n"
-            "Make sure to add it to your enviourment, e.g., PYTHONPATH too. Stopping ...".format(
-                e
+def FilesTransformHdf5ToHdf5(SIM_path):
+        
+            parser = argparse.ArgumentParser(description="coreas hdf5 converter")
+    
+            parser.add_argument(
+                "--store_traces",
+                action="store_false",
+                help="Stores rotated, filted, and resampled traces in highlevel file",
             )
+            parser.add_argument(
+                "--not_store_full_simulation",
+                action="store_false",
+                dest="store_full_simulation_in_hdf5",
+                help="If set, the full, converter simulation will not be"
+                " stored in a hdf5 file and only the highlevel file is written to disk.",
+            )
+    
+            parser.add_argument(
+                "--flow", type=float, default=30.0, help="low " "frequency cut in MHz"
+            )
+            parser.add_argument(
+                "--fhigh", type=float, default=80.0, help="high " "frequency cut in MHz"
+            )
+    
+            parser.add_argument(
+                "--samplingFrequency",
+                dest="sampling_frequency",
+                type=float,
+                default=1.0,
+                help="Sampling frequency in Gsamples/second",
+            )
+            parser.add_argument(
+                "--frequencyResolution",
+                type=float,
+                default=100.0,
+                help="To increase precision, the frequency spectrum is padded prior appling a bandpass filter."
+                " Set maximum allowed frequency resolution in kHz (default: 100 kHz)",
+            )
+    
+            parser.add_argument(
+                "--NSamples",
+                dest="number_of_samples",
+                type=int,
+                default=256,
+                help="the number of samples that should be kept for the downsampled trace",
+            )
+            parser.add_argument(
+                "--NSamplesBeforePulse",
+                dest="samples_before_pulse",
+                type=int,
+                default=None,
+                help="the number of samples before the pulse",
+            )
+    
+            parser.add_argument(
+                "--norad",
+                action="store_false",
+                dest="compute_radiation_energy",
+                help="Do not compute radiation energy?",
+            )
+            parser.add_argument(
+                "--novB_vvB",
+                action="store_false",
+                dest="use_vB_vvB_polarization",
+                help="Return trace-related quantities in N, W, vertical instead of vxB, vxvxB and v polarizations",
+            )
+    
+            parser.add_argument(
+                "--stokes",
+                action="store_true",
+                dest="calculate_stokes_parameter",
+                help="Calculates Stokes' parameter, in eV/m2",
+            )
+            parser.add_argument(
+                "--stokes_window",
+                type=float,
+                default=25.0,
+                help="window around highest peak to calculate stokes parameter, in ns",
+            )
+    
+            args = parser.parse_args()
+            
+            #print(args)
+            print('--------------------------------')
+            print(f'Changing HDF5 File: {SIM_path}')
+            
+            f_h5 = h5py.File(f'{SIM_path}', "a")
+            write_coreas_highlevel_info(f_h5,args)
+            calculate_and_write_ge_ce(f_h5)
+            correct_geomag_Eem_density(f_h5)
+            read_height2X_from_C7log(f_h5)
+            write_density_n_refindex_from_gdas(f_h5)
+            if not args.store_full_simulation_in_hdf5:
+                # make file empty (so that writing to disc does not cost a lot of i/o), write it to disc and remove it.
+                for key in f_h5.keys():
+                    del f_h5[key]
+                oname = f_h5.filename
+                f_h5.close()
+                os.remove(oname)
+            else:
+                # in case it did not exists yet its get written to disc now
+                f_h5.close()
+
+
+if __name__ == "__main__":    #PLAYING CODE
+    
+    i = False
+    
+    if i == True:
+        parser = argparse.ArgumentParser(description="coreas hdf5 converter")
+        parser.add_argument(
+            "input_sim",
+            type=int,
+            help="input sim - taken from default path using number",
         )
-    from scipy.signal import hilbert
-    from scipy import optimize
 
-    output_filename_array = os.path.splitext(os.path.basename(output_filename))
+        parser.add_argument(
+            "--store_traces",
+            action="store_true",
+            help="Stores rotated, filted, and resampled traces in highlevel file",
+        )
+        parser.add_argument(
+            "--not_store_full_simulation",
+            action="store_false",
+            dest="store_full_simulation_in_hdf5",
+            help="If set, the full, converter simulation will not be"
+            " stored in a hdf5 file and only the highlevel file is written to disk.",
+        )
 
-    write_coreas_highlevel_info(f_h5, args)
+        parser.add_argument(
+            "--flow", type=float, default=30.0, help="low " "frequency cut in MHz"
+        )
+        parser.add_argument(
+            "--fhigh", type=float, default=80.0, help="high " "frequency cut in MHz"
+        )
 
-    calculate_and_write_ge_ce(f_h5)
-    correct_geomag_Eem_density(f_h5)
-    if not args.store_full_simulation_in_hdf5:
-        # make file empty (so that writing to disc does not cost a lot of i/o), write it to disc and remove it.
-        for key in f_h5.keys():
-            del f_h5[key]
-        oname = f_h5.filename
-        f_h5.close()
-        os.remove(oname)
+        parser.add_argument(
+            "--samplingFrequency",
+            dest="sampling_frequency",
+            type=float,
+            default=1.0,
+            help="Sampling frequency in Gsamples/second",
+        )
+        parser.add_argument(
+            "--frequencyResolution",
+            type=float,
+            default=100.0,
+            help="To increase precision, the frequency spectrum is padded prior appling a bandpass filter."
+            " Set maximum allowed frequency resolution in kHz (default: 100 kHz)",
+        )
+
+        parser.add_argument(
+            "--NSamples",
+            dest="number_of_samples",
+            type=int,
+            default=256,
+            help="the number of samples that should be kept for the downsampled trace",
+        )
+        parser.add_argument(
+            "--NSamplesBeforePulse",
+            dest="samples_before_pulse",
+            type=int,
+            default=None,
+            help="the number of samples before the pulse",
+        )
+
+        parser.add_argument(
+            "--norad",
+            action="store_false",
+            dest="compute_radiation_energy",
+            help="Do not compute radiation energy?",
+        )
+        parser.add_argument(
+            "--novB_vvB",
+            action="store_false",
+            dest="use_vB_vvB_polarization",
+            help="Return trace-related quantities in N, W, vertical instead of vxB, vxvxB and v polarizations",
+        )
+
+        parser.add_argument(
+            "--stokes",
+            action="store_true",
+            dest="calculate_stokes_parameter",
+            help="Calculates Stokes' parameter, in eV/m2",
+        )
+        parser.add_argument(
+            "--stokes_window",
+            type=float,
+            default=25.0,
+            help="window around highest peak to calculate stokes parameter, in ns",
+        )
+
+        args = parser.parse_args()
+
+        # Calculate highlevel quantities and convert simulation to hdf5 format (if input is a '.reas' file and store_simulation_in_hdf5_file is True)
+        reas_filename, output_filename = extract_files_to_tempfolder(args.input_sim)
+
+        f_h5 = write_coreas_hdf5_file(reas_filename, output_filename)
+
+        try:
+            from radiotoolsMaster.radiotools import helper as rdhelp
+            from radiotoolsMaster.radiotools import coordinatesystems
+        except ModuleNotFoundError as e:
+            sys.exit(
+                "Could not find the radiotools module: '{}'\n"
+                "You can get this module from https://github.com/nu-radio/radiotools.\n"
+                "Make sure to add it to your enviourment, e.g., PYTHONPATH too. Stopping ...".format(
+                    e
+                )
+            )
+        from scipy.signal import hilbert
+        from scipy import optimize
+
+        output_filename_array = os.path.splitext(os.path.basename(output_filename))
+
+        write_coreas_highlevel_info(f_h5, args)
+
+        calculate_and_write_ge_ce(f_h5)
+        correct_geomag_Eem_density(f_h5)
+        if not args.store_full_simulation_in_hdf5:
+            # make file empty (so that writing to disc does not cost a lot of i/o), write it to disc and remove it.
+            for key in f_h5.keys():
+                del f_h5[key]
+            oname = f_h5.filename
+            f_h5.close()
+            os.remove(oname)
+        else:
+            # in case it did not exists yet its get written to disc now
+            f_h5.close()
+
+        import shutil
+
+        shutil.rmtree("./tmpppp")
+        
     else:
-        # in case it did not exists yet its get written to disc now
-        f_h5.close()
+        
+        FilesTransformHdf5ToHdf5(RADIO_DATA_PATH)
 
-    import shutil
-
-    shutil.rmtree("./tmpppp")
