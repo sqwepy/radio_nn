@@ -18,11 +18,12 @@ from radioNN.process_network import NetworkProcess
 
 # TODO: Write seperate tests for dataloader classes
 
+n_sims = 33  # number of simulations available 
 
 class ProcessTest(unittest.TestCase):
     """Test the process class and setup for other network tests."""
 
-    def test_process_init(self, percentage=0.01, one_shower=None) -> None:
+    def test_process_init(self, percentage=100, one_shower=None) -> None:
         """
         Setup for the tests.
 
@@ -52,7 +53,7 @@ class TestOneShower(ProcessTest, unittest.TestCase):
 
     def setUp(self) -> None:
         """Fixure."""
-        super().test_process_init(one_shower=np.random.randint(1, high=2158))
+        super().test_process_init(one_shower=np.random.randint(1, high=n_sims))
 
     def test_training_cnn(self) -> None:
         """Test Training."""
@@ -86,7 +87,7 @@ class TestOneShower(ProcessTest, unittest.TestCase):
 class TestSmallDataset(ProcessTest, unittest.TestCase):
     def setUp(self) -> None:
         """Fixure."""
-        super().test_process_init(percentage=0.01)
+        super().test_process_init(percentage=0.1 * n_sims)
 
     def test_training_cnn(self) -> None:
         self.process.model = AntennaNetworkCNN(self.process.output_channels).to("cpu")
