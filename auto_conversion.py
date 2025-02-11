@@ -2,6 +2,7 @@ import re
 import h5py
 import os
 import fnmatch
+import csv
 import sys
 import subprocess
 import psutil
@@ -9,11 +10,13 @@ from datetime import datetime, timedelta
 
 from init_npy import _init_
 from coreas_to_hdf5 import FilesTransformHdf5ToHdf5
-from hdf5_to_memmapfile import write_memmapfile
+from hdf5_to_memmapfile import write_memmapfile, write_csv_file
 
 memmaps_file_path = '/Users/denis/Desktop/BachelorThesis/memmaps'
 HDF5_file_path = '/Users/denis/Desktop/BachelorThesis/data/177113844/1'
 log_file_path = '/Users/denis/Desktop/BachelorThesis/log'
+
+csv_file_path = '/Users/denis/Desktop/BachelorThesis/csv'
 
 def sorting_files(files):
     sorted_files = sorted(files, key=lambda x: int(re.search(r'\d+', x).group()))
@@ -234,6 +237,8 @@ def converting_one_dataset(memmaps_file_path,HDF5_file_path,memmap_folder_name):
             print(f'Processing: {SIM} ...')
             
             chosen_SIM = f'{HDF5_file_path}/{particle}/{SIM}'
+            
+            write_csv_file('SIM_vs_Index',csv_file_path,chosen_SIM,idx)
             
             close_hdf5_if_locked(chosen_SIM)
             
