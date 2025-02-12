@@ -14,7 +14,6 @@ from hdf5_to_memmapfile import write_memmapfile, write_csv_file
 
 from init_npy import total_amount_of_measurements, parameters, event_level_parameters, number_of_antennas,grammage_steps, time_bins, dimensions_antenna_positions_vB_vvB, dimensions_antenna_traces_vB_vvB,dimensions_antenna_traces_ge_ce,time_ge_ce_and_vB_vvB,memmaps_file_path,HDF5_file_path,log_file_path,csv_file_path
 
-
 total_amount_of_measurements = len(os.listdir(f'{HDF5_file_path}/iron')) + len(os.listdir(f'{HDF5_file_path}/proton'))
 
 def sorting_files(files):
@@ -194,7 +193,7 @@ def getting_SIM_number(SIM):
                 
     return SIM_NUMBER
 
-def converting_one_dataset(memmaps_file_path,HDF5_file_path,memmap_folder_name):
+def converting_one_dataset(memmaps_file_path,HDF5_file_path,memmap_folder_name,proton_or_iron):
     
     start_datetime = datetime.now() 
     
@@ -221,6 +220,11 @@ def converting_one_dataset(memmaps_file_path,HDF5_file_path,memmap_folder_name):
    
     for particle in matching_particles:
         
+        if particle == 'proton':
+            pass
+        else:
+            proton_or_iron = False
+        
         matching_SIMs = find_SIM(f'{HDF5_file_path}/{particle}')
         sorted_SIM = sorting_files(matching_SIMs) #Sorted via number
 
@@ -237,7 +241,11 @@ def converting_one_dataset(memmaps_file_path,HDF5_file_path,memmap_folder_name):
             
             chosen_SIM = f'{HDF5_file_path}/{particle}/{SIM}'
             
-            write_csv_file('SIM_vs_Index',csv_file_path,chosen_SIM,idx)
+            if proton_or_iron:
+                write_csv_file('Proton_SIM_vs_Index',csv_file_path,chosen_SIM,idx)
+            else:
+                write_csv_file('Iron_SIM_vs_Index',csv_file_path,chosen_SIM,idx)
+                
             
             close_hdf5_if_locked(chosen_SIM)
             
@@ -270,4 +278,6 @@ def converting_one_dataset(memmaps_file_path,HDF5_file_path,memmap_folder_name):
 
 if __name__ == "__main__":
     
-    converting_one_dataset(memmaps_file_path,HDF5_file_path,f'{177113844}/{1}')
+    proton_or_iron = True
+    
+    converting_one_dataset(memmaps_file_path,HDF5_file_path,f'{177113844}/{1}',proton_or_iron)
