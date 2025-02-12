@@ -441,11 +441,11 @@ def read_antenna_data(hdf5_file, list_file, antenna_folder): #UNINTERESTING
 def write_density_n_refindex_from_gdas(f_h5): #IMPORTNAT, but where MODELL
     atm_model = get_atmosphere_model(f_h5)
     h = np.array(f_h5["atmosphere"]["Atmosphere"][:, 1])
-    print(h)
+    #print(h)
     #ids = np.array([np.nanargmin(np.abs(ref_index[:, 0] - hh)) for hh in h])#???
 
     ref_in = get_ref_index(h) #refractive index
-    print(f'REFRACTIVE INDEX {ref_in}')
+    #print(f'REFRACTIVE INDEX {ref_in}')
     atmos = f_h5["atmosphere"]
     data_set = atmos.create_dataset("Ref Index", shape = ref_in.shape, dtype=float)
     data_set[...] = ref_in
