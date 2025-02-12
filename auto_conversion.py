@@ -12,11 +12,10 @@ from init_npy import _init_
 from coreas_to_hdf5 import FilesTransformHdf5ToHdf5
 from hdf5_to_memmapfile import write_memmapfile, write_csv_file
 
-memmaps_file_path = '/Users/denis/Desktop/BachelorThesis/memmaps'
-HDF5_file_path = '/Users/denis/Desktop/BachelorThesis/data/177113844/1'
-log_file_path = '/Users/denis/Desktop/BachelorThesis/log'
+from init_npy import total_amount_of_measurements, parameters, event_level_parameters, number_of_antennas,grammage_steps, time_bins, dimensions_antenna_positions_vB_vvB, dimensions_antenna_traces_vB_vvB,dimensions_antenna_traces_ge_ce,time_ge_ce_and_vB_vvB,memmaps_file_path,HDF5_file_path,log_file_path,csv_file_path
 
-csv_file_path = '/Users/denis/Desktop/BachelorThesis/csv'
+
+total_amount_of_measurements = len(os.listdir(f'{HDF5_file_path}/iron')) + len(os.listdir(f'{HDF5_file_path}/proton'))
 
 def sorting_files(files):
     sorted_files = sorted(files, key=lambda x: int(re.search(r'\d+', x).group()))
@@ -92,7 +91,7 @@ def is_file_locked(filepath):
         print(f"File '{filepath}' is still LOCKED by another process!")
         return True
     except Exception as e:
-        print(f"⚠️ Unexpected error: {e}")
+        print(f"Unexpected error: {e}")
         return True
     
 def close_hdf5_if_locked(filepath):
@@ -205,7 +204,7 @@ def converting_one_dataset(memmaps_file_path,HDF5_file_path,memmap_folder_name):
     
     j = 0
     
-    _init_(memmap_file_path)
+    _init_(memmap_file_path,total_amount_of_measurements, parameters, event_level_parameters, number_of_antennas,grammage_steps, time_bins, dimensions_antenna_positions_vB_vvB, dimensions_antenna_traces_vB_vvB,dimensions_antenna_traces_ge_ce,time_ge_ce_and_vB_vvB)
     
     #IRON AND PROTON
     
