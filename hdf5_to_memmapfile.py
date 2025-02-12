@@ -10,11 +10,7 @@ import os
 import fnmatch
 import re
 import csv
-from init_npy import total_amount_of_measurements, parameters, event_level_parameters, number_of_antennas,grammage_steps, time_bins, dimensions_antenna_positions_vB_vvB, dimensions_antenna_traces_vB_vvB,dimensions_antenna_traces_ge_ce,time_ge_ce_and_vB_vvB
-
-csv_file_path = '/Users/denis/Desktop/BachelorThesis/csv'
-
-RADIO_DATA_PATH = "/Users/denis/Desktop/BachelorThesis/data/177113844/1"
+from init_npy import total_amount_of_measurements, parameters, event_level_parameters, number_of_antennas,grammage_steps, time_bins, dimensions_antenna_positions_vB_vvB, dimensions_antenna_traces_vB_vvB,dimensions_antenna_traces_ge_ce,time_ge_ce_and_vB_vvB,csv_file_path
 
 def write_csv_file(name, path_, item1, item2):
     
@@ -36,7 +32,7 @@ def density_at_Xmax(f_h5):
     X = np.array(f_h5["atmosphere"]["Atmosphere"][:, 0])
     n = np.argmin(x_max-X)
     h = f_h5["atmosphere"]["Atmosphere"][:, 1]
-    print(n)
+    #print(n)
     density = f_h5["atmosphere"]["Density"][n]
     h_max = h[n]
     return density, h_max
@@ -74,7 +70,7 @@ def flush_input_meta(output_path,SIM_NUMBER, f_h5, index, dtypeInit):
     meta_data_file = path.join(output_path, "meta_data.npy")
     #meta_data = np.memmap(meta_data_file, mode="r+", dtype=f'{dtypeInit}')
     meta_data = np.memmap(meta_data_file, dtype=f"{dtypeInit}", mode="r+", shape=(total_amount_of_measurements, event_level_parameters),offset=0)
-    meta_data[:] = 0
+    meta_data[index][:] = 0
     
     #assert max(meta_data[:, 0]) < int(SIM_NUMBER)
     # check and set always
@@ -89,7 +85,7 @@ def flush_input_meta(output_path,SIM_NUMBER, f_h5, index, dtypeInit):
     meta_data[index, 4] = h_xmax
     meta_data[index, 5] = f_h5["highlevel"].attrs["Eem"] 
     
-    print(f_h5["CoREAS"].attrs['GeomagneticAngle']) 
+    #print(f_h5["CoREAS"].attrs['GeomagneticAngle']) 
     meta_data[index, 6] = np.sin(float(f_h5["CoREAS"].attrs['GeomagneticAngle']))
     meta_data[index, 7] = f_h5["CoREAS"].attrs['MagneticFieldInclinationAngle']
     meta_data[index, 8] = f_h5["CoREAS"].attrs['RotationAngleForMagfieldDeclination']
@@ -105,7 +101,7 @@ def flush_output_meta(output_path,f_h5, index, dtypeInit):
     output_meta_file = path.join(output_path, "output_meta_data.npy")
     #output_meta = np.memmap(output_meta_file, mode="r+", dtype=f'{dtypeInit}')
     output_meta = np.memmap(output_meta_file, dtype=f"{dtypeInit}", mode="r+", shape=(total_amount_of_measurements, number_of_antennas, time_ge_ce_and_vB_vvB),offset=0)
-    output_meta[:] = 0
+    output_meta[index][:] = 0
     assert np.all(np.abs(output_meta[index, :]) == 0)
     antennas_trace_gece_f_h5 = f_h5[f"/highlevel/traces/ge_ce"]
     antennas_trace_vBvvB_f_h5 = f_h5[f"/highlevel/traces/vB_vvB"]
@@ -126,23 +122,23 @@ def flush_output_vBvvB(output_path,f_h5, index, dtypeInit):
     output_vBvvB_file = path.join(output_path, "output_vBvvB_data.npy")
     #output_vBvvB = np.memmap(output_vBvvB_file, mode="r+", dtype=f'{dtypeInit}')
     output_vBvvB = np.memmap(output_vBvvB_file, dtype=f"{dtypeInit}", mode="r+", shape=(total_amount_of_measurements, number_of_antennas, time_bins, dimensions_antenna_traces_vB_vvB),offset=0)
-    output_vBvvB[:] = 0
+    output_vBvvB[index][:] = 0
     assert np.all(np.abs(output_vBvvB[index, :]) == 0)
     antennas_trace_vBvvB_f_h5 = f_h5[f"/highlevel/traces/vB_vvB"]
     label_index = 0
     for label in antennas_trace_vBvvB_f_h5.keys():
-        print(label)
+        #print(label)
         if label.split("_")[0] != "pos":
             continue
         assert 0 <= label_index < 160
         #print(label_index)
-        if label_index == 0:
-            print(f'Input:', antennas_trace_vBvvB_f_h5[label][:, 1:])
-            print(len(antennas_trace_vBvvB_f_h5[label][:, 1:]))
+        #if label_index == 0:
+            #print(f'Input:', antennas_trace_vBvvB_f_h5[label][:, 1:])
+            #print(len(antennas_trace_vBvvB_f_h5[label][:, 1:]))
         output_vBvvB[index, label_index] = antennas_trace_vBvvB_f_h5[label][:, 1:]
-        if label_index == 0:
-            print(f'Output:', output_vBvvB[index, label_index])
-            print(len(output_vBvvB[index, label_index]))
+        #if label_index == 0:  
+            #print(f'Output:', output_vBvvB[index, label_index])
+            #print(len(output_vBvvB[index, label_index]))
         label_index += 1
     output_vBvvB.flush()
 
@@ -151,7 +147,7 @@ def flush_output_gece(output_path,f_h5, index, dtypeInit):
     output_gece_file = path.join(output_path, "output_gece_data.npy")
     #output_gece = np.memmap(output_gece_file, mode="r+", dtype=f'{dtypeInit}')
     output_gece = np.memmap(output_gece_file, dtype=f"{dtypeInit}", mode="r+", shape=(total_amount_of_measurements, number_of_antennas, time_bins, dimensions_antenna_traces_ge_ce),offset=0)
-    output_gece[:] = 0
+    output_gece[index][:] = 0
     assert np.all(np.abs(output_gece[index, :]) == 0)
     antennas_trace_gece_f_h5 = f_h5[f"/highlevel/traces/ge_ce"]
     label_index = 0
@@ -168,7 +164,7 @@ def flush_antenna_pos(output_path,f_h5, index, dtypeInit):
     antenna_pos_file = path.join(output_path, "antenna_pos_data.npy")
     #antenna_pos = np.memmap(antenna_pos_file, mode="r+", dtype=f'{dtypeInit}')
     antenna_pos = np.memmap(antenna_pos_file, dtype=f"{dtypeInit}", mode="r+", shape=(total_amount_of_measurements, number_of_antennas, dimensions_antenna_positions_vB_vvB),offset=0)
-    antenna_pos[:] = 0
+    antenna_pos[index][:] = 0
     assert np.all(np.abs(antenna_pos[index, :]) == 0)
     antennas_pos_f_h5 = f_h5[f"/highlevel/positions/vB_vvB"]
     label_index = 0
@@ -189,7 +185,7 @@ def flush_input_data(output_path,f_h5, index, dtypeInit):
     input_data_file = path.join(output_path, "input_data.npy")
     #input_data = np.memmap(input_data_file, mode="r+", dtype=f'{dtypeInit}')
     input_data = np.memmap(input_data_file, dtype=f"{dtypeInit}", mode="r+", shape=(total_amount_of_measurements, grammage_steps, parameters),offset=0)
-    input_data[:] = 0
+    input_data[index][:] = 0
     assert np.all(np.abs(input_data[index, :]) == 0)
     
     energy_deposit = f_h5["atmosphere"]["EnergyDeposit"][:, :4]
