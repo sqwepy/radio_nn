@@ -111,7 +111,7 @@ class NetworkProcess:
 
         """
         self.wandb = wb
-        radio_data_path = "/Users/keito/Projects/phd/radio-ift/codes/radio_nn/Changed_Data/memmaps/177113844/1"
+        radio_data_path = "/Users/denis/Desktop/BachelorThesis/memmaps/177113844/1"
         memmap_mode = "r"
         if not os.path.exists(radio_data_path):
             radio_data_path = "/home/pranav/work-stuff-unsynced/radio_data"
