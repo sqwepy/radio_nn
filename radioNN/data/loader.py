@@ -7,6 +7,7 @@ from torch.utils.data.dataloader import default_collate
 
 from radioNN.data.filters import DefaultFilter
 from radioNN.data.transforms import DefaultTransform, Identity
+from init_npy import total_amount_of_measurements, parameters, event_level_parameters, number_of_antennas,grammage_steps, time_bins, dimensions_antenna_positions_vB_vvB, dimensions_antenna_traces_vB_vvB,dimensions_antenna_traces_ge_ce,time_ge_ce_and_vB_vvB
 
 
 def custom_collate_fn(batch):
@@ -81,11 +82,18 @@ class AntennaDataset(Dataset):
 
         """
         # TODO: Make this into a seperate class
-        self.input_data = np.load(input_data_file, mmap_mode=mmap_mode)
-        self.input_meta = np.load(input_meta_file, mmap_mode=mmap_mode)
-        self.antenna_pos = np.load(antenna_pos_file, mmap_mode=mmap_mode)
-        self.output_meta = np.load(output_meta_file, mmap_mode=mmap_mode)
-        self.output = np.load(output_file, mmap_mode=mmap_mode)
+        #self.input_data = np.load(input_data_file, mmap_mode=mmap_mode) # input
+        #self.input_meta = np.load(input_meta_file, mmap_mode=mmap_mode) #input meta
+        #self.antenna_pos = np.load(antenna_pos_file, mmap_mode=mmap_mode) #antenna pos
+        #self.output_meta = np.load(output_meta_file, mmap_mode=mmap_mode) #output meta
+        #self.output = np.load(output_file, mmap_mode=mmap_mode)  #vBvvB
+        
+        self.input_data = np.memmap(input_data_file, dtype='float32', mode=f'{mmap_mode}',shape=(total_amount_of_measurements, grammage_steps, parameters), offset=0) # input
+        self.input_meta = np.memmap(input_meta_file, dtype='float32', mode=f'{mmap_mode}',shape=(total_amount_of_measurements,event_level_parameters), offset=0)
+        self.antenna_pos = np.memmap(antenna_pos_file, dtype='float32', mode=f'{mmap_mode}',shape=(total_amount_of_measurements, number_of_antennas,dimensions_antenna_positions_vB_vvB), offset=0) #antenna pos
+        self.output_meta = np.memmap(output_meta_file, dtype='float32', mode=f'{mmap_mode}',shape=(total_amount_of_measurements, number_of_antennas, time_ge_ce_and_vB_vvB), offset=0) #output meta
+        self.output = np.memmap(output_file, dtype='float32', mode=f'{mmap_mode}',shape=(total_amount_of_measurements, number_of_antennas, time_bins, dimensions_antenna_traces_vB_vvB), offset=0) #vBvvB
+        
         self.percentage = percentage
         self.one_shower = one_shower
         self.device = device
