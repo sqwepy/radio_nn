@@ -10,7 +10,6 @@ import os
 import fnmatch
 import re
 import csv
-from init_npy import total_amount_of_measurements, parameters, event_level_parameters, number_of_antennas,grammage_steps, time_bins, dimensions_antenna_positions_vB_vvB, dimensions_antenna_traces_vB_vvB,dimensions_antenna_traces_ge_ce,time_ge_ce_and_vB_vvB,csv_file_path
 from numpy.lib.format import open_memmap
 
 def write_csv_file(name, path_, item1, item2):
