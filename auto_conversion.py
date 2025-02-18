@@ -205,7 +205,7 @@ def getting_amount_of_SIM(HDF5_file_path):
     
     return int(Sim_amount)
 
-def initializing(memmaps_file_path,memmap_folder_name,HDF5_file_path):
+def initializing(memmaps_file_path,memmap_folder_name,HDF5_file_path,test=False,i=1):
 
     amount_of_measurements = getting_amount_of_SIM(HDF5_file_path)
     
@@ -213,8 +213,10 @@ def initializing(memmaps_file_path,memmap_folder_name,HDF5_file_path):
     
     memmap_file_path = f'{memmaps_file_path}/{memmap_folder_name}'
     
-    _init_(memmap_file_path,amount_of_measurements, parameters, event_level_parameters, number_of_antennas,grammage_steps, time_bins, dimensions_antenna_positions_vB_vvB, dimensions_antenna_traces_vB_vvB,dimensions_antenna_traces_ge_ce,time_ge_ce_and_vB_vvB)
-    
+    if test:
+        _init_(memmap_file_path,i, parameters, event_level_parameters, number_of_antennas,grammage_steps, time_bins, dimensions_antenna_positions_vB_vvB, dimensions_antenna_traces_vB_vvB,dimensions_antenna_traces_ge_ce,time_ge_ce_and_vB_vvB)
+    else:
+        _init_(memmap_file_path,amount_of_measurements, parameters, event_level_parameters, number_of_antennas,grammage_steps, time_bins, dimensions_antenna_positions_vB_vvB, dimensions_antenna_traces_vB_vvB,dimensions_antenna_traces_ge_ce,time_ge_ce_and_vB_vvB)
     return memmap_file_path
 
 
@@ -295,12 +297,7 @@ def converting_one_dataset(j,memmap_file_path,HDF5_file_path,csv_file_path,log_f
     
     return j
 
-if __name__ == "__main__":
-    
-    memmaps_file_path = '/cr/work/stiben'
-    HDF5_file_path = '/cr/radio/lofar/hdf5_sims'
-    log_file_path = '/cr/work/stiben'
-    csv_file_path = '/cr/work/stiben'
+def run_auto(memmaps_file_path,HDF5_file_path,log_file_path,csv_file_path):
     
     j = 0 
     
@@ -317,3 +314,35 @@ if __name__ == "__main__":
             new_j = converting_one_dataset(j,memmap_file_path,Proton_Iron_paths,csv_file_path,log_file_path)
             
             j = new_j
+            
+def test_conversion(memmaps_file_path,HDF5_file_path,log_file_path,csv_file_path):
+    j = 0
+    
+    memmap_file_path = initializing(memmaps_file_path,'memmap',HDF5_file_path,test=True)
+    
+    folders = os.listdir(f'{HDF5_file_path}')[0]
+        
+    folder_paths = f'{HDF5_file_path}/{folders}'
+        
+    for folders2 in os.listdir(f'{folder_paths}'):
+            
+        Proton_Iron_paths = f'{folder_paths}/{folders2}'
+            
+        new_j = converting_one_dataset(j,memmap_file_path,Proton_Iron_paths,csv_file_path,log_file_path)
+            
+        j = new_j
+    
+
+if __name__ == "__main__":
+    
+    memmaps_file_path = '/cr/work/stiben'
+    HDF5_file_path = '/cr/work/stiben/data'
+    log_file_path = '/cr/work/stiben'
+    csv_file_path = '/cr/work/stiben'
+    
+    test = True
+    
+    if test:
+        test_conversion(memmaps_file_path,HDF5_file_path,log_file_path,csv_file_path)
+    else:
+        run_auto(memmaps_file_path,HDF5_file_path,log_file_path,csv_file_path)
