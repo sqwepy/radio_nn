@@ -83,12 +83,12 @@ def _init_(path_,total_amount_of_measurements = 33, parameters = 11, event_level
     #print(fp4.shape)
     fp4[:] = 0
     np.save(file_name, fp4)
-    file_name = os.path.join(path_, "output_gece_data")
-    #os.remove(file_name)
-    fp5 = np.memmap(file_name, dtype=f"{dtypeInit}", mode="w+", shape=(total_amount_of_measurements, number_of_antennas, time_bins, dimensions_antenna_traces_ge_ce),offset=0)
-    #print(fp5.shape)
-    fp5[:] = 0
-    np.save(file_name, fp5)
+    #file_name = os.path.join(path_, "output_gece_data")
+    ##os.remove(file_name)
+    #fp5 = np.memmap(file_name, dtype=f"{dtypeInit}", mode="w+", shape=(total_amount_of_measurements, number_of_antennas, time_bins, dimensions_antenna_traces_ge_ce),offset=0)
+    ##print(fp5.shape)
+    #fp5[:] = 0
+    #np.save(file_name, fp5)
     #(number of simulations, number of antennas, time bins, polarizations)
     file_name = os.path.join(path_, "output_vBvvB_data")
     #os.remove(file_name)
