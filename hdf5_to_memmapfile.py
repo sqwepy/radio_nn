@@ -11,6 +11,7 @@ import fnmatch
 import re
 import csv
 from init_npy import total_amount_of_measurements, parameters, event_level_parameters, number_of_antennas,grammage_steps, time_bins, dimensions_antenna_positions_vB_vvB, dimensions_antenna_traces_vB_vvB,dimensions_antenna_traces_ge_ce,time_ge_ce_and_vB_vvB,csv_file_path
+from numpy.lib.format import open_memmap
 
 def write_csv_file(name, path_, item1, item2):
     
@@ -69,7 +70,7 @@ def flush_input_meta(output_path,SIM_NUMBER, f_h5, index, dtypeInit):
 
     meta_data_file = path.join(output_path, "meta_data.npy")
     #meta_data = np.memmap(meta_data_file, mode="r+", dtype=f'{dtypeInit}')
-    meta_data = np.memmap(meta_data_file, dtype=f"{dtypeInit}", mode="r+", shape=(total_amount_of_measurements, event_level_parameters),offset=0)
+    meta_data = open_memmap(meta_data_file, dtype=f"{dtypeInit}", mode="r+")
     meta_data[index][:] = 0
     
     #assert max(meta_data[:, 0]) < int(SIM_NUMBER)
@@ -100,7 +101,7 @@ def flush_input_meta(output_path,SIM_NUMBER, f_h5, index, dtypeInit):
 def flush_output_meta(output_path,f_h5, index, dtypeInit):
     output_meta_file = path.join(output_path, "output_meta_data.npy")
     #output_meta = np.memmap(output_meta_file, mode="r+", dtype=f'{dtypeInit}')
-    output_meta = np.memmap(output_meta_file, dtype=f"{dtypeInit}", mode="r+", shape=(total_amount_of_measurements, number_of_antennas, time_ge_ce_and_vB_vvB),offset=0)
+    output_meta = open_memmap(output_meta_file, dtype=f"{dtypeInit}", mode="r+")
     output_meta[index][:] = 0
     assert np.all(np.abs(output_meta[index, :]) == 0)
     antennas_trace_gece_f_h5 = f_h5[f"/highlevel/traces/ge_ce"]
@@ -121,7 +122,7 @@ def flush_output_meta(output_path,f_h5, index, dtypeInit):
 def flush_output_vBvvB(output_path,f_h5, index, dtypeInit):
     output_vBvvB_file = path.join(output_path, "output_vBvvB_data.npy")
     #output_vBvvB = np.memmap(output_vBvvB_file, mode="r+", dtype=f'{dtypeInit}')
-    output_vBvvB = np.memmap(output_vBvvB_file, dtype=f"{dtypeInit}", mode="r+", shape=(total_amount_of_measurements, number_of_antennas, time_bins, dimensions_antenna_traces_vB_vvB),offset=0)
+    output_vBvvB = open_memmap(output_vBvvB_file, dtype=f"{dtypeInit}", mode="r+")
     output_vBvvB[index][:] = 0
     assert np.all(np.abs(output_vBvvB[index, :]) == 0)
     antennas_trace_vBvvB_f_h5 = f_h5[f"/highlevel/traces/vB_vvB"]
@@ -146,7 +147,7 @@ def flush_output_vBvvB(output_path,f_h5, index, dtypeInit):
 def flush_output_gece(output_path,f_h5, index, dtypeInit):
     output_gece_file = path.join(output_path, "output_gece_data.npy")
     #output_gece = np.memmap(output_gece_file, mode="r+", dtype=f'{dtypeInit}')
-    output_gece = np.memmap(output_gece_file, dtype=f"{dtypeInit}", mode="r+", shape=(total_amount_of_measurements, number_of_antennas, time_bins, dimensions_antenna_traces_ge_ce),offset=0)
+    output_gece = open_memmap(output_gece_file, dtype=f"{dtypeInit}", mode="r+")
     output_gece[index][:] = 0
     assert np.all(np.abs(output_gece[index, :]) == 0)
     antennas_trace_gece_f_h5 = f_h5[f"/highlevel/traces/ge_ce"]
@@ -163,7 +164,7 @@ def flush_output_gece(output_path,f_h5, index, dtypeInit):
 def flush_antenna_pos(output_path,f_h5, index, dtypeInit):
     antenna_pos_file = path.join(output_path, "antenna_pos_data.npy")
     #antenna_pos = np.memmap(antenna_pos_file, mode="r+", dtype=f'{dtypeInit}')
-    antenna_pos = np.memmap(antenna_pos_file, dtype=f"{dtypeInit}", mode="r+", shape=(total_amount_of_measurements, number_of_antennas, dimensions_antenna_positions_vB_vvB),offset=0)
+    antenna_pos = open_memmap(antenna_pos_file, dtype=f"{dtypeInit}", mode="r+")
     antenna_pos[index][:] = 0
     assert np.all(np.abs(antenna_pos[index, :]) == 0)
     antennas_pos_f_h5 = f_h5[f"/highlevel/positions/vB_vvB"]
@@ -184,7 +185,7 @@ def flush_antenna_pos(output_path,f_h5, index, dtypeInit):
 def flush_input_data(output_path,f_h5, index, dtypeInit):
     input_data_file = path.join(output_path, "input_data.npy")
     #input_data = np.memmap(input_data_file, mode="r+", dtype=f'{dtypeInit}')
-    input_data = np.memmap(input_data_file, dtype=f"{dtypeInit}", mode="r+", shape=(total_amount_of_measurements, grammage_steps, parameters),offset=0)
+    input_data = open_memmap(input_data_file, dtype=f"{dtypeInit}", mode="r+")
     input_data[index][:] = 0
     assert np.all(np.abs(input_data[index, :]) == 0)
     
