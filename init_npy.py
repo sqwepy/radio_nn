@@ -5,13 +5,13 @@ Create npy files to be used by open_memmap
 import numpy as np
 import os
 
-memmaps_file_path = '/Users/denis/Desktop/BachelorThesis/memmaps'
-HDF5_file_path = '/Users/denis/Desktop/BachelorThesis/data/177113844/1'
-log_file_path = '/Users/denis/Desktop/BachelorThesis/log'
+#memmaps_file_path = '/Users/denis/Desktop/BachelorThesis/memmaps'
+#HDF5_file_path = '/Users/denis/Desktop/BachelorThesis/data/177113844/1'
+#log_file_path = '/Users/denis/Desktop/BachelorThesis/log'
+#
+#csv_file_path = '/Users/denis/Desktop/BachelorThesis/csv'
 
-csv_file_path = '/Users/denis/Desktop/BachelorThesis/csv'
-
-total_amount_of_measurements = len(os.listdir(f'{HDF5_file_path}/iron')) + len(os.listdir(f'{HDF5_file_path}/proton'))
+#total_amount_of_measurements = len(os.listdir(f'{HDF5_file_path}/iron')) + len(os.listdir(f'{HDF5_file_path}/proton'))
 parameters = 11
 event_level_parameters = 13
 number_of_antennas = 160
