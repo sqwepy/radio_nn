@@ -336,11 +336,11 @@ def test_conversion(memmaps_file_path,HDF5_file_path,log_file_path,csv_file_path
 if __name__ == "__main__":
     
     memmaps_file_path = '/cr/work/stiben'
-    HDF5_file_path = '/cr/work/stiben/data'
-    log_file_path = '/cr/work/stiben'
-    csv_file_path = '/cr/work/stiben'
+    HDF5_file_path = '/cr/work/stiben/Testdata'
+    log_file_path = '/cr/work/stiben/log'
+    csv_file_path = '/cr/work/stiben/csv'
     
-    test = True
+    test = False
     
     if test:
         test_conversion(memmaps_file_path,HDF5_file_path,log_file_path,csv_file_path)
