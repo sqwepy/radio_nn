@@ -5,6 +5,7 @@ import fnmatch
 import csv
 import sys
 import subprocess
+import numpy as np
 import psutil
 from datetime import datetime, timedelta
 
@@ -12,9 +13,7 @@ from init_npy import _init_
 from coreas_to_hdf5 import FilesTransformHdf5ToHdf5
 from hdf5_to_memmapfile import write_memmapfile, write_csv_file
 
-from init_npy import total_amount_of_measurements, parameters, event_level_parameters, number_of_antennas,grammage_steps, time_bins, dimensions_antenna_positions_vB_vvB, dimensions_antenna_traces_vB_vvB,dimensions_antenna_traces_ge_ce,time_ge_ce_and_vB_vvB,memmaps_file_path,HDF5_file_path,log_file_path,csv_file_path
-
-total_amount_of_measurements = len(os.listdir(f'{HDF5_file_path}/iron')) + len(os.listdir(f'{HDF5_file_path}/proton'))
+from init_npy import total_amount_of_measurements, parameters, event_level_parameters, number_of_antennas,grammage_steps, time_bins, dimensions_antenna_positions_vB_vvB, dimensions_antenna_traces_vB_vvB,dimensions_antenna_traces_ge_ce,time_ge_ce_and_vB_vvB
 
 def sorting_files(files):
     sorted_files = sorted(files, key=lambda x: int(re.search(r'\d+', x).group()))
@@ -193,20 +192,38 @@ def getting_SIM_number(SIM):
                 
     return SIM_NUMBER
 
-def converting_one_dataset(memmaps_file_path,HDF5_file_path,memmap_folder_name,proton_or_iron):
+def getting_amount_of_SIM(HDF5_file_path):
+    amount_of_sims = []
     
-    start_datetime = datetime.now() 
+    for folders in os.listdir(f'{HDF5_file_path}'):
+        folder_paths = f'{HDF5_file_path}/{folders}'
+        for folders2 in os.listdir(f'{folder_paths}'):
+            Proton_Iron_paths = f'{folder_paths}/{folders2}'
+            amount_of_sims.append(len(os.listdir(f'{Proton_Iron_paths}/iron')) + len(os.listdir(f'{Proton_Iron_paths}/proton')))
+        
+    Sim_amount = np.sum(amount_of_sims)
+    
+    return int(Sim_amount)
+
+def initializing(memmaps_file_path,memmap_folder_name,HDF5_file_path):
+
+    amount_of_measurements = getting_amount_of_SIM(HDF5_file_path)
     
     create_folder(memmaps_file_path,memmap_folder_name)
     
     memmap_file_path = f'{memmaps_file_path}/{memmap_folder_name}'
     
-    j = 0
+    _init_(memmap_file_path,amount_of_measurements, parameters, event_level_parameters, number_of_antennas,grammage_steps, time_bins, dimensions_antenna_positions_vB_vvB, dimensions_antenna_traces_vB_vvB,dimensions_antenna_traces_ge_ce,time_ge_ce_and_vB_vvB)
     
-    _init_(memmap_file_path,total_amount_of_measurements, parameters, event_level_parameters, number_of_antennas,grammage_steps, time_bins, dimensions_antenna_positions_vB_vvB, dimensions_antenna_traces_vB_vvB,dimensions_antenna_traces_ge_ce,time_ge_ce_and_vB_vvB)
+    return memmap_file_path
+
+
+
+def converting_one_dataset(j,memmap_file_path,HDF5_file_path,csv_file_path,log_file_path,proton_or_iron = True):
+    
+    start_datetime = datetime.now() 
     
     #IRON AND PROTON
-    
             
     matching_particles = find_Iron_and_Proton(HDF5_file_path)
     
@@ -275,9 +292,28 @@ def converting_one_dataset(memmaps_file_path,HDF5_file_path,memmap_folder_name,p
     time_for_operation = time_difference(start_datetime)
 
     create_log_file(HDF5_file_path,time_for_operation,f'{log_file_path}/MEASUREMENTS_log.txt')
+    
+    return j
 
 if __name__ == "__main__":
     
-    proton_or_iron = True
+    memmaps_file_path = '/cr/work/stiben'
+    HDF5_file_path = '/cr/radio/lofar/hdf5_sims'
+    log_file_path = '/cr/work/stiben'
+    csv_file_path = '/cr/work/stiben'
     
-    converting_one_dataset(memmaps_file_path,HDF5_file_path,f'{177113844}/{1}',proton_or_iron)
+    j = 0 
+    
+    memmap_file_path = initializing(memmaps_file_path,'memmap',HDF5_file_path)
+    
+    for folders in os.listdir(f'{HDF5_file_path}'):
+        
+        folder_paths = f'{HDF5_file_path}/{folders}'
+        
+        for folders2 in os.listdir(f'{folder_paths}'):
+            
+            Proton_Iron_paths = f'{folder_paths}/{folders2}'
+            
+            new_j = converting_one_dataset(j,memmap_file_path,Proton_Iron_paths,csv_file_path,log_file_path)
+            
+            j = new_j
