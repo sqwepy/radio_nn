@@ -221,7 +221,7 @@ def write_memmapfile(output_path,SIM_name,SIM_NUMBER,f_h5,idx):
 
     flush_antenna_pos(output_path,f_h5, idx, dtypeInit)
 
-    flush_output_gece(output_path,f_h5, idx, dtypeInit)
+    #flush_output_gece(output_path,f_h5, idx, dtypeInit)
 
     flush_output_vBvvB(output_path,f_h5, idx, dtypeInit)
 
