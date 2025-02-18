@@ -160,7 +160,7 @@ def flush_output_gece(output_path,f_h5, index, dtypeInit):
     output_gece.flush()
 
 
-def flush_antenna_pos(output_path,f_h5, index, dtypeInit):
+def flush_antenna_pos(output_path,f_h5, index, dtypeInit,csv_file_path):
     antenna_pos_file = path.join(output_path, "antenna_pos_data.npy")
     #antenna_pos = np.memmap(antenna_pos_file, mode="r+", dtype=f'{dtypeInit}')
     antenna_pos = open_memmap(antenna_pos_file, dtype=f"{dtypeInit}", mode="r+")
@@ -212,13 +212,13 @@ def flush_input_data(output_path,f_h5, index, dtypeInit):
     input_data.flush()
     
     
-def write_memmapfile(output_path,SIM_name,SIM_NUMBER,f_h5,idx):
+def write_memmapfile(output_path,SIM_name,SIM_NUMBER,f_h5,idx,csv_file_path):
     
     dtypeInit = "float32"
     
     flush_input_meta(output_path,SIM_NUMBER, f_h5, idx, dtypeInit)
 
-    flush_antenna_pos(output_path,f_h5, idx, dtypeInit)
+    flush_antenna_pos(output_path,f_h5, idx, dtypeInit,csv_file_path)
 
     #flush_output_gece(output_path,f_h5, idx, dtypeInit)
 

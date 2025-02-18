@@ -274,7 +274,7 @@ def converting_one_dataset(j,memmap_file_path,HDF5_file_path,csv_file_path,log_f
             
             f_h5 = h5py.File(chosen_SIM, "r")
 
-            write_memmapfile(memmap_file_path,chosen_SIM,SIM_NUMBER,f_h5,idx)
+            write_memmapfile(memmap_file_path,chosen_SIM,SIM_NUMBER,f_h5,idx,csv_file_path)
             
             f_h5.close()
             
