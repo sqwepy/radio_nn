@@ -181,7 +181,7 @@ def flush_antenna_pos(output_path,f_h5, index, dtypeInit,csv_file_path):
     antenna_pos.flush()
 
 
-def flush_input_data(output_path,f_h5, index, dtypeInit):
+def flush_input_data(output_path,f_h5, index, dtypeInit ,grammage_steps):
     input_data_file = path.join(output_path, "input_data.npy")
     #input_data = np.memmap(input_data_file, mode="r+", dtype=f'{dtypeInit}')
     input_data = open_memmap(input_data_file, dtype=f"{dtypeInit}", mode="r+")
@@ -203,16 +203,16 @@ def flush_input_data(output_path,f_h5, index, dtypeInit):
         == len(density)
     )
     x_len = len(density)
-    input_data[index, :x_len, :4] = energy_deposit
-    input_data[index, :x_len, 4:8] = number_of_particles
-    input_data[index, :x_len, 8] = path_along_shower #missing = height
-    input_data[index, :x_len, 9] = ref_index
-    input_data[index, :x_len, 10] = density
+    input_data[index, :x_len, :4] = energy_deposit[0:grammage_steps]
+    input_data[index, :x_len, 4:8] = number_of_particles[0:grammage_steps]
+    input_data[index, :x_len, 8] = path_along_shower[0:grammage_steps]
+    input_data[index, :x_len, 9] = ref_index[0:grammage_steps]
+    input_data[index, :x_len, 10] = density[0:grammage_steps]
     print("X_Length", x_len)
     input_data.flush()
     
     
-def write_memmapfile(output_path,SIM_name,SIM_NUMBER,f_h5,idx,csv_file_path):
+def write_memmapfile(output_path,SIM_name,SIM_NUMBER,f_h5,idx,csv_file_path,grammage_steps):
     
     dtypeInit = "float32"
     
@@ -234,7 +234,7 @@ def write_memmapfile(output_path,SIM_name,SIM_NUMBER,f_h5,idx,csv_file_path):
     
     print('output meta written')
 
-    flush_input_data(output_path,f_h5, idx, dtypeInit)
+    flush_input_data(output_path,f_h5, idx, dtypeInit,grammage_steps)
     
     print('input data written')
     

@@ -13,7 +13,7 @@ from init_npy import _init_
 from coreas_to_hdf5 import FilesTransformHdf5ToHdf5
 from hdf5_to_memmapfile import write_memmapfile, write_csv_file
 
-from init_npy import parameters, event_level_parameters, number_of_antennas,grammage_steps, time_bins, dimensions_antenna_positions_vB_vvB, dimensions_antenna_traces_vB_vvB,dimensions_antenna_traces_ge_ce,time_ge_ce_and_vB_vvB
+from init_npy import parameters, event_level_parameters, number_of_antennas, time_bins, dimensions_antenna_positions_vB_vvB, dimensions_antenna_traces_vB_vvB,dimensions_antenna_traces_ge_ce,time_ge_ce_and_vB_vvB
 
 def sorting_files(files):
     sorted_files = sorted(files, key=lambda x: int(re.search(r'\d+', x).group()))
@@ -192,22 +192,52 @@ def getting_SIM_number(SIM):
                 
     return SIM_NUMBER
 
-def getting_amount_of_SIM(HDF5_file_path):
+def getting_amount_of_SIM_and_GrammageSteps(HDF5_file_path,proton_or_iron = True):
     amount_of_sims = []
+    
+    all_grammage_steps = []
+                
+    all_dx = []
+                
     
     for folders in os.listdir(f'{HDF5_file_path}'):
         folder_paths = f'{HDF5_file_path}/{folders}'
         for folders2 in os.listdir(f'{folder_paths}'):
             Proton_Iron_paths = f'{folder_paths}/{folders2}'
             amount_of_sims.append(len(os.listdir(f'{Proton_Iron_paths}/iron')) + len(os.listdir(f'{Proton_Iron_paths}/proton')))
+            for particle in os.listdir(f'{Proton_Iron_paths}'):
+                if particle == 'proton':
+                    pass
+                else:
+                    proton_or_iron = False
         
+                matching_SIMs = find_SIM(f'{HDF5_file_path}/{particle}')
+                sorted_SIM = sorting_files(matching_SIMs) #Sorted via number
+                
+                for SIM in sorted_SIM:
+                    chosen_SIM = f'{HDF5_file_path}/{particle}/{SIM}'
+                    close_hdf5_if_locked(chosen_SIM)
+                    is_file_locked(chosen_SIM)
+                    f_h5 = h5py.File(chosen_SIM, "r")
+                    x = f_h5["atmosphere"]["NumberOfParticles"][:, 0] #could be the wrong size thing
+                    f_h5.close()
+                    
+                    all_grammage_steps.append(len(x))
+                    all_dx.append(x[1]-x[0])
+                    
+                    
+    grammage_steps = min(all_grammage_steps)
+    print(f'Min dx: {min(all_dx)}, Max dx: {max(all_dx)}')
     Sim_amount = np.sum(amount_of_sims)
     
-    return int(Sim_amount)
+    return int(Sim_amount),int(grammage_steps)
+
+
 
 def initializing(memmaps_file_path,memmap_folder_name,HDF5_file_path,test=False,i=1):
+    
 
-    amount_of_measurements = getting_amount_of_SIM(HDF5_file_path)
+    amount_of_measurements,grammage_steps = getting_amount_of_SIM_and_GrammageSteps(HDF5_file_path)
     
     create_folder(memmaps_file_path,memmap_folder_name)
     
@@ -217,11 +247,11 @@ def initializing(memmaps_file_path,memmap_folder_name,HDF5_file_path,test=False,
         _init_(memmap_file_path,i, parameters, event_level_parameters, number_of_antennas,grammage_steps, time_bins, dimensions_antenna_positions_vB_vvB, dimensions_antenna_traces_vB_vvB,dimensions_antenna_traces_ge_ce,time_ge_ce_and_vB_vvB)
     else:
         _init_(memmap_file_path,amount_of_measurements, parameters, event_level_parameters, number_of_antennas,grammage_steps, time_bins, dimensions_antenna_positions_vB_vvB, dimensions_antenna_traces_vB_vvB,dimensions_antenna_traces_ge_ce,time_ge_ce_and_vB_vvB)
-    return memmap_file_path
+    return memmap_file_path,grammage_steps
 
 
 
-def converting_one_dataset(j,memmap_file_path,HDF5_file_path,csv_file_path,log_file_path,proton_or_iron = True):
+def converting_one_dataset(j,memmap_file_path,HDF5_file_path,csv_file_path,log_file_path,grammage_steps,proton_or_iron = True):
     
     start_datetime = datetime.now() 
     
@@ -281,7 +311,7 @@ def converting_one_dataset(j,memmap_file_path,HDF5_file_path,csv_file_path,log_f
             
             f_h5 = h5py.File(chosen_SIM, "r")
 
-            write_memmapfile(memmap_file_path,chosen_SIM,SIM_NUMBER,f_h5,idx,csv_file_path)
+            write_memmapfile(memmap_file_path,chosen_SIM,SIM_NUMBER,f_h5,idx,csv_file_path,grammage_steps)
             
             print('memmap written)')
             
@@ -312,7 +342,7 @@ def run_auto(memmaps_file_path,HDF5_file_path,log_file_path,csv_file_path):
     
     j = 0 
     
-    memmap_file_path = initializing(memmaps_file_path,'memmap',HDF5_file_path)
+    memmap_file_path,grammage_steps = initializing(memmaps_file_path,'memmap',HDF5_file_path)
     
     for folders in os.listdir(f'{HDF5_file_path}'):
         
@@ -322,7 +352,7 @@ def run_auto(memmaps_file_path,HDF5_file_path,log_file_path,csv_file_path):
             
             Proton_Iron_paths = f'{folder_paths}/{folders2}'
             
-            new_j = converting_one_dataset(j,memmap_file_path,Proton_Iron_paths,csv_file_path,log_file_path)
+            new_j = converting_one_dataset(j,memmap_file_path,Proton_Iron_paths,csv_file_path,log_file_path,grammage_steps)
             
             j = new_j
             
