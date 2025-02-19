@@ -1143,10 +1143,25 @@ def FilesTransformHdf5ToHdf5(SIM_path):
             
             f_h5 = h5py.File(f'{SIM_path}', "a")
             write_coreas_highlevel_info(f_h5,args)
+            
+            print('Highlevel info written')
+            
             calculate_and_write_ge_ce(f_h5)
+            
+            print('ge_ce written')
+            
             correct_geomag_Eem_density(f_h5)
+            
+            print('geomag_Eem_density written')
+            
             read_height2X_from_C7log(f_h5)
+            
+            print('height2X written')
+            
             write_density_n_refindex_from_gdas(f_h5)
+            
+            print('density and ref. wirtten')
+            
             if not args.store_full_simulation_in_hdf5:
                 # make file empty (so that writing to disc does not cost a lot of i/o), write it to disc and remove it.
                 for key in f_h5.keys():
@@ -1157,6 +1172,8 @@ def FilesTransformHdf5ToHdf5(SIM_path):
             else:
                 # in case it did not exists yet its get written to disc now
                 f_h5.close()
+                
+            print('HDF5 written')
 
 
 if __name__ == "__main__":    #PLAYING CODE

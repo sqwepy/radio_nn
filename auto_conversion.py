@@ -254,6 +254,8 @@ def converting_one_dataset(j,memmap_file_path,HDF5_file_path,csv_file_path,log_f
             idx = j
             
             SIM_NUMBER = getting_SIM_number(SIM)
+            
+            print(f'IDX value:{idx}')
                 
             print('--------------------------------')
             print(f'Processing: {SIM} ...')
@@ -265,22 +267,31 @@ def converting_one_dataset(j,memmap_file_path,HDF5_file_path,csv_file_path,log_f
             else:
                 write_csv_file('Iron_SIM_vs_Index',csv_file_path,chosen_SIM,idx)
                 
+            print('csv written')
             
             close_hdf5_if_locked(chosen_SIM)
             
             is_file_locked(chosen_SIM)
             
+            print('HDF5 access granted')
+            
             FilesTransformHdf5ToHdf5(chosen_SIM)
+            
+            print('HDF5 transformed')
             
             f_h5 = h5py.File(chosen_SIM, "r")
 
             write_memmapfile(memmap_file_path,chosen_SIM,SIM_NUMBER,f_h5,idx,csv_file_path)
+            
+            print('memmap written)')
             
             f_h5.close()
             
             sim_duration = time_difference(start_sim_datetime)
             
             create_log_file(chosen_SIM,sim_duration,f'{log_file_path}/SIM_log.txt')
+            
+            print('logfile written')
             
             j += 1
             
