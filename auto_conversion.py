@@ -8,6 +8,7 @@ import subprocess
 import numpy as np
 import psutil
 from datetime import datetime, timedelta
+from tqdm import tqdm
 
 from init_npy import _init_
 from coreas_to_hdf5 import FilesTransformHdf5ToHdf5
@@ -83,7 +84,7 @@ def is_file_locked(filepath):
     try:
         # Try opening in append mode ('a') to check if it's locked
         with h5py.File(filepath, 'a'):
-            print(f"File '{filepath}' is NOT locked anymore. You can access it.")
+            #print(f"File '{filepath}' is NOT locked anymore. You can access it.")
             return False
     except BlockingIOError:
         print(f"File '{filepath}' is still LOCKED by another process!")
@@ -118,7 +119,7 @@ def close_hdf5_if_locked(filepath):
         except (psutil.NoSuchProcess, psutil.AccessDenied):
             continue  # Process may have closed already
         
-    print(f"File '{filepath}' is not locked. You can use it.")
+    #print(f"File '{filepath}' is not locked. You can use it.")
     return False  # File was not locked
 
 def create_folder(base_path, folder_name):
@@ -166,10 +167,10 @@ def find_Iron_and_Proton(path_):
 def find_SIM(path_):
       
     try:
-        print(f"SIM Contents of '{path_}':")
+        #print(f"SIM Contents of '{path_}':")
         matching_SIM = [f for f in os.listdir(f'{path_}') if fnmatch.fnmatch(f, "SIM*.hdf5")]
-        for file in matching_SIM:
-                print(file)
+        #for file in matching_SIM:
+                #print(file)
         
     except FileNotFoundError:
         print(f"Folder not found: {path_}")
@@ -200,8 +201,10 @@ def getting_amount_of_SIM_and_GrammageSteps(HDF5_file_path,proton_or_iron = True
     all_dx = []
                 
     
-    for folders in os.listdir(f'{HDF5_file_path}'):
+    for ifolder, folders in tqdm(enumerate(os.listdir(f'{HDF5_file_path}')),desc='Initialization: ',total=len(os.listdir(f'{HDF5_file_path}'))):
         folder_paths = f'{HDF5_file_path}/{folders}'
+        if not os.path.isdir(folder_paths):
+            continue
         for folders2 in os.listdir(f'{folder_paths}'):
             Proton_Iron_paths = f'{folder_paths}/{folders2}'
             amount_of_sims.append(len(os.listdir(f'{Proton_Iron_paths}/iron')) + len(os.listdir(f'{Proton_Iron_paths}/proton')))
@@ -341,9 +344,12 @@ def run_auto(memmaps_file_path,HDF5_file_path,log_file_path,csv_file_path):
     
     memmap_file_path,grammage_steps = initializing(memmaps_file_path,'memmap',HDF5_file_path)
     
-    for folders in os.listdir(f'{HDF5_file_path}'):
+    for ifolders, folders in tqdm(enumerate(os.listdir(f'{HDF5_file_path}')),desc='Converting Progress: ', total=len(os.listdir(f'{HDF5_file_path}'))):
         
         folder_paths = f'{HDF5_file_path}/{folders}'
+        
+        if not os.path.isdir(folder_paths):
+            continue
         
         for folders2 in os.listdir(f'{folder_paths}'):
             
@@ -373,10 +379,15 @@ def test_conversion(memmaps_file_path,HDF5_file_path,log_file_path,csv_file_path
 
 if __name__ == "__main__":
     
-    memmaps_file_path = '/cr/work/stiben'
-    HDF5_file_path = '/cr/work/stiben/Testdata'
-    log_file_path = '/cr/work/stiben/log'
-    csv_file_path = '/cr/work/stiben/csv'
+    #memmaps_file_path = '/cr/work/stiben'
+    #HDF5_file_path = '/cr/work/stiben/Testdata'
+    #log_file_path = '/cr/work/stiben/log'
+    #csv_file_path = '/cr/work/stiben/csv'
+    
+    memmaps_file_path = '/Users/denis/Desktop/BachelorThesis'
+    HDF5_file_path = '/Users/denis/Desktop/BachelorThesis/data'
+    log_file_path = '/Users/denis/Desktop/BachelorThesis/log'
+    csv_file_path = '/Users/denis/Desktop/BachelorThesis/csv'
     
     test = False
     
