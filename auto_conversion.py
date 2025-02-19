@@ -379,15 +379,15 @@ def test_conversion(memmaps_file_path,HDF5_file_path,log_file_path,csv_file_path
 
 if __name__ == "__main__":
     
-    #memmaps_file_path = '/cr/work/stiben'
-    #HDF5_file_path = '/cr/work/stiben/Testdata'
-    #log_file_path = '/cr/work/stiben/log'
-    #csv_file_path = '/cr/work/stiben/csv'
+    memmaps_file_path = '/cr/work/stiben'
+    HDF5_file_path = '/cr/work/stiben/Testdata'
+    log_file_path = '/cr/work/stiben/log'
+    csv_file_path = '/cr/work/stiben/csv'
     
-    memmaps_file_path = '/Users/denis/Desktop/BachelorThesis'
-    HDF5_file_path = '/Users/denis/Desktop/BachelorThesis/data'
-    log_file_path = '/Users/denis/Desktop/BachelorThesis/log'
-    csv_file_path = '/Users/denis/Desktop/BachelorThesis/csv'
+    #memmaps_file_path = '/Users/denis/Desktop/BachelorThesis'
+    #HDF5_file_path = '/Users/denis/Desktop/BachelorThesis/data'
+    #log_file_path = '/Users/denis/Desktop/BachelorThesis/log'
+    #csv_file_path = '/Users/denis/Desktop/BachelorThesis/csv'
     
     test = False
     
