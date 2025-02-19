@@ -205,17 +205,19 @@ def getting_amount_of_SIM_and_GrammageSteps(HDF5_file_path,proton_or_iron = True
         for folders2 in os.listdir(f'{folder_paths}'):
             Proton_Iron_paths = f'{folder_paths}/{folders2}'
             amount_of_sims.append(len(os.listdir(f'{Proton_Iron_paths}/iron')) + len(os.listdir(f'{Proton_Iron_paths}/proton')))
+            
             for particle in os.listdir(f'{Proton_Iron_paths}'):
+                
                 if particle == 'proton':
                     pass
                 else:
                     proton_or_iron = False
         
-                matching_SIMs = find_SIM(f'{HDF5_file_path}/{particle}')
+                matching_SIMs = find_SIM(f'{Proton_Iron_paths}/{particle}')
                 sorted_SIM = sorting_files(matching_SIMs) #Sorted via number
                 
                 for SIM in sorted_SIM:
-                    chosen_SIM = f'{HDF5_file_path}/{particle}/{SIM}'
+                    chosen_SIM = f'{Proton_Iron_paths}/{particle}/{SIM}'
                     close_hdf5_if_locked(chosen_SIM)
                     is_file_locked(chosen_SIM)
                     f_h5 = h5py.File(chosen_SIM, "r")
