@@ -229,6 +229,7 @@ def getting_amount_of_SIM_and_GrammageSteps(HDF5_file_path,proton_or_iron = True
                     
                     
     grammage_steps = min(all_grammage_steps)
+    print(f'Amount of Grammage steps: {grammage_steps}')
     print(f'Min dx: {min(all_dx)}, Max dx: {max(all_dx)}')
     Sim_amount = np.sum(amount_of_sims)
     
@@ -299,23 +300,18 @@ def converting_one_dataset(j,memmap_file_path,HDF5_file_path,csv_file_path,log_f
             else:
                 write_csv_file('Iron_SIM_vs_Index',csv_file_path,chosen_SIM,idx)
                 
-            print('csv written')
             
             close_hdf5_if_locked(chosen_SIM)
             
             is_file_locked(chosen_SIM)
             
-            print('HDF5 access granted')
-            
             FilesTransformHdf5ToHdf5(chosen_SIM)
             
-            print('HDF5 transformed')
             
             f_h5 = h5py.File(chosen_SIM, "r")
 
             write_memmapfile(memmap_file_path,chosen_SIM,SIM_NUMBER,f_h5,idx,csv_file_path,grammage_steps)
             
-            print('memmap written)')
             
             f_h5.close()
             
@@ -323,7 +319,6 @@ def converting_one_dataset(j,memmap_file_path,HDF5_file_path,csv_file_path,log_f
             
             create_log_file(chosen_SIM,sim_duration,f'{log_file_path}/SIM_log.txt')
             
-            print('logfile written')
             
             j += 1
             

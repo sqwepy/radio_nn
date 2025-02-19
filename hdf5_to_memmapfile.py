@@ -218,25 +218,22 @@ def write_memmapfile(output_path,SIM_name,SIM_NUMBER,f_h5,idx,csv_file_path,gram
     
     flush_input_meta(output_path,SIM_NUMBER, f_h5, idx, dtypeInit)
     
-    print('input meta written')
 
     flush_antenna_pos(output_path,f_h5, idx, dtypeInit,csv_file_path)
     
-    print('antenna pos written')
+    
 
     #flush_output_gece(output_path,f_h5, idx, dtypeInit)
 
     flush_output_vBvvB(output_path,f_h5, idx, dtypeInit)
     
-    print('vBvvB written')
+ 
 
     flush_output_meta(output_path,f_h5, idx, dtypeInit)
     
-    print('output meta written')
-
+  
     flush_input_data(output_path,f_h5, idx, dtypeInit,grammage_steps)
     
-    print('input data written')
     
     print(f'Processing memmap done: {SIM_name} Index: {idx}')
     

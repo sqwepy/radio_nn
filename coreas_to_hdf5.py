@@ -390,20 +390,14 @@ def read_height2X_from_C7log(f_h5): #WHATS GOING ON HERE???
     shower_dev = []
     
     for i in x:
-        print(i)
-        print(f_h5['CoREAS'].attrs["ShowerZenithAngle"])
         
         h_i = atmo._get_vertical_height(f_h5['CoREAS'].attrs["ShowerZenithAngle"],i)
         
-        print(h_i)
         h.append(h_i)
         shower_dev.append([i,h_i])
         
     
     
-    #print(f'X_array = {x}')
-    #print(f'h_array = {h}')
-    #print(shower_dev)
     shower_dev = np.array(shower_dev)
     
     atmos = f_h5["atmosphere"]
