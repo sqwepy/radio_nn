@@ -240,8 +240,15 @@ def getting_amount_of_SIM_and_GrammageSteps(DATA_file_path, proton_or_iron = Tru
                 
                 for SIM in sorted_SIM:
                     chosen_SIM = f'{Proton_Iron_paths}/{particle}/{SIM}'
-
-                    f_h5 = h5py.File(chosen_SIM, "r")
+                    
+                    try:
+                        f_h5 = h5py.File(chosen_SIM, "r")
+                    except OSError as e:
+                        print(f"Error opening file: {e}")
+                        create_folder(MEMMAP_file_path,'log')
+                        create_log_file(chosen_SIM,start_init,f'{MEMMAP_file_path}/log/SIM_Failed_log.txt')
+                        skip_counter += 1
+                        continue
                     
                     if os.path.isdir(chosen_SIM):
                         f_h5.close()
@@ -336,7 +343,11 @@ def converting_one_dataset(j,MEMMAP_file_path,in_memmap_folder_path,proton_iron_
             
             chosen_SIM = f'{proton_iron_path}/{particle}/{SIM}'
             
-            f_h5 = h5py.File(chosen_SIM, "r")
+            try:
+                f_h5 = h5py.File(chosen_SIM, "r")
+            except OSError as e:
+                print(f"Error opening file: {e}")
+                continue
                     
             if os.path.isdir(chosen_SIM):
                 f_h5.close()
