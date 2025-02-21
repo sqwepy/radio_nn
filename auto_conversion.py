@@ -243,7 +243,7 @@ def getting_amount_of_SIM_and_GrammageSteps(DATA_file_path, proton_or_iron = Tru
                         if check_for_crucial_information(f_h5) == False:
                             f_h5.close()
                             continue
-                    elif check_atmosphere == False:
+                    elif check_atmosphere(f_h5) == False:
                         if check_for_crucial_information(f_h5) == False:
                             f_h5.close()
                             continue
@@ -329,7 +329,7 @@ def converting_one_dataset(j,MEMMAP_file_path,in_memmap_folder_path,proton_iron_
                 if check_for_crucial_information(f_h5) == False:
                     f_h5.close()
                     continue
-            elif check_atmosphere == False:
+            elif check_atmosphere(f_h5) == False:
                 if check_for_crucial_information(f_h5) == False:
                     f_h5.close()
                     continue
