@@ -1011,6 +1011,7 @@ def write_coreas_highlevel_info(f_h5, args): #writes traces highlevel VERY IMPOR
                 actualFrequencyResolution * 1e-3,
             )
         )
+        
         f_h5_obsplane.attrs["frequency_low"] = args.flow * 1e6
         f_h5_obsplane.attrs["frequency_high"] = args.fhigh * 1e6
         f_h5_obsplane.attrs["frequency_resolution"] = actualFrequencyResolution
@@ -1055,6 +1056,72 @@ def extract_files_to_tempfolder(sim_num): #UNINTERESTING
     reas_file = 0
     output_file = f"./SIM{sim_num:06d}.hdf5"
     return reas_file, output_file
+
+def str_search_in_list(array,searching_object):
+    Is_it_in_array = False
+    if searching_object.lower() in (s.lower() for s in array):
+        Is_it_in_array = True
+        #print(f"'{searching_object}' found (case-insensitive)!")
+    else:
+        Is_it_in_array = False
+        #print(f"'{searching_object}' not found.")
+    return Is_it_in_array
+
+def check_for_coreas_highlevel_info(f_h5):
+    Boolean_array = []
+
+    highlevel_attrs = ['Eem', 'Eem_atm', 'Eem_cut', 'Eem_ion', 'Egamma', 'Ehad', 'Ehad_cut', 'Ehad_ion', 'Einv', 'Emu_cut', 'Emu_ion', 'Eneutrino', 'azimuth', 'energy', 'gaisser_hillas_dEdX', 'geomagnetic_angle', 'magnetic_field_declination', 'magnetic_field_inclination', 'magnetic_field_strength', 'zenith']
+    highlevel_keys = ['obsplane_na_na_vB_vvB', 'positions', 'traces']
+
+    obs_na_na_attrs = ['comment', 'frequency_high', 'frequency_low', 'frequency_resolution', 'slicing_method']
+    obs_na_na_keys = ['amplitude', 'amplitude_total', 'antenna_names', 'antenna_position', 'antenna_position_vBvvB', 'core', 'energy_fluence', 'energy_fluence_vector', 'frequency_slope', 'polarization_vector', 'times_filtered', 'traces_filtered']
+
+    positions_keys = ['ge_ce', 'vB_vvB']
+    traces_keys = ['ge_ce', 'scaled', 'vB_vvB']
+
+    # Check 'highlevel' group
+    if 'highlevel' in f_h5:
+        highlevel = f_h5['highlevel']
+        Boolean_array.extend([str_search_in_list(list(highlevel.attrs.keys()), attr) for attr in highlevel_attrs])
+        Boolean_array.extend([key in highlevel for key in highlevel_keys])
+
+        # Check 'obsplane_na_na_vB_vvB' group
+        if 'obsplane_na_na_vB_vvB' in highlevel:
+            obs_na_na = highlevel['obsplane_na_na_vB_vvB']
+            Boolean_array.extend([str_search_in_list(list(obs_na_na.attrs.keys()), attr) for attr in obs_na_na_attrs])
+            Boolean_array.extend([key in obs_na_na for key in obs_na_na_keys])
+
+        # Check 'positions' group
+        if 'positions' in highlevel:
+            positions = highlevel['positions']
+            Boolean_array.extend([key in positions for key in positions_keys])
+
+        # Check 'traces' group
+        if 'traces' in highlevel:
+            traces = highlevel['traces']
+            Boolean_array.extend([key in traces for key in traces_keys])
+    else:
+        return False  # 'highlevel' group missing
+
+    return all(Boolean_array)
+
+
+def check_atmosphere(f_h5):
+    Boolean_array = []
+    
+    atmosphere_attrs = ['Gaisser-Hillas-Fit']
+    atmosphere_keys = ['Atmosphere', 'Density', 'EnergyDeposit', 'NumberOfParticles', 'Ref Index']
+
+    # Check 'atmosphere' group
+    if 'atmosphere' in f_h5:
+        atmosphere = f_h5['atmosphere']
+        Boolean_array.extend([str_search_in_list(list(atmosphere.attrs.keys()), attr) for attr in atmosphere_attrs])
+        Boolean_array.extend([key in atmosphere for key in atmosphere_keys])
+    else:
+        return False  # 'atmosphere' group missing
+
+    return all(Boolean_array)
+
 
 def FilesTransformHdf5ToHdf5(SIM_path):
         
@@ -1143,25 +1210,19 @@ def FilesTransformHdf5ToHdf5(SIM_path):
             print(f'Changing HDF5 File: {SIM_path}')
             
             f_h5 = h5py.File(f'{SIM_path}', "a")
-            write_coreas_highlevel_info(f_h5,args)
             
-            #print('Highlevel info written')
+            if check_for_coreas_highlevel_info(f_h5) == False:
+                write_coreas_highlevel_info(f_h5,args)
             
-            calculate_and_write_ge_ce(f_h5)
+                calculate_and_write_ge_ce(f_h5)
             
-            #print('ge_ce written')
+                correct_geomag_Eem_density(f_h5)
             
-            correct_geomag_Eem_density(f_h5)
+            if check_atmosphere(f_h5) == False:
             
-            #print('geomag_Eem_density written')
+                read_height2X_from_C7log(f_h5)
             
-            read_height2X_from_C7log(f_h5)
-            
-            #print('height2X written')
-            
-            write_density_n_refindex_from_gdas(f_h5)
-            
-            #print('density and ref. wirtten')
+                write_density_n_refindex_from_gdas(f_h5)
             
             if not args.store_full_simulation_in_hdf5:
                 # make file empty (so that writing to disc does not cost a lot of i/o), write it to disc and remove it.
@@ -1179,135 +1240,5 @@ def FilesTransformHdf5ToHdf5(SIM_path):
 
 if __name__ == "__main__":    #PLAYING CODE
     
-    i = False
-    
-    if i == True:
-        parser = argparse.ArgumentParser(description="coreas hdf5 converter")
-        parser.add_argument(
-            "input_sim",
-            type=int,
-            help="input sim - taken from default path using number",
-        )
-
-        parser.add_argument(
-            "--store_traces",
-            action="store_true",
-            help="Stores rotated, filted, and resampled traces in highlevel file",
-        )
-        parser.add_argument(
-            "--not_store_full_simulation",
-            action="store_false",
-            dest="store_full_simulation_in_hdf5",
-            help="If set, the full, converter simulation will not be"
-            " stored in a hdf5 file and only the highlevel file is written to disk.",
-        )
-
-        parser.add_argument(
-            "--flow", type=float, default=30.0, help="low " "frequency cut in MHz"
-        )
-        parser.add_argument(
-            "--fhigh", type=float, default=80.0, help="high " "frequency cut in MHz"
-        )
-
-        parser.add_argument(
-            "--samplingFrequency",
-            dest="sampling_frequency",
-            type=float,
-            default=1.0,
-            help="Sampling frequency in Gsamples/second",
-        )
-        parser.add_argument(
-            "--frequencyResolution",
-            type=float,
-            default=100.0,
-            help="To increase precision, the frequency spectrum is padded prior appling a bandpass filter."
-            " Set maximum allowed frequency resolution in kHz (default: 100 kHz)",
-        )
-
-        parser.add_argument(
-            "--NSamples",
-            dest="number_of_samples",
-            type=int,
-            default=256,
-            help="the number of samples that should be kept for the downsampled trace",
-        )
-        parser.add_argument(
-            "--NSamplesBeforePulse",
-            dest="samples_before_pulse",
-            type=int,
-            default=None,
-            help="the number of samples before the pulse",
-        )
-
-        parser.add_argument(
-            "--norad",
-            action="store_false",
-            dest="compute_radiation_energy",
-            help="Do not compute radiation energy?",
-        )
-        parser.add_argument(
-            "--novB_vvB",
-            action="store_false",
-            dest="use_vB_vvB_polarization",
-            help="Return trace-related quantities in N, W, vertical instead of vxB, vxvxB and v polarizations",
-        )
-
-        parser.add_argument(
-            "--stokes",
-            action="store_true",
-            dest="calculate_stokes_parameter",
-            help="Calculates Stokes' parameter, in eV/m2",
-        )
-        parser.add_argument(
-            "--stokes_window",
-            type=float,
-            default=25.0,
-            help="window around highest peak to calculate stokes parameter, in ns",
-        )
-
-        args = parser.parse_args()
-
-        # Calculate highlevel quantities and convert simulation to hdf5 format (if input is a '.reas' file and store_simulation_in_hdf5_file is True)
-        reas_filename, output_filename = extract_files_to_tempfolder(args.input_sim)
-
-        f_h5 = write_coreas_hdf5_file(reas_filename, output_filename)
-
-        try:
-            from radiotoolsMaster.radiotools import helper as rdhelp
-            from radiotoolsMaster.radiotools import coordinatesystems
-        except ModuleNotFoundError as e:
-            sys.exit(
-                "Could not find the radiotools module: '{}'\n"
-                "You can get this module from https://github.com/nu-radio/radiotools.\n"
-                "Make sure to add it to your enviourment, e.g., PYTHONPATH too. Stopping ...".format(
-                    e
-                )
-            )
-        from scipy.signal import hilbert
-        from scipy import optimize
-
-        output_filename_array = os.path.splitext(os.path.basename(output_filename))
-
-        write_coreas_highlevel_info(f_h5, args)
-
-        calculate_and_write_ge_ce(f_h5)
-        correct_geomag_Eem_density(f_h5)
-        if not args.store_full_simulation_in_hdf5:
-            # make file empty (so that writing to disc does not cost a lot of i/o), write it to disc and remove it.
-            for key in f_h5.keys():
-                del f_h5[key]
-            oname = f_h5.filename
-            f_h5.close()
-            os.remove(oname)
-        else:
-            # in case it did not exists yet its get written to disc now
-            f_h5.close()
-
-        import shutil
-
-        shutil.rmtree("./tmpppp")
-        
-    else:
-        
-        FilesTransformHdf5ToHdf5(RADIO_DATA_PATH)
+    FilesTransformHdf5ToHdf5(RADIO_DATA_PATH)
 
