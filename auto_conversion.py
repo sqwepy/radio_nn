@@ -71,7 +71,7 @@ def create_log_file(file_path,time_for_operation,log_file="logs/file_log.txt",ad
     
     if additional_info != None:
         with open(log_file, "a", encoding="utf-8") as log:
-            log.write(f"Info:{additional_info}\n")
+            log.write(f"Info:\n {additional_info}")
         
     else:
         print(f"Warning: The file '{file_path}' does not exist, skipping log.")
@@ -199,6 +199,8 @@ def getting_amount_of_SIM_and_GrammageSteps(DATA_file_path, proton_or_iron = Tru
     amount_of_sims = 0
     
     all_grammage_steps = []
+    
+    skip_counter = 0
                 
     all_dx = []
                 
@@ -249,12 +251,14 @@ def getting_amount_of_SIM_and_GrammageSteps(DATA_file_path, proton_or_iron = Tru
                             create_folder(MEMMAP_file_path,'log')
                             create_log_file(chosen_SIM,start_init,f'{MEMMAP_file_path}/log/SIM_Failed_log.txt')
                             f_h5.close()
+                            skip_counter += 1
                             continue
                     elif check_atmosphere(f_h5) == False:
                         if check_for_crucial_information(f_h5) == False:
                             create_folder(MEMMAP_file_path,'log')
                             create_log_file(chosen_SIM,start_init,f'{MEMMAP_file_path}/log/SIM_Failed_log.txt')
                             f_h5.close()
+                            skip_counter += 1
                             continue
                         
                     f_h5.close()
@@ -277,7 +281,7 @@ def getting_amount_of_SIM_and_GrammageSteps(DATA_file_path, proton_or_iron = Tru
     print(f'Amount of Sims: {amount_of_sims}')
     
     create_folder(MEMMAP_file_path,'log')
-    create_log_file(MEMMAP_file_path,start_init,f'{MEMMAP_file_path}/log/InitInfo_log.txt',additional_info= f'Amount of Grammage steps: {grammage_steps}, Min dx: {min(all_dx)}, Max dx: {max(all_dx)}, Amount of Sims: {amount_of_sims}')
+    create_log_file(MEMMAP_file_path,start_init,f'{MEMMAP_file_path}/log/InitInfo_log.txt',additional_info= f'Amount of Grammage steps: {grammage_steps} \n Min dx: {min(all_dx)} \n Max dx: {max(all_dx)} \n Amount of Sims: {amount_of_sims} \n Amount of Skipped Sims {skip_counter}')
     
     return int(amount_of_sims),int(grammage_steps)
 
