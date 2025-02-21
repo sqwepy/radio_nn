@@ -233,7 +233,7 @@ def getting_amount_of_SIM_and_GrammageSteps(DATA_file_path, proton_or_iron = Tru
                 
                 for SIM in sorted_SIM:
                     chosen_SIM = f'{Proton_Iron_paths}/{particle}/{SIM}'
-                    
+
                     f_h5 = h5py.File(chosen_SIM, "r")
                     
                     if os.path.isdir(chosen_SIM):
