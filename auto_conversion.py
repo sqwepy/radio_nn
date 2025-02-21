@@ -281,7 +281,7 @@ def getting_amount_of_SIM_and_GrammageSteps(DATA_file_path, proton_or_iron = Tru
     print(f'Amount of Sims: {amount_of_sims}')
     
     create_folder(MEMMAP_file_path,'log')
-    create_log_file(MEMMAP_file_path,start_init,f'{MEMMAP_file_path}/log/InitInfo_log.txt',additional_info= f'Amount of Grammage steps: {grammage_steps} \n Min dx: {min(all_dx)} \n Max dx: {max(all_dx)} \n Amount of Sims: {amount_of_sims} \n Amount of Skipped Sims {skip_counter}')
+    create_log_file(MEMMAP_file_path,start_init,f'{MEMMAP_file_path}/log/InitInfo_log.txt',additional_info= f'Amount of Grammage steps: {grammage_steps} \n Min dx: {min(all_dx)} \n Max dx: {max(all_dx)} \n Amount of Sims: {amount_of_sims} \n Amount of skipped Sims: {skip_counter}')
     
     return int(amount_of_sims),int(grammage_steps)
 
