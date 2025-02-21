@@ -9,6 +9,7 @@ import numpy as np
 import psutil
 from datetime import datetime, timedelta
 from tqdm import tqdm
+from pathlib import Path
 
 from init_npy import _init_
 from coreas_to_hdf5 import FilesTransformHdf5ToHdf5, check_for_crucial_information, check_for_coreas_highlevel_info, check_atmosphere
