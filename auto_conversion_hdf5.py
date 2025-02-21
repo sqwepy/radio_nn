@@ -309,7 +309,7 @@ def initializing(MEMMAP_file_path,memmap_folder_name,DATA_file_path):
 
 
 
-def converting_one_dataset(j,MEMMAP_file_path,in_memmap_folder_path,proton_iron_path,grammage_steps,proton_or_iron = True):
+def converting_one_dataset(j,MEMMAP_file_path,in_memmap_folder_path,proton_iron_path,proton_or_iron = True):
     
     start_datetime = datetime.now() 
     
@@ -426,7 +426,7 @@ def run_auto(MEMMAP_file_path,DATA_file_path):
     
     j = 0 
     
-    in_memmap_folder_path,grammage_steps = initializing(MEMMAP_file_path,'memmap',DATA_file_path)
+    in_memmap_folder_path = initializing(MEMMAP_file_path,'memmap',DATA_file_path)
     
     for ifolders, folders in tqdm(enumerate(os.listdir(f'{DATA_file_path}')),desc='Converting Progress: ', total=len(os.listdir(f'{DATA_file_path}'))):
         
@@ -446,7 +446,7 @@ def run_auto(MEMMAP_file_path,DATA_file_path):
             elif os.path.isdir(Proton_Iron_paths) and folders2.startswith('.'):
                 continue
             
-            new_j = converting_one_dataset(j,MEMMAP_file_path,in_memmap_folder_path,Proton_Iron_paths,grammage_steps)
+            new_j = converting_one_dataset(j,MEMMAP_file_path,in_memmap_folder_path,Proton_Iron_paths)
             
             j = new_j
 
