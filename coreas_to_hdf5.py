@@ -1122,6 +1122,50 @@ def check_atmosphere(f_h5):
 
     return all(Boolean_array)
 
+def check_for_crucial_information(f_h5):
+    
+    Boolean_array = []
+    
+    CoREAS_attrs = ['AutomaticTimeBoundaries', 'Comment', 'CoreCoordinateNorth', 'CoreCoordinateVertical', 'CoreCoordinateWest', 'CoreEastingOffline', 'CoreNorthingOffline', 'CoreVerticalOffline', 'CorsikaFilePath', 'CorsikaParameterFile', 'DepthOfShowerMaximum', 'DistanceOfShowerMaximum', 'EventNumber', 'GPSNanoSecs', 'GPSSecs', 'GeomagneticAngle', 'GroundLevelRefractiveIndex', 'MagneticFieldInclinationAngle', 'MagneticFieldStrength', 'OfflineCoordinateSystem', 'PrimaryParticleEnergy', 'PrimaryParticleType', 'ResolutionReductionScale', 'RotationAngleForMagfieldDeclination', 'RunNumber', 'ShowerAzimuthAngle', 'ShowerZenithAngle', 'TimeLowerBoundary', 'TimeResolution', 'TimeUpperBoundary']
+    CoREAS_keys = ['observers']
+    
+    observers_keys = ['pos_100_0', 'pos_100_135', 'pos_100_180', 'pos_100_225', 'pos_100_270', 'pos_100_315', 'pos_100_45', 'pos_100_90', 'pos_125_0', 'pos_125_135', 'pos_125_180', 'pos_125_225', 'pos_125_270', 'pos_125_315', 'pos_125_45', 'pos_125_90', 'pos_150_0', 'pos_150_135', 'pos_150_180', 'pos_150_225', 'pos_150_270', 'pos_150_315', 'pos_150_45', 'pos_150_90', 'pos_175_0', 'pos_175_135', 'pos_175_180', 'pos_175_225', 'pos_175_270', 'pos_175_315', 'pos_175_45', 'pos_175_90', 'pos_200_0', 'pos_200_135', 'pos_200_180', 'pos_200_225', 'pos_200_270', 'pos_200_315', 'pos_200_45', 'pos_200_90', 'pos_225_0', 'pos_225_135', 'pos_225_180', 'pos_225_225', 'pos_225_270', 'pos_225_315', 'pos_225_45', 'pos_225_90', 'pos_250_0', 'pos_250_135', 'pos_250_180', 'pos_250_225', 'pos_250_270', 'pos_250_315', 'pos_250_45', 'pos_250_90', 'pos_25_0', 'pos_25_135', 'pos_25_180', 'pos_25_225', 'pos_25_270', 'pos_25_315', 'pos_25_45', 'pos_25_90', 'pos_275_0', 'pos_275_135', 'pos_275_180', 'pos_275_225', 'pos_275_270', 'pos_275_315', 'pos_275_45', 'pos_275_90', 'pos_300_0', 'pos_300_135', 'pos_300_180', 'pos_300_225', 'pos_300_270', 'pos_300_315', 'pos_300_45', 'pos_300_90', 'pos_325_0', 'pos_325_135', 'pos_325_180', 'pos_325_225', 'pos_325_270', 'pos_325_315', 'pos_325_45', 'pos_325_90', 'pos_350_0', 'pos_350_135', 'pos_350_180', 'pos_350_225', 'pos_350_270', 'pos_350_315', 'pos_350_45', 'pos_350_90', 'pos_375_0', 'pos_375_135', 'pos_375_180', 'pos_375_225', 'pos_375_270', 'pos_375_315', 'pos_375_45', 'pos_375_90', 'pos_400_0', 'pos_400_135', 'pos_400_180', 'pos_400_225', 'pos_400_270', 'pos_400_315', 'pos_400_45', 'pos_400_90', 'pos_425_0', 'pos_425_135', 'pos_425_180', 'pos_425_225', 'pos_425_270', 'pos_425_315', 'pos_425_45', 'pos_425_90', 'pos_450_0', 'pos_450_135', 'pos_450_180', 'pos_450_225', 'pos_450_270', 'pos_450_315', 'pos_450_45', 'pos_450_90', 'pos_475_0', 'pos_475_135', 'pos_475_180', 'pos_475_225', 'pos_475_270', 'pos_475_315', 'pos_475_45', 'pos_475_90', 'pos_500_0', 'pos_500_135', 'pos_500_180', 'pos_500_225', 'pos_500_270', 'pos_500_315', 'pos_500_45', 'pos_500_90', 'pos_50_0', 'pos_50_135', 'pos_50_180', 'pos_50_225', 'pos_50_270', 'pos_50_315', 'pos_50_45', 'pos_50_90', 'pos_75_0', 'pos_75_135', 'pos_75_180', 'pos_75_225', 'pos_75_270', 'pos_75_315', 'pos_75_45', 'pos_75_90']
+    
+    atmosphere_attrs = ['Gaisser-Hillas-Fit']
+    atmosphere_keys = ['EnergyDeposit', 'NumberOfParticles']
+    
+    inputs_attrs = ['ATMOD', 'ECUTS', 'ERANGE', 'EVTNR', 'MAGNET', 'OBSLEV', 'PHIP', 'PRMPAR', 'RUNNR', 'THETAP', 'THIN', 'THINH']
+    
+    if 'CoREAS' in f_h5:
+        CoREAS = f_h5['CoREAS']
+        Boolean_array.extend([str_search_in_list(list(CoREAS.attrs.keys()), attr) for attr in CoREAS_attrs])
+        Boolean_array.extend([key in CoREAS for key in CoREAS_keys])
+        
+        if 'observers' in CoREAS:
+            observers = f_h5['CoREAS']['observers']
+            Boolean_array.extend([key in observers for key in observers_keys])
+        else:
+            return False
+    else:
+        return False  # 'atmosphere' group missing
+    
+    if 'atmosphere' in f_h5:
+        Atmo = f_h5['atmosphere']
+        Boolean_array.extend([str_search_in_list(list(Atmo.attrs.keys()), attr) for attr in atmosphere_attrs])
+        Boolean_array.extend([key in Atmo for key in atmosphere_keys])
+        
+    else:
+        return False  # 'atmosphere' group missing
+        
+    if 'inputs' in f_h5:
+        inputs = f_h5['inputs']
+        Boolean_array.extend([str_search_in_list(list(inputs.attrs.keys()), attr) for attr in inputs_attrs])
+        
+    else:
+        return False  # 'atmosphere' group missing
+
+    return all(Boolean_array)
+    
 
 def FilesTransformHdf5ToHdf5(SIM_path):
         
@@ -1211,31 +1255,44 @@ def FilesTransformHdf5ToHdf5(SIM_path):
             
             f_h5 = h5py.File(f'{SIM_path}', "a")
             
+           
             if check_for_coreas_highlevel_info(f_h5) == False:
-                write_coreas_highlevel_info(f_h5,args)
-            
-                calculate_and_write_ge_ce(f_h5)
-            
-                correct_geomag_Eem_density(f_h5)
-            
-            if check_atmosphere(f_h5) == False:
-            
-                read_height2X_from_C7log(f_h5)
-            
-                write_density_n_refindex_from_gdas(f_h5)
-            
-            if not args.store_full_simulation_in_hdf5:
-                # make file empty (so that writing to disc does not cost a lot of i/o), write it to disc and remove it.
-                for key in f_h5.keys():
-                    del f_h5[key]
-                oname = f_h5.filename
-                f_h5.close()
-                os.remove(oname)
-            else:
-                # in case it did not exists yet its get written to disc now
-                f_h5.close()
                 
-            #print('HDF5 written')
+                if check_for_crucial_information(f_h5):
+                    
+                    write_coreas_highlevel_info(f_h5,args)
+                    calculate_and_write_ge_ce(f_h5)
+                    correct_geomag_Eem_density(f_h5)
+                else:
+                    return False
+                    
+            if check_atmosphere(f_h5) == False:
+                
+                if check_for_crucial_information(f_h5):
+                    
+                    read_height2X_from_C7log(f_h5)
+
+                    write_density_n_refindex_from_gdas(f_h5)
+                    
+                else:
+                    return False
+
+                if not args.store_full_simulation_in_hdf5:
+                    # make file empty (so that writing to disc does not cost a lot of i/o), write it to disc and remove it.
+                    for key in f_h5.keys():
+                        del f_h5[key]
+                    oname = f_h5.filename
+                    f_h5.close()
+                    os.remove(oname)
+                else:
+                    # in case it did not exists yet its get written to disc now
+                    f_h5.close()
+                
+                return True
+
+                #print('HDF5 written')
+            else:
+                return False
 
 
 if __name__ == "__main__":    #PLAYING CODE

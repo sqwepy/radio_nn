@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 from tqdm import tqdm
 
 from init_npy import _init_
-from coreas_to_hdf5 import FilesTransformHdf5ToHdf5
+from coreas_to_hdf5 import FilesTransformHdf5ToHdf5, check_for_crucial_information, check_for_coreas_highlevel_info, check_atmosphere
 from hdf5_to_memmapfile import write_memmapfile, write_csv_file
 
 from init_npy import parameters, event_level_parameters, number_of_antennas, time_bins, dimensions_antenna_positions_vB_vvB, dimensions_antenna_traces_vB_vvB,dimensions_antenna_traces_ge_ce,time_ge_ce_and_vB_vvB
@@ -192,7 +192,7 @@ def getting_SIM_number(SIM):
     return SIM_NUMBER
 
 def getting_amount_of_SIM_and_GrammageSteps(DATA_file_path, proton_or_iron = True):
-    amount_of_sims = []
+    amount_of_sims = 0
     
     all_grammage_steps = []
                 
@@ -216,8 +216,6 @@ def getting_amount_of_SIM_and_GrammageSteps(DATA_file_path, proton_or_iron = Tru
             elif os.path.isdir(Proton_Iron_paths) and folders2.startswith('.'):
                 continue
             
-            amount_of_sims.append(len(os.listdir(f'{Proton_Iron_paths}/iron')) + len(os.listdir(f'{Proton_Iron_paths}/proton')))
-            
             for particle in os.listdir(f'{Proton_Iron_paths}'):
                 
                 if particle == 'proton':
@@ -236,8 +234,23 @@ def getting_amount_of_SIM_and_GrammageSteps(DATA_file_path, proton_or_iron = Tru
                 for SIM in sorted_SIM:
                     chosen_SIM = f'{Proton_Iron_paths}/{particle}/{SIM}'
                     
+                    f_h5 = h5py.File(chosen_SIM, "r")
+                    
                     if os.path.isdir(chosen_SIM):
+                        f_h5.close()
                         continue
+                    elif check_for_coreas_highlevel_info(f_h5) == False:
+                        if check_for_crucial_information(f_h5) == False:
+                            f_h5.close()
+                            continue
+                    elif check_atmosphere == False:
+                        if check_for_crucial_information(f_h5) == False:
+                            f_h5.close()
+                            continue
+                        
+                    f_h5.close()
+                    
+                    amount_of_sims += 1
                     
                     close_hdf5_if_locked(chosen_SIM)
                     is_file_locked(chosen_SIM)
@@ -252,14 +265,13 @@ def getting_amount_of_SIM_and_GrammageSteps(DATA_file_path, proton_or_iron = Tru
     grammage_steps = min(all_grammage_steps)
     print(f'Amount of Grammage steps: {grammage_steps}')
     print(f'Min dx: {min(all_dx)}, Max dx: {max(all_dx)}')
-    Sim_amount = np.sum(amount_of_sims)
+    print(f'Amount of Sims: {amount_of_sims}')
     
-    return int(Sim_amount),int(grammage_steps)
+    return int(amount_of_sims),int(grammage_steps)
 
 
 
 def initializing(MEMMAP_file_path,memmap_folder_name,DATA_file_path):
-    
 
     amount_of_measurements,grammage_steps = getting_amount_of_SIM_and_GrammageSteps(DATA_file_path)
     
@@ -308,9 +320,21 @@ def converting_one_dataset(j,MEMMAP_file_path,in_memmap_folder_path,proton_iron_
             
             chosen_SIM = f'{proton_iron_path}/{particle}/{SIM}'
             
+            f_h5 = h5py.File(chosen_SIM, "r")
+                    
             if os.path.isdir(chosen_SIM):
+                f_h5.close()
                 continue
-            
+            elif check_for_coreas_highlevel_info(f_h5) == False:
+                if check_for_crucial_information(f_h5) == False:
+                    f_h5.close()
+                    continue
+            elif check_atmosphere == False:
+                if check_for_crucial_information(f_h5) == False:
+                    f_h5.close()
+                    continue
+                
+            f_h5.close()
             
             start_sim_datetime = datetime.now() 
             
