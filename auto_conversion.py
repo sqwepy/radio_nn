@@ -50,7 +50,7 @@ def time_difference(past_datetime):
     except ValueError as e:
         return f"Invalid time format: {e}"
 
-def create_log_file(file_path,time_for_operation, log_file="logs/file_log.txt"):
+def create_log_file(file_path,time_for_operation,log_file="logs/file_log.txt",additional_info = None):
     '''
     Parameters:
     
@@ -63,11 +63,15 @@ def create_log_file(file_path,time_for_operation, log_file="logs/file_log.txt"):
     # Ensure the file exists before logging (optional)
     if os.path.isfile(file_path):
         with open(log_file, "a", encoding="utf-8") as log:
-            log.write(f"It took {time_for_operation} to write {file_path}\n")
+            log.write(f"Time: {time_for_operation},File: {file_path}\n")
             
     elif os.path.isdir(file_path):
         with open(log_file, "a", encoding="utf-8") as log:
-            log.write(f"It took {time_for_operation} to write {file_path}\n")
+            log.write(f"Time: {time_for_operation},File {file_path}\n")
+    
+    if additional_info != None:
+        with open(log_file, "a", encoding="utf-8") as log:
+            log.write(f"Info:{additional_info}\n")
         
     else:
         print(f"Warning: The file '{file_path}' does not exist, skipping log.")
@@ -198,6 +202,7 @@ def getting_amount_of_SIM_and_GrammageSteps(DATA_file_path, proton_or_iron = Tru
                 
     all_dx = []
                 
+    start_init = datetime.now() 
     
     for ifolder, folders in tqdm(enumerate(os.listdir(f'{DATA_file_path}')),desc='Initialization: ',total=len(os.listdir(f'{DATA_file_path}'))):
         folder_paths = f'{DATA_file_path}/{folders}'
@@ -241,10 +246,14 @@ def getting_amount_of_SIM_and_GrammageSteps(DATA_file_path, proton_or_iron = Tru
                         continue
                     elif check_for_coreas_highlevel_info(f_h5) == False:
                         if check_for_crucial_information(f_h5) == False:
+                            create_folder(MEMMAP_file_path,'log')
+                            create_log_file(chosen_SIM,start_init,f'{MEMMAP_file_path}/log/SIM_Failed_log.txt')
                             f_h5.close()
                             continue
                     elif check_atmosphere(f_h5) == False:
                         if check_for_crucial_information(f_h5) == False:
+                            create_folder(MEMMAP_file_path,'log')
+                            create_log_file(chosen_SIM,start_init,f'{MEMMAP_file_path}/log/SIM_Failed_log.txt')
                             f_h5.close()
                             continue
                         
@@ -266,6 +275,9 @@ def getting_amount_of_SIM_and_GrammageSteps(DATA_file_path, proton_or_iron = Tru
     print(f'Amount of Grammage steps: {grammage_steps}')
     print(f'Min dx: {min(all_dx)}, Max dx: {max(all_dx)}')
     print(f'Amount of Sims: {amount_of_sims}')
+    
+    create_folder(MEMMAP_file_path,'log')
+    create_log_file(MEMMAP_file_path,start_init,f'{MEMMAP_file_path}/log/InitInfo_log.txt',additional_info= f'Amount of Grammage steps: {grammage_steps}, Min dx: {min(all_dx)}, Max dx: {max(all_dx)}, Amount of Sims: {amount_of_sims}')
     
     return int(amount_of_sims),int(grammage_steps)
 
@@ -390,7 +402,7 @@ def converting_one_dataset(j,MEMMAP_file_path,in_memmap_folder_path,proton_iron_
     time_for_operation = time_difference(start_datetime)
     
     create_folder(MEMMAP_file_path,'log')
-    create_log_file(DATA_file_path,time_for_operation,f'{MEMMAP_file_path}/log/MEASUREMENTS_log.txt')
+    create_log_file(proton_iron_path,time_for_operation,f'{MEMMAP_file_path}/log/MEASUREMENTS_log.txt')
     
     return j
 
