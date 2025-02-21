@@ -144,8 +144,6 @@ def create_folder(base_path, folder_name):
             print(f"Folder '{folder_name}' was created in '{base_path}'.")
         except Exception as e:
             raise Exception(f"Error creating folder: {e}")
-    else:
-        print(f"Folder '{folder_name}' already exists.")
 
     return folder_path  # Return the path if needed
 
@@ -193,7 +191,7 @@ def getting_SIM_number(SIM):
                 
     return SIM_NUMBER
 
-def getting_amount_of_SIM_and_GrammageSteps(HDF5_file_path,proton_or_iron = True):
+def getting_amount_of_SIM_and_GrammageSteps(DATA_file_path, proton_or_iron = True):
     amount_of_sims = []
     
     all_grammage_steps = []
@@ -201,12 +199,23 @@ def getting_amount_of_SIM_and_GrammageSteps(HDF5_file_path,proton_or_iron = True
     all_dx = []
                 
     
-    for ifolder, folders in tqdm(enumerate(os.listdir(f'{HDF5_file_path}')),desc='Initialization: ',total=len(os.listdir(f'{HDF5_file_path}'))):
-        folder_paths = f'{HDF5_file_path}/{folders}'
+    for ifolder, folders in tqdm(enumerate(os.listdir(f'{DATA_file_path}')),desc='Initialization: ',total=len(os.listdir(f'{DATA_file_path}'))):
+        folder_paths = f'{DATA_file_path}/{folders}'
+        
         if not os.path.isdir(folder_paths):
             continue
+        elif os.path.isdir(folder_paths) and folders.startswith('.'):
+            continue
+        
         for folders2 in os.listdir(f'{folder_paths}'):
+            
             Proton_Iron_paths = f'{folder_paths}/{folders2}'
+            
+            if not os.path.isdir(Proton_Iron_paths):
+                continue
+            elif os.path.isdir(Proton_Iron_paths) and folders2.startswith('.'):
+                continue
+            
             amount_of_sims.append(len(os.listdir(f'{Proton_Iron_paths}/iron')) + len(os.listdir(f'{Proton_Iron_paths}/proton')))
             
             for particle in os.listdir(f'{Proton_Iron_paths}'):
@@ -215,12 +224,21 @@ def getting_amount_of_SIM_and_GrammageSteps(HDF5_file_path,proton_or_iron = True
                     pass
                 else:
                     proton_or_iron = False
+                    
+                if not os.path.isdir(f'{Proton_Iron_paths}/{particle}'):
+                    continue
+                elif os.path.isdir(f'{Proton_Iron_paths}/{particle}') and particle.startswith('.'):
+                    continue
         
                 matching_SIMs = find_SIM(f'{Proton_Iron_paths}/{particle}')
                 sorted_SIM = sorting_files(matching_SIMs) #Sorted via number
                 
                 for SIM in sorted_SIM:
                     chosen_SIM = f'{Proton_Iron_paths}/{particle}/{SIM}'
+                    
+                    if os.path.isdir(chosen_SIM):
+                        continue
+                    
                     close_hdf5_if_locked(chosen_SIM)
                     is_file_locked(chosen_SIM)
                     f_h5 = h5py.File(chosen_SIM, "r")
@@ -240,30 +258,28 @@ def getting_amount_of_SIM_and_GrammageSteps(HDF5_file_path,proton_or_iron = True
 
 
 
-def initializing(memmaps_file_path,memmap_folder_name,HDF5_file_path,test=False,i=1):
+def initializing(MEMMAP_file_path,memmap_folder_name,DATA_file_path):
     
 
-    amount_of_measurements,grammage_steps = getting_amount_of_SIM_and_GrammageSteps(HDF5_file_path)
+    amount_of_measurements,grammage_steps = getting_amount_of_SIM_and_GrammageSteps(DATA_file_path)
     
-    create_folder(memmaps_file_path,memmap_folder_name)
+    create_folder(MEMMAP_file_path,memmap_folder_name)
     
-    memmap_file_path = f'{memmaps_file_path}/{memmap_folder_name}'
+    in_memmap_folder_path = f'{MEMMAP_file_path}/{memmap_folder_name}'
     
-    if test:
-        _init_(memmap_file_path,i, parameters, event_level_parameters, number_of_antennas,grammage_steps, time_bins, dimensions_antenna_positions_vB_vvB, dimensions_antenna_traces_vB_vvB,dimensions_antenna_traces_ge_ce,time_ge_ce_and_vB_vvB)
-    else:
-        _init_(memmap_file_path,amount_of_measurements, parameters, event_level_parameters, number_of_antennas,grammage_steps, time_bins, dimensions_antenna_positions_vB_vvB, dimensions_antenna_traces_vB_vvB,dimensions_antenna_traces_ge_ce,time_ge_ce_and_vB_vvB)
-    return memmap_file_path,grammage_steps
+    _init_(in_memmap_folder_path,amount_of_measurements, parameters, event_level_parameters, number_of_antennas,grammage_steps, time_bins, dimensions_antenna_positions_vB_vvB, dimensions_antenna_traces_vB_vvB,dimensions_antenna_traces_ge_ce,time_ge_ce_and_vB_vvB)
+    
+    return in_memmap_folder_path,grammage_steps
 
 
 
-def converting_one_dataset(j,memmap_file_path,HDF5_file_path,csv_file_path,log_file_path,grammage_steps,proton_or_iron = True):
+def converting_one_dataset(j,MEMMAP_file_path,in_memmap_folder_path,proton_iron_path,grammage_steps,proton_or_iron = True):
     
     start_datetime = datetime.now() 
     
     #IRON AND PROTON
             
-    matching_particles = find_Iron_and_Proton(HDF5_file_path)
+    matching_particles = find_Iron_and_Proton(proton_iron_path)
     
     if matching_particles[0] == 'proton':
         pass
@@ -279,11 +295,22 @@ def converting_one_dataset(j,memmap_file_path,HDF5_file_path,csv_file_path,log_f
             pass
         else:
             proton_or_iron = False
+            
+        if not os.path.isdir(f'{proton_iron_path}/{particle}'):
+            continue
+        elif os.path.isdir(f'{proton_iron_path}/{particle}') and particle.startswith('.'):
+            continue
         
-        matching_SIMs = find_SIM(f'{HDF5_file_path}/{particle}')
+        matching_SIMs = find_SIM(f'{proton_iron_path}/{particle}')
         sorted_SIM = sorting_files(matching_SIMs) #Sorted via number
 
         for SIM in sorted_SIM:
+            
+            chosen_SIM = f'{proton_iron_path}/{particle}/{SIM}'
+            
+            if os.path.isdir(chosen_SIM):
+                continue
+            
             
             start_sim_datetime = datetime.now() 
             
@@ -296,12 +323,15 @@ def converting_one_dataset(j,memmap_file_path,HDF5_file_path,csv_file_path,log_f
             print('--------------------------------')
             print(f'Processing: {SIM} ...')
             
-            chosen_SIM = f'{HDF5_file_path}/{particle}/{SIM}'
+            if os.path.isdir(chosen_SIM):
+                continue
             
             if proton_or_iron:
-                write_csv_file('Proton_SIM_vs_Index',csv_file_path,chosen_SIM,idx)
+                create_folder(MEMMAP_file_path,'csv')
+                write_csv_file('Proton_SIM_vs_Index',f'{MEMMAP_file_path}/csv',chosen_SIM,idx)
             else:
-                write_csv_file('Iron_SIM_vs_Index',csv_file_path,chosen_SIM,idx)
+                create_folder(MEMMAP_file_path,'csv')
+                write_csv_file('Iron_SIM_vs_Index',f'{MEMMAP_file_path}/csv',chosen_SIM,idx)
                 
             
             close_hdf5_if_locked(chosen_SIM)
@@ -313,85 +343,67 @@ def converting_one_dataset(j,memmap_file_path,HDF5_file_path,csv_file_path,log_f
             
             f_h5 = h5py.File(chosen_SIM, "r")
 
-            write_memmapfile(memmap_file_path,chosen_SIM,SIM_NUMBER,f_h5,idx,csv_file_path,grammage_steps)
+            write_memmapfile(in_memmap_folder_path,chosen_SIM,SIM_NUMBER,f_h5,idx,f'{MEMMAP_file_path}/csv',grammage_steps)
             
             
             f_h5.close()
             
             sim_duration = time_difference(start_sim_datetime)
             
-            create_log_file(chosen_SIM,sim_duration,f'{log_file_path}/SIM_log.txt')
+            create_folder(MEMMAP_file_path,'log')
+            create_log_file(chosen_SIM,sim_duration,f'{MEMMAP_file_path}/log/SIM_log.txt')
             
             
             j += 1
             
     print('--------------------------------')
     print('................................')
-    print(f'{memmap_file_path} FINISHED!')
+    print(f'{proton_iron_path} FINISHED!')
     print('................................')
     print('--------------------------------')
     
     
     time_for_operation = time_difference(start_datetime)
-
-    create_log_file(HDF5_file_path,time_for_operation,f'{log_file_path}/MEASUREMENTS_log.txt')
+    
+    create_folder(MEMMAP_file_path,'log')
+    create_log_file(DATA_file_path,time_for_operation,f'{MEMMAP_file_path}/log/MEASUREMENTS_log.txt')
     
     return j
 
-def run_auto(memmaps_file_path,HDF5_file_path,log_file_path,csv_file_path):
+def run_auto(MEMMAP_file_path,DATA_file_path):
     
     j = 0 
     
-    memmap_file_path,grammage_steps = initializing(memmaps_file_path,'memmap',HDF5_file_path)
+    in_memmap_folder_path,grammage_steps = initializing(MEMMAP_file_path,'memmap',DATA_file_path)
     
-    for ifolders, folders in tqdm(enumerate(os.listdir(f'{HDF5_file_path}')),desc='Converting Progress: ', total=len(os.listdir(f'{HDF5_file_path}'))):
+    for ifolders, folders in tqdm(enumerate(os.listdir(f'{DATA_file_path}')),desc='Converting Progress: ', total=len(os.listdir(f'{DATA_file_path}'))):
         
-        folder_paths = f'{HDF5_file_path}/{folders}'
+        folder_paths = f'{DATA_file_path}/{folders}'
         
         if not os.path.isdir(folder_paths):
+            continue
+        elif os.path.isdir(folder_paths) and folders.startswith('.'):
             continue
         
         for folders2 in os.listdir(f'{folder_paths}'):
             
             Proton_Iron_paths = f'{folder_paths}/{folders2}'
             
-            new_j = converting_one_dataset(j,memmap_file_path,Proton_Iron_paths,csv_file_path,log_file_path,grammage_steps)
+            if not os.path.isdir(f'{folder_paths}/{folders2}'):
+                continue
+            elif os.path.isdir(Proton_Iron_paths) and folders2.startswith('.'):
+                continue
+            
+            new_j = converting_one_dataset(j,MEMMAP_file_path,in_memmap_folder_path,Proton_Iron_paths,grammage_steps)
             
             j = new_j
-            
-def test_conversion(memmaps_file_path,HDF5_file_path,log_file_path,csv_file_path):
-    j = 0
-    
-    memmap_file_path = initializing(memmaps_file_path,'memmap',HDF5_file_path,test=True)
-    
-    folders = os.listdir(f'{HDF5_file_path}')[0]
-        
-    folder_paths = f'{HDF5_file_path}/{folders}'
-        
-    for folders2 in os.listdir(f'{folder_paths}'):
-            
-        Proton_Iron_paths = f'{folder_paths}/{folders2}'
-            
-        new_j = converting_one_dataset(j,memmap_file_path,Proton_Iron_paths,csv_file_path,log_file_path)
-            
-        j = new_j
-    
 
 if __name__ == "__main__":
     
-    memmaps_file_path = '/cr/work/stiben'
-    HDF5_file_path = '/cr/work/stiben/Testdata'
-    log_file_path = '/cr/work/stiben/log'
-    csv_file_path = '/cr/work/stiben/csv'
+    #MEMMAP_file_path = '/cr/work/stiben'
+    #DATA_file_path = '/cr/radio/lofar/hdf5_sims'
     
-    #memmaps_file_path = '/Users/denis/Desktop/BachelorThesis'
-    #HDF5_file_path = '/Users/denis/Desktop/BachelorThesis/data'
-    #log_file_path = '/Users/denis/Desktop/BachelorThesis/log'
-    #csv_file_path = '/Users/denis/Desktop/BachelorThesis/csv'
-    
-    test = False
-    
-    if test:
-        test_conversion(memmaps_file_path,HDF5_file_path,log_file_path,csv_file_path)
-    else:
-        run_auto(memmaps_file_path,HDF5_file_path,log_file_path,csv_file_path)
+    MEMMAP_file_path = '/Users/denis/Desktop/BachelorThesis/test'
+    DATA_file_path = '/Users/denis/Desktop/BachelorThesis/data'
+
+    run_auto(MEMMAP_file_path,DATA_file_path)
