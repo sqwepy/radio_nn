@@ -10,6 +10,7 @@ import psutil
 from datetime import datetime, timedelta
 from tqdm import tqdm
 from pathlib import Path
+from joblib import Parallel, delayed
 
 from init_npy import _init_
 from coreas_to_hdf5 import FilesTransformHdf5ToHdf5, check_for_crucial_information, check_for_coreas_highlevel_info, check_atmosphere
@@ -196,102 +197,102 @@ def getting_SIM_number(SIM):
                 
     return SIM_NUMBER
 
-def getting_amount_of_SIM_and_GrammageSteps(DATA_file_path, proton_or_iron = True):
-    amount_of_sims = 0
-    
-    all_grammage_steps = []
-    
-    skip_counter = 0
-                
-    all_dx = []
-                
-    start_init = datetime.now() 
-    
-    for ifolder, folders in tqdm(enumerate(os.listdir(f'{DATA_file_path}')),desc='Initialization: ',total=len(os.listdir(f'{DATA_file_path}'))):
-        folder_paths = f'{DATA_file_path}/{folders}'
-        
-        if not os.path.isdir(folder_paths):
-            continue
-        elif os.path.isdir(folder_paths) and folders.startswith('.'):
-            continue
-        
-        for folders2 in os.listdir(f'{folder_paths}'):
-            
-            Proton_Iron_paths = f'{folder_paths}/{folders2}'
-            
-            if not os.path.isdir(Proton_Iron_paths):
-                continue
-            elif os.path.isdir(Proton_Iron_paths) and folders2.startswith('.'):
-                continue
-            
-            for particle in os.listdir(f'{Proton_Iron_paths}'):
-                
-                if particle == 'proton':
-                    pass
-                else:
-                    proton_or_iron = False
-                    
-                if not os.path.isdir(f'{Proton_Iron_paths}/{particle}'):
-                    continue
-                elif os.path.isdir(f'{Proton_Iron_paths}/{particle}') and particle.startswith('.'):
-                    continue
-        
-                matching_SIMs = find_SIM(f'{Proton_Iron_paths}/{particle}')
-                sorted_SIM = sorting_files(matching_SIMs) #Sorted via number
-                
-                for SIM in sorted_SIM:
-                    chosen_SIM = f'{Proton_Iron_paths}/{particle}/{SIM}'
-                    
-                    try:
-                        f_h5 = h5py.File(chosen_SIM, "r")
-                    except OSError as e:
-                        print(f"Error opening file: {e}")
-                        create_folder(MEMMAP_file_path,'log')
-                        create_log_file(chosen_SIM,start_init,f'{MEMMAP_file_path}/log/SIM_Failed_log.txt')
-                        skip_counter += 1
-                        continue
-                    
-                    if os.path.isdir(chosen_SIM):
-                        f_h5.close()
-                        continue
-                    elif check_for_coreas_highlevel_info(f_h5) == False:
-                        if check_for_crucial_information(f_h5) == False:
-                            create_folder(MEMMAP_file_path,'log')
-                            create_log_file(chosen_SIM,start_init,f'{MEMMAP_file_path}/log/SIM_Failed_log.txt')
-                            f_h5.close()
-                            skip_counter += 1
-                            continue
-                    elif check_atmosphere(f_h5) == False:
-                        if check_for_crucial_information(f_h5) == False:
-                            create_folder(MEMMAP_file_path,'log')
-                            create_log_file(chosen_SIM,start_init,f'{MEMMAP_file_path}/log/SIM_Failed_log.txt')
-                            f_h5.close()
-                            skip_counter += 1
-                            continue
-                        
-                    f_h5.close()
-                    
-                    amount_of_sims += 1
-                    
-                    close_hdf5_if_locked(chosen_SIM)
-                    is_file_locked(chosen_SIM)
-                    f_h5 = h5py.File(chosen_SIM, "r")
-                    x = f_h5["atmosphere"]["NumberOfParticles"][:, 0] #could be the wrong size thing
-                    f_h5.close()
-                    
-                    all_grammage_steps.append(len(x))
-                    all_dx.append(x[1]-x[0])
-                    
-                    
-    grammage_steps = min(all_grammage_steps)
-    print(f'Amount of Grammage steps: {grammage_steps}')
-    print(f'Min dx: {min(all_dx)}, Max dx: {max(all_dx)}')
-    print(f'Amount of Sims: {amount_of_sims}')
-    
-    create_folder(MEMMAP_file_path,'log')
-    create_log_file(MEMMAP_file_path,start_init,f'{MEMMAP_file_path}/log/InitInfo_log.txt',additional_info= f'Amount of Grammage steps: {grammage_steps} \n Min dx: {min(all_dx)} \n Max dx: {max(all_dx)} \n Amount of Sims: {amount_of_sims} \n Amount of skipped Sims: {skip_counter}')
-    
-    return int(amount_of_sims),int(grammage_steps)
+#def getting_amount_of_SIM_and_GrammageSteps(DATA_file_path, proton_or_iron = True):
+#    amount_of_sims = 0
+#    
+#    all_grammage_steps = []
+#    
+#    skip_counter = 0
+#                
+#    all_dx = []
+#                
+#    start_init = datetime.now() 
+#    
+#    for ifolder, folders in tqdm(enumerate(os.listdir(f'{DATA_file_path}')),desc='Initialization: ',total=len(os.listdir(f'{DATA_file_path}'))):
+#        folder_paths = f'{DATA_file_path}/{folders}'
+#        
+#        if not os.path.isdir(folder_paths):
+#            continue
+#        elif os.path.isdir(folder_paths) and folders.startswith('.'):
+#            continue
+#        
+#        for folders2 in os.listdir(f'{folder_paths}'):
+#            
+#            Proton_Iron_paths = f'{folder_paths}/{folders2}'
+#            
+#            if not os.path.isdir(Proton_Iron_paths):
+#                continue
+#            elif os.path.isdir(Proton_Iron_paths) and folders2.startswith('.'):
+#                continue
+#            
+#            for particle in os.listdir(f'{Proton_Iron_paths}'):
+#                
+#                if particle == 'proton':
+#                    pass
+#                else:
+#                    proton_or_iron = False
+#                    
+#                if not os.path.isdir(f'{Proton_Iron_paths}/{particle}'):
+#                    continue
+#                elif os.path.isdir(f'{Proton_Iron_paths}/{particle}') and particle.startswith('.'):
+#                    continue
+#        
+#                matching_SIMs = find_SIM(f'{Proton_Iron_paths}/{particle}')
+#                sorted_SIM = sorting_files(matching_SIMs) #Sorted via number
+#                
+#                for SIM in sorted_SIM:
+#                    chosen_SIM = f'{Proton_Iron_paths}/{particle}/{SIM}'
+#                    
+#                    try:
+#                        f_h5 = h5py.File(chosen_SIM, "r")
+#                    except OSError as e:
+#                        print(f"Error opening file: {e}")
+#                        create_folder(MEMMAP_file_path,'log')
+#                        create_log_file(chosen_SIM,start_init,f'{MEMMAP_file_path}/log/SIM_Failed_log.txt')
+#                        skip_counter += 1
+#                        continue
+#                    
+#                    if os.path.isdir(chosen_SIM):
+#                        f_h5.close()
+#                        continue
+#                    elif check_for_coreas_highlevel_info(f_h5) == False:
+#                        if check_for_crucial_information(f_h5) == False:
+#                            create_folder(MEMMAP_file_path,'log')
+#                            create_log_file(chosen_SIM,start_init,f'{MEMMAP_file_path}/log/SIM_Failed_log.txt')
+#                            f_h5.close()
+#                            skip_counter += 1
+#                            continue
+#                    elif check_atmosphere(f_h5) == False:
+#                        if check_for_crucial_information(f_h5) == False:
+#                            create_folder(MEMMAP_file_path,'log')
+#                            create_log_file(chosen_SIM,start_init,f'{MEMMAP_file_path}/log/SIM_Failed_log.txt')
+#                            f_h5.close()
+#                            skip_counter += 1
+#                            continue
+#                        
+#                    f_h5.close()
+#                    
+#                    amount_of_sims += 1
+#                    
+#                    close_hdf5_if_locked(chosen_SIM)
+#                    is_file_locked(chosen_SIM)
+#                    f_h5 = h5py.File(chosen_SIM, "r")
+#                    x = f_h5["atmosphere"]["NumberOfParticles"][:, 0] #could be the wrong size thing
+#                    f_h5.close()
+#                    
+#                    all_grammage_steps.append(len(x))
+#                    all_dx.append(x[1]-x[0])
+#                    
+#                    
+#    grammage_steps = min(all_grammage_steps)
+#    print(f'Amount of Grammage steps: {grammage_steps}')
+#    print(f'Min dx: {min(all_dx)}, Max dx: {max(all_dx)}')
+#    print(f'Amount of Sims: {amount_of_sims}')
+#    
+#    create_folder(MEMMAP_file_path,'log')
+#    create_log_file(MEMMAP_file_path,start_init,f'{MEMMAP_file_path}/log/InitInfo_log.txt',additional_info= f'Amount of Grammage steps: {grammage_steps} \n Min dx: {min(all_dx)} \n Max dx: {max(all_dx)} \n Amount of Sims: {amount_of_sims} \n Amount of skipped Sims: {skip_counter}')
+#    
+#    return int(amount_of_sims),int(grammage_steps)
 
 
 
@@ -309,7 +310,7 @@ def initializing(MEMMAP_file_path,memmap_folder_name,DATA_file_path):
 
 
 
-def converting_one_dataset(j,MEMMAP_file_path,in_memmap_folder_path,proton_iron_path,proton_or_iron = True):
+def converting_one_dataset(MEMMAP_file_path,in_memmap_folder_path,proton_iron_path,proton_or_iron = True,j=0):
     
     start_datetime = datetime.now() 
     
@@ -406,7 +407,6 @@ def converting_one_dataset(j,MEMMAP_file_path,in_memmap_folder_path,proton_iron_
             create_log_file(chosen_SIM,sim_duration,f'{MEMMAP_file_path}/log/SIM_log.txt')
             
             
-            j += 1
             
     print('--------------------------------')
     print('................................')
@@ -422,33 +422,30 @@ def converting_one_dataset(j,MEMMAP_file_path,in_memmap_folder_path,proton_iron_
     
     return j
 
-def run_auto(MEMMAP_file_path,DATA_file_path):
+def running(DATA_file_path,MEMMAP_file_path,in_memmap_folder_path,folders):
+    folder_paths = f'{DATA_file_path}/{folders}'
+        
+    if not os.path.isdir(folder_paths):
+        return
+    elif os.path.isdir(folder_paths) and folders.startswith('.'):
+        return
     
-    j = 0 
+    for folders2 in os.listdir(f'{folder_paths}'):
+        
+        Proton_Iron_paths = f'{folder_paths}/{folders2}'
+        
+        if not os.path.isdir(f'{folder_paths}/{folders2}'):
+            continue
+        elif os.path.isdir(Proton_Iron_paths) and folders2.startswith('.'):
+            continue
+        
+        converting_one_dataset(MEMMAP_file_path,in_memmap_folder_path,Proton_Iron_paths)
+
+def run_auto(MEMMAP_file_path,DATA_file_path):
     
     in_memmap_folder_path = initializing(MEMMAP_file_path,'memmap',DATA_file_path)
     
-    for ifolders, folders in tqdm(enumerate(os.listdir(f'{DATA_file_path}')),desc='Converting Progress: ', total=len(os.listdir(f'{DATA_file_path}'))):
-        
-        folder_paths = f'{DATA_file_path}/{folders}'
-        
-        if not os.path.isdir(folder_paths):
-            continue
-        elif os.path.isdir(folder_paths) and folders.startswith('.'):
-            continue
-        
-        for folders2 in os.listdir(f'{folder_paths}'):
-            
-            Proton_Iron_paths = f'{folder_paths}/{folders2}'
-            
-            if not os.path.isdir(f'{folder_paths}/{folders2}'):
-                continue
-            elif os.path.isdir(Proton_Iron_paths) and folders2.startswith('.'):
-                continue
-            
-            new_j = converting_one_dataset(j,MEMMAP_file_path,in_memmap_folder_path,Proton_Iron_paths)
-            
-            j = new_j
+    Parallel(n_jobs=2)(delayed(running)(DATA_file_path,MEMMAP_file_path,in_memmap_folder_path,folders) for folders in os.listdir(f'{DATA_file_path}'))
 
 if __name__ == "__main__":
     
