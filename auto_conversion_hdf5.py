@@ -441,11 +441,11 @@ def running(DATA_file_path,MEMMAP_file_path,in_memmap_folder_path,folders):
         
         converting_one_dataset(MEMMAP_file_path,in_memmap_folder_path,Proton_Iron_paths)
 
-def run_auto(MEMMAP_file_path,DATA_file_path):
+def run_auto(MEMMAP_file_path,DATA_file_path,n_jobs):
     
     in_memmap_folder_path = initializing(MEMMAP_file_path,'memmap',DATA_file_path)
     
-    Parallel(n_jobs=2)(delayed(running)(DATA_file_path,MEMMAP_file_path,in_memmap_folder_path,folders) for folders in os.listdir(f'{DATA_file_path}'))
+    Parallel(n_jobs=n_jobs)(delayed(running)(DATA_file_path,MEMMAP_file_path,in_memmap_folder_path,folders) for folders in os.listdir(f'{DATA_file_path}'))
 
 if __name__ == "__main__":
     
@@ -454,5 +454,6 @@ if __name__ == "__main__":
     
     MEMMAP_file_path = '/Users/denis/Desktop/BachelorThesis/test'
     DATA_file_path = '/Users/denis/Desktop/BachelorThesis/data'
+    n_jobs = 4
 
-    run_auto(MEMMAP_file_path,DATA_file_path)
+    run_auto(MEMMAP_file_path,DATA_file_path,n_jobs)
