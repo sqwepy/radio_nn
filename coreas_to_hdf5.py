@@ -962,7 +962,7 @@ def write_coreas_highlevel_info(f_h5, args): #writes traces highlevel VERY IMPOR
             )  # for the numerical integration, the datapoints needs to be sorted by distance
             dd = dd[sortmask]
             yy_tot = tot_power[mask][sortmask]
-            y_int_num = integrate.trapz(yy_tot * dd, dd) * 2 * np.pi
+            y_int_num = integrate.trapezoid(yy_tot * dd, dd) * 2 * np.pi
             f_h5_obsplane.attrs["radiation_energy_1D"] = y_int_num
             print(
                 "\tcalculating radiation energy via 1 integration: %.4e eV"
