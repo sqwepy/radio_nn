@@ -118,7 +118,6 @@ def close_hdf5_if_locked(filepath):
                     if file.path == filepath:
                         print(f"File is locked by process {process.info['name']} (PID {process.info['pid']}). Attempting to close...")
                         process.terminate()  # Tries to close the process
-                        process.wait(timeout=5)  # Wait up to 5 seconds for it to close
                         print(f"Process {process.info['pid']} closed. File should be accessible now.")
                         return True
         except (psutil.NoSuchProcess, psutil.AccessDenied):
@@ -390,7 +389,7 @@ def converting_one_dataset(j,MEMMAP_file_path,in_memmap_folder_path,proton_iron_
             
             is_file_locked(chosen_SIM)
             
-            FilesTransformHdf5ToHdf5(chosen_SIM)
+            #FilesTransformHdf5ToHdf5(chosen_SIM)
             
             
             f_h5 = h5py.File(chosen_SIM, "r")
