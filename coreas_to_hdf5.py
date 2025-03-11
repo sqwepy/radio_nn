@@ -1076,8 +1076,8 @@ def check_for_coreas_highlevel_info(f_h5):
     obs_na_na_attrs = ['comment', 'frequency_high', 'frequency_low', 'frequency_resolution', 'slicing_method']
     obs_na_na_keys = ['amplitude', 'amplitude_total', 'antenna_names', 'antenna_position', 'antenna_position_vBvvB', 'core', 'energy_fluence', 'energy_fluence_vector', 'frequency_slope', 'polarization_vector', 'times_filtered', 'traces_filtered']
 
-    positions_keys = ['ge_ce', 'vB_vvB']
-    traces_keys = ['ge_ce', 'scaled', 'vB_vvB']
+    positions_keys = ['vB_vvB']
+    traces_keys = ['vB_vvB']
 
     # Check 'highlevel' group
     if 'highlevel' in f_h5:
