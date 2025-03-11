@@ -455,6 +455,6 @@ if __name__ == "__main__":
     #DATA_file_path = '/cr/radio/lofar/hdf5_sims'
     
     MEMMAP_file_path = '/cr/work/stiben'
-    DATA_file_path = '/cr/radio/lofar/hdf5_sims'
+    DATA_file_path = '/cr/tempdata01/kwatanabe/lofar'
 
     run_auto(MEMMAP_file_path,DATA_file_path)
