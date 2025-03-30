@@ -16,7 +16,7 @@ from radioNN.tests.draw_graph import draw_graph
 
 def main(
     percentage=0.1,
-    base_path="./runs/",
+    base_path="/Volumes/DenisDRIVE/BACHELORTHESIS/runs/",
     batch_size=8,
     n_epochs=500,
     lr=1e-3,
@@ -94,7 +94,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-p",
         "--percentage",
-        default=90,
+        default=80, 
         type=float,
         help="Percentage of dataset to use",
     )
@@ -102,7 +102,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-b",
         "--base_path",
-        default="./runs/",
+        default="/Volumes/DenisDRIVE/BACHELORTHESIS/runs/",
         type=str,
         help="Base path for storing model information",
     )
@@ -114,7 +114,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--n_epochs",
         type=int,
-        default=1000,
+        default=1000, #was 1000 before
         help="number of epochs of training",
     )
     parser.add_argument(
@@ -123,20 +123,20 @@ if __name__ == "__main__":
     parser.add_argument(
         "--flu_weight", type=float, default=0, help="loss: fluence weight"
     )
-    parser.add_argument("--lr", type=float, default=0.0001, help="adam: learning rate")
+    parser.add_argument("--lr", type=float, default=0.0001, help="adam: learning rate") #0.0001 is nice
     parser.add_argument(
-        "--weight_decay", type=float, default=0.00005, help="adam: weight decay"
+        "--weight_decay", type=float, default=0.00005, help="adam: weight decay" #0.00005 is nice
     )
     parser.add_argument(
-        "--lr_scale",
+        "--lr_scale", #lr keeping high
         type=int,
-        default=2,
+        default=2, #100 is nice
         help="learning rate scheduler scale",
     )
     parser.add_argument(
         "--lr_decay",
         type=float,
-        default=0.33,
+        default=0.33, #0.2 is nice
         help="learning rate scheduler scale",
     )
     parser.add_argument(

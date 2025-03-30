@@ -7,7 +7,6 @@ from torch.utils.data.dataloader import default_collate
 
 from radioNN.data.filters import DefaultFilter
 from radioNN.data.transforms import DefaultTransform, Identity
-from init_npy import total_amount_of_measurements, parameters, event_level_parameters, number_of_antennas,grammage_steps, time_bins, dimensions_antenna_positions_vB_vvB, dimensions_antenna_traces_vB_vvB,dimensions_antenna_traces_ge_ce,time_ge_ce_and_vB_vvB
 
 
 def custom_collate_fn(batch):

@@ -14,7 +14,7 @@ from radioNN.data.filters import LOFARFilter
 from radioNN.networks.antenna_fc_network import AntennaNetworkFC
 from RadioPlotter.radio_plotter import plot_pulses_interactive
 
-
+n_sims = 33
 class CustomWeightedLoss(torch.nn.Module):
     """
     L1 loss with different weights for different polarizations.
@@ -106,7 +106,7 @@ class NetworkProcess:
 
         """
         self.wandb = wb
-        radio_data_path = "/Users/denis/Desktop/BachelorThesis/memmaps/177113844/1"
+        radio_data_path = "/Volumes/DenisDRIVE/BACHELORTHESIS/memmap_files/memmap"
         memmap_mode = "r"
         if not os.path.exists(radio_data_path):
             radio_data_path = "/home/pranav/work-stuff-unsynced/radio_data"
@@ -166,9 +166,9 @@ class NetworkProcess:
             # TODO: Do this better
             # Weird ordering of things to do, the non-wandb mode is very adhoc as is
             wandb.init(
-                project="RadioNN",
+                project="RadioNN_lofar",
                 name=self.run_name,
-                entity="pranavsampathkumar",
+                entity="denissti04-kit",
                 config={
                     "n_epochs": n_epochs,
                     "batch_size": batch_size,
@@ -347,7 +347,7 @@ class NetworkProcess:
         for _ in range(10):
             try:
                 train_indices = torch.unique(torch.Tensor(self.dataset.indices // 240))
-                indices = [x for x in range(26387) if x not in train_indices]
+                indices = [x for x in range(n_sims) if x not in train_indices]
                 choice = indices[torch.randint(high=len(indices), size=[1])]
                 pred_output_meta, pred_output, output = self.pred_one_shower(choice)
             except RuntimeError as e:
