@@ -69,7 +69,7 @@ class AntennaNetworkCNN(nn.Module):
         self._meta_size = 8
         self._antenna_pos_size = 3
         # Calculate the output size of the CNN module
-        cnn_output_size = 256 * (1142 // 2 // 2 // 2 // 2)  #here is the problem 1142 because of grammage steps
+        cnn_output_size = 256 * (1142 // 2 // 2 // 2 // 2)  #here is the problem 1142 because of grammage steps (small dataset) adn 1015 (big dataset)
 
         self.cnn_inner_channels = 2
         self.fc_layers = nn.Sequential(

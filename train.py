@@ -16,7 +16,7 @@ from radioNN.tests.draw_graph import draw_graph
 
 def main(
     percentage=0.1,
-    base_path="/Volumes/DenisDRIVE/BACHELORTHESIS/runs/",
+    base_path="./runs/",
     batch_size=8,
     n_epochs=500,
     lr=1e-3,
@@ -102,7 +102,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-b",
         "--base_path",
-        default="/Volumes/DenisDRIVE/BACHELORTHESIS/runs/",
+        default="./runs/",
         type=str,
         help="Base path for storing model information",
     )
@@ -118,7 +118,7 @@ if __name__ == "__main__":
         help="number of epochs of training",
     )
     parser.add_argument(
-        "--batch_size", type=int, default=64, help="size of the batches"
+        "--batch_size", type=int, default=64, help="size of the batches" #Try 32 or 48 if 64 doesn't work
     )
     parser.add_argument(
         "--flu_weight", type=float, default=0, help="loss: fluence weight"
@@ -130,13 +130,13 @@ if __name__ == "__main__":
     parser.add_argument(
         "--lr_scale", #lr keeping high
         type=int,
-        default=2, #100 is nice
+        default=100, #100 is nice
         help="learning rate scheduler scale",
     )
     parser.add_argument(
         "--lr_decay",
         type=float,
-        default=0.33, #0.2 is nice
+        default=0.22, #0.2 is nice
         help="learning rate scheduler scale",
     )
     parser.add_argument(

@@ -14,7 +14,7 @@ from radioNN.data.filters import LOFARFilter
 from radioNN.networks.antenna_fc_network import AntennaNetworkFC
 from RadioPlotter.radio_plotter import plot_pulses_interactive
 
-n_sims = 33
+n_sims = 21524
 class CustomWeightedLoss(torch.nn.Module):
     """
     L1 loss with different weights for different polarizations.
@@ -106,7 +106,7 @@ class NetworkProcess:
 
         """
         self.wandb = wb
-        radio_data_path = "/Volumes/DenisDRIVE/BACHELORTHESIS/memmap_files/memmap"
+        radio_data_path = "/cr/radio/lofar/memmap_files/memmap"
         memmap_mode = "r"
         if not os.path.exists(radio_data_path):
             radio_data_path = "/home/pranav/work-stuff-unsynced/radio_data"
@@ -211,6 +211,7 @@ class NetworkProcess:
                 batch_size=wandb.config.batch_size,
                 shuffle=True,
                 collate_fn=custom_collate_fn,
+                num_workers=32
             )
         except:
             self.dataloader = DataLoader(
@@ -218,6 +219,7 @@ class NetworkProcess:
                 batch_size=8,
                 shuffle=True,
                 collate_fn=custom_collate_fn,
+                num_workers=32
             )
 
     def send_wandb_data(

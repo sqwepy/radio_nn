@@ -161,8 +161,8 @@ class DefaultFilter:
         indices = np.array([], dtype=int)
         for index in tqdm(shower_indices):
             antenna_mask = self._get_antenna_mask(index)
-            antenna_indices = np.arange(240, dtype=int)[antenna_mask]
-            overall_index = int(index * 240) + antenna_indices
+            antenna_indices = np.arange(160, dtype=int)[antenna_mask]
+            overall_index = int(index * 160) + antenna_indices
             indices = np.concatenate((indices, overall_index))
         return np.sort(indices)
 
