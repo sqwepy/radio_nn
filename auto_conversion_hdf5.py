@@ -454,6 +454,6 @@ if __name__ == "__main__":
     
     MEMMAP_file_path = '/Users/denis/Desktop/BachelorThesis/memmap'
     DATA_file_path = '/Users/denis/Desktop/BachelorThesis/data'
-    n_jobs = 4
+    n_jobs = 1
 
     run_auto(MEMMAP_file_path,DATA_file_path,n_jobs)

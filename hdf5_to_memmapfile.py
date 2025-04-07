@@ -76,23 +76,24 @@ def flush_input_meta(output_path,SIM_NUMBER, f_h5, index, dtypeInit):
     # check and set always
     #assert np.all(np.abs(meta_data[index, :]) == 0)
     meta_data[index, 0] = int(SIM_NUMBER) 
-    meta_data[index, 1] = np.cos(float(f_h5["CoREAS"].attrs['ShowerZenithAngle']))
+    meta_data[index, 1] = np.cos(np.deg2rad(float(f_h5["CoREAS"].attrs['ShowerZenithAngle'])))
     
     meta_data[index, 2] = f_h5['atmosphere'].attrs['Gaisser-Hillas-Fit'][2]
     
     d_xmax, h_xmax = density_at_Xmax(f_h5)
     meta_data[index, 3] = d_xmax
     meta_data[index, 4] = h_xmax
-    meta_data[index, 5] = f_h5["highlevel"].attrs["Eem"] 
+    
+    meta_data[index, 5] = f_h5["highlevel"].attrs["Eem"]
     
     #print(f_h5["CoREAS"].attrs['GeomagneticAngle']) 
-    meta_data[index, 6] = np.sin(float(f_h5["CoREAS"].attrs['GeomagneticAngle']))
-    meta_data[index, 7] = f_h5["CoREAS"].attrs['MagneticFieldInclinationAngle']
-    meta_data[index, 8] = f_h5["CoREAS"].attrs['RotationAngleForMagfieldDeclination']
+    meta_data[index, 6] = np.sin(np.deg2rad(float(f_h5["CoREAS"].attrs['GeomagneticAngle'])))
+    meta_data[index, 7] = np.deg2rad(float(f_h5["CoREAS"].attrs['MagneticFieldInclinationAngle']))
+    meta_data[index, 8] = np.deg2rad(float(f_h5["CoREAS"].attrs['RotationAngleForMagfieldDeclination']))
     meta_data[index, 9] = f_h5["CoREAS"].attrs['MagneticFieldStrength']
     meta_data[index, 10] = f_h5["inputs"].attrs["PRMPAR"]
     
-    meta_data[index, 11] = f_h5["inputs"].attrs['ERANGE'][0]
+    meta_data[index, 11] = f_h5["inputs"].attrs['ERANGE'][0] * 1e9
     meta_data[index, 12] = np.deg2rad(float(f_h5["CoREAS"].attrs['ShowerAzimuthAngle']))
     meta_data.flush()
 

@@ -29,7 +29,7 @@ conversion_fieldstrength_cgs_to_SI = 2.99792458e4
 VERSION_MAJOR = 0
 VERSION_MINOR = 4
 
-RADIO_DATA_PATH = "/Users/denis/Desktop/BachelorThesis/data/177113844/1"
+RADIO_DATA_PATH = "/Users/denis/Desktop/BachelorThesis/data/177113844"
 
 
 def gaisser_hillas(X, N, X0, Xmax, p0, p1=0, p2=0):
@@ -391,7 +391,9 @@ def read_height2X_from_C7log(f_h5): #WHATS GOING ON HERE???
     
     for i in x:
         
-        h_i = atmo._get_vertical_height(f_h5['CoREAS'].attrs["ShowerZenithAngle"],i)
+        print(np.deg2rad(float(f_h5['CoREAS'].attrs["ShowerZenithAngle"])))
+        print(i)
+        h_i = atmo.get_vertical_height(np.deg2rad(float(f_h5['CoREAS'].attrs["ShowerZenithAngle"])),i,0)
         
         h.append(h_i)
         shower_dev.append([i,h_i])
@@ -586,8 +588,8 @@ def write_coreas_highlevel_info(f_h5, args): #writes traces highlevel VERY IMPOR
 
     B_strength = (Bx**2 + Bz**2) ** 0.5
     magnetic_field_vector = rdhelp.spherical_to_cartesian(
-        rdhelp.get_magneticfield_zenith(B_inclination),
-        B_declination + np.pi * 0.5,
+        rdhelp.get_magneticfield_zenith(np.pi*0.5 + B_inclination),
+        np.pi*0.5 - B_declination,
     )  # in auger cooordinates north is + 90 deg
 
     ctrans = coordinatesystems.cstrafo(
