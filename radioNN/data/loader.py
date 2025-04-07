@@ -81,11 +81,11 @@ class AntennaDataset(Dataset):
 
         """
         # TODO: Make this into a seperate class
-        self.input_data = np.load(input_data_file, mmap_mode=mmap_mode) # input
-        self.input_meta = np.load(input_meta_file, mmap_mode=mmap_mode) #input meta
-        self.antenna_pos = np.load(antenna_pos_file, mmap_mode=mmap_mode) #antenna pos
-        self.output_meta = np.load(output_meta_file, mmap_mode=mmap_mode) #output meta
-        self.output = np.load(output_file, mmap_mode=mmap_mode)  #vBvvB
+        self.input_data = np.load(input_data_file,mmap_mode=None) #mmap_mode=mmap_mode) # input
+        self.input_meta = np.load(input_meta_file,mmap_mode=None) #mmap_mode=mmap_mode) #input meta
+        self.antenna_pos = np.load(antenna_pos_file,mmap_mode=None) #mmap_mode=mmap_mode) #antenna pos
+        self.output_meta = np.load(output_meta_file,mmap_mode=None) #mmap_mode=mmap_mode) #output meta
+        self.output = np.load(output_file,mmap_mode=None) #mmap_mode=mmap_mode)  #vBvvB
         
         self.percentage = percentage
         self.one_shower = one_shower

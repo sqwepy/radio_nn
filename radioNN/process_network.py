@@ -7,6 +7,8 @@ import torch
 import tqdm
 from torch import optim
 from torch.utils.data import DataLoader
+import torch.multiprocessing as mp
+mp.set_start_method('spawn', force=True)
 
 import wandb
 from radioNN.data.loader import AntennaDataset, custom_collate_fn
@@ -29,6 +31,7 @@ class CustomWeightedLoss(torch.nn.Module):
     def __init__(self: "CustomWeightedLoss", fluence_weight: float = 0) -> None:
         super().__init__()
         self.mse_loss = torch.nn.L1Loss()
+        
         self.fluence_weight = fluence_weight
         CONVERSION_FACTOR = 2.65441729e-3 * 6.24150934e18 * 1e-9  # c*e0*delta_t
         self.fluence = lambda x: torch.sum(x**2) * CONVERSION_FACTOR
@@ -115,7 +118,10 @@ class NetworkProcess:
             radio_data_path = "/cr/work/sampathkumar/radio_data"
             memmap_mode = "r"
         assert os.path.exists(radio_data_path)
+        
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        torch.backends.cudnn.benchmark = True
+        
         if one_shower is not None:
             print(
                 f"Using the data from {radio_data_path} in {self.device} with "
@@ -155,6 +161,11 @@ class NetworkProcess:
         self.base_path = base_path
         self.log_dir = f"{self.base_path}/{self.run_name}"
         self.model = model_class(self.output_channels).to(self.device)
+        
+        if torch.cuda.device_count() > 1:
+            print(f"Using {torch.cuda.device_count()} GPUs!")
+            self.model = torch.nn.DataParallel(self.model)  # Use multiple GPUs
+            
         # self.criterion = nn.L1Loss()
         self.criterion = CustomWeightedLoss(fluence_weight=flu_weight)
         self.optimizer = optim.Adam(
@@ -211,7 +222,8 @@ class NetworkProcess:
                 batch_size=wandb.config.batch_size,
                 shuffle=True,
                 collate_fn=custom_collate_fn,
-                num_workers=32
+                num_workers=8, #probier 12
+                persistent_workers=True,
             )
         except:
             self.dataloader = DataLoader(
@@ -219,7 +231,8 @@ class NetworkProcess:
                 batch_size=8,
                 shuffle=True,
                 collate_fn=custom_collate_fn,
-                num_workers=32
+                num_workers = 8, #probier 12
+                persistent_workers=True,
             )
 
     def send_wandb_data(
@@ -345,7 +358,14 @@ class NetworkProcess:
             raise RuntimeWarning("No valid batches use a different showers/rerun tests")
 
     def one_shower_loss(self):
+        # Assuming you are using CUDA (GPU)
+        device = pred_output.device  # Get the device of pred_output (either 'cuda' or 'cpu')
+
+        # Move output tensor to the same device as pred_output
+        output = output.to(device)
+
         test_loss = CustomWeightedLoss()
+        
         for _ in range(10):
             try:
                 train_indices = torch.unique(torch.Tensor(self.dataset.indices // 240))
@@ -357,12 +377,19 @@ class NetworkProcess:
                 print("Trying again")
                 continue
             break
+        
+        # Ensure tensors are on the same device before loss calculation
+        pred_output = pred_output.to(device)
+        output = output.to(device)
+        
         loss_output = test_loss(250 * pred_output, 250 * output)
         print(f"Choosing shower {choice}")
         return loss_output.item(), pred_output.cpu().numpy(), output.cpu().numpy()
 
     def pred_one_shower(self, one_shower):
-        # TODO : Use dataloader.return_single_shower
+        
+        # Assuming device is GPU or CPU based on where the model is
+        device = self.model.device  # Get the device of your model
         one_sh_dataset = AntennaDataset(
             self.input_data_file,
             self.input_meta_file,
@@ -384,15 +411,22 @@ class NetworkProcess:
                 raise RuntimeError(f"Not a valid Shower {one_shower}")
 
             event_data, meta_data, antenna_pos, output_meta, output = batch
-            with torch.no_grad():
-                pred_output_meta, pred_output = self.model(
-                    event_data, meta_data, antenna_pos
-                )
 
-            return (pred_output_meta, pred_output, output)
+            # Ensure all tensors are on the correct device
+            event_data = event_data.to(device)
+            meta_data = meta_data.to(device)
+            antenna_pos = antenna_pos.to(device)
+            output = output.to(device)
+
+            with torch.no_grad():
+                pred_output_meta, pred_output = self.model(event_data, meta_data, antenna_pos)
+
+            return pred_output_meta, pred_output, output
+
 
     def pred_one_shower_entire_array(self, one_shower):
-        # TODO : Use dataloader.return_single_shower
+        # Assuming device is GPU or CPU based on where the model is
+        device = self.model.device  # Get the device of your model
         one_sh_dataset = AntennaDataset(
             self.input_data_file,
             self.input_meta_file,
@@ -411,15 +445,23 @@ class NetworkProcess:
         assert len(dataloader) == 1
         for batch in dataloader:
             if batch is None:
-                raise RuntimeError("Not a valid Shower {one_shower}")
+                raise RuntimeError(f"Not a valid Shower {one_shower}")
 
             event_data, meta_data, antenna_pos, output_meta, output = batch
-            # TODO: Fix it in the input file and stop swapaxes.
-            antenna_pos = torch.Tensor(
-                fit_plane_and_return_3d_grid(antenna_pos.cpu().numpy())
-            )
+
+            # Ensure all tensors are on the correct device
+            event_data = event_data.to(device)
+            meta_data = meta_data.to(device)
+            antenna_pos = antenna_pos.to(device)
+            output = output.to(device)
+
+            # Fix the antenna_pos transformation and keep the tensor on the correct device
+            antenna_pos = torch.Tensor(fit_plane_and_return_3d_grid(antenna_pos.cpu().numpy())).to(device)
+
+            # Ensure all inputs are on the same device before passing them to the model
             assert torch.all(event_data == event_data[0])
             assert torch.all(meta_data == meta_data[0])
+
             with torch.no_grad():
                 pred_output_meta, pred_output = self.model(
                     event_data[0].expand(antenna_pos.shape[0], *event_data[0].shape),
@@ -428,3 +470,4 @@ class NetworkProcess:
                 )
 
             return pred_output_meta.cpu().numpy(), pred_output.cpu().numpy()
+
