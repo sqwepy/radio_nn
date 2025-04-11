@@ -452,7 +452,7 @@ if __name__ == "__main__":
     #MEMMAP_file_path = '/cr/work/stiben'
     #DATA_file_path = '/cr/radio/lofar/hdf5_sims'
     
-    MEMMAP_file_path = '/Users/denis/Desktop/BachelorThesis/memmap'
+    MEMMAP_file_path = '/Users/denis/Desktop/BachelorThesis/memmap2'
     DATA_file_path = '/Users/denis/Desktop/BachelorThesis/data'
     n_jobs = 1
 

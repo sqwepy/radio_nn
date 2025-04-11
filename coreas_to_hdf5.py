@@ -391,12 +391,14 @@ def read_height2X_from_C7log(f_h5): #WHATS GOING ON HERE???
     
     for i in x:
         
-        print(np.deg2rad(float(f_h5['CoREAS'].attrs["ShowerZenithAngle"])))
-        print(i)
-        h_i = atmo.get_vertical_height(np.deg2rad(float(f_h5['CoREAS'].attrs["ShowerZenithAngle"])),i,0)
+        #print(np.deg2rad(float(f_h5['CoREAS'].attrs["ShowerZenithAngle"])))
+        #print(i)
+        h_i = atmo.get_vertical_height(zenith=np.deg2rad(float(f_h5['CoREAS'].attrs["ShowerZenithAngle"])),xmax = i,observation_level=(f_h5['inputs'].attrs['OBSLEV']*1e-2))
         
         h.append(h_i)
         shower_dev.append([i,h_i])
+        
+        print(h_i)
         
     
     
@@ -588,7 +590,7 @@ def write_coreas_highlevel_info(f_h5, args): #writes traces highlevel VERY IMPOR
 
     B_strength = (Bx**2 + Bz**2) ** 0.5
     magnetic_field_vector = rdhelp.spherical_to_cartesian(
-        rdhelp.get_magneticfield_zenith(np.pi*0.5 + B_inclination),
+        np.pi*0.5 + B_inclination,
         np.pi*0.5 - B_declination,
     )  # in auger cooordinates north is + 90 deg
 
@@ -724,18 +726,21 @@ def write_coreas_highlevel_info(f_h5, args): #writes traces highlevel VERY IMPOR
             data[:, 1] *= conversion_fieldstrength_cgs_to_SI
             data[:, 2] *= conversion_fieldstrength_cgs_to_SI
             data[:, 3] *= conversion_fieldstrength_cgs_to_SI
-
-            # convert CORSIKA to AUGER coordinates (AUGER y = CORSIKA x, AUGER x = - CORSIKA y; cm to m
+            
+            
+            obs_positions = np.array([-position[1] / 100.0, position[0] / 100.0, position[2] / 100.0])
+            obs_positions = rdhelp.rotate_vector_in_2d(obs_positions, -B_declination).T
+            
             (
                 antenna_position[i, 0],
                 antenna_position[i, 1],
                 antenna_position[i, 2],
             ) = (
-                -position[1] / 100.0,
-                position[0] / 100.0,
-                position[2] / 100.0,
+                obs_positions[0],
+                obs_positions[1],
+                obs_positions[2],
             )
-
+            
             if np.sum(np.isnan(data[:, 1:4])):
                 print("ERROR in antenna %j, time trace contains NaN" % j)
                 import sys

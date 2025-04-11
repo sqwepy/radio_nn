@@ -30,7 +30,7 @@ def write_csv_file(name, path_, item1, item2):
 def density_at_Xmax(f_h5):
     x_max = f_h5['atmosphere'].attrs['Gaisser-Hillas-Fit'][2]
     X = np.array(f_h5["atmosphere"]["Atmosphere"][:, 0])
-    n = np.argmin(x_max-X)
+    n = np.argmin(np.abs(x_max-X))
     h = f_h5["atmosphere"]["Atmosphere"][:, 1]
     #print(n)
     density = f_h5["atmosphere"]["Density"][n]
@@ -167,9 +167,11 @@ def flush_antenna_pos(output_path,f_h5, index, dtypeInit,csv_file_path):
     antenna_pos = open_memmap(antenna_pos_file, dtype=f"{dtypeInit}", mode="r+")
     antenna_pos[index][:] = 0
     assert np.all(np.abs(antenna_pos[index, :]) == 0)
-    antennas_pos_f_h5 = f_h5[f"/highlevel/positions/vB_vvB"]
+    antennas_pos_f_h5_1 = f_h5[f"/highlevel/positions/vB_vvB"]
+    antennas_pos_f_h5_2 = np.array(f_h5['highlevel/obsplane_na_na_vB_vvB/antenna_position_vBvvB'])
+    
     label_index = 0
-    for label in antennas_pos_f_h5.keys():
+    for label in antennas_pos_f_h5_1.keys():
         if label.split("_")[0] != "pos":
             continue
         assert 0 <= label_index < 160
@@ -177,7 +179,7 @@ def flush_antenna_pos(output_path,f_h5, index, dtypeInit,csv_file_path):
         if index == 0:
             write_csv_file('AntennaPos_vs_Index',csv_file_path,label,label_index)
             
-        antenna_pos[index, label_index] = antennas_pos_f_h5[label]
+        antenna_pos[index, label_index] = antennas_pos_f_h5_2[label_index]
         label_index += 1
     antenna_pos.flush()
 
