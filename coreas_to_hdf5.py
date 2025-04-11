@@ -72,7 +72,11 @@ def read_input_file(hdf5_file, inp_file): #IRRELEVANT
         inp_dict[elements[0]] = elements[1:]
     inp_file.close()
 
-    f_h5_inputs = hdf5_file.create_group("inputs")
+    if "inputs" not in hdf5_file:
+        f_h5_inputs = hdf5_file.create_group("inputs")
+    else:
+        del hdf5_file["inputs"]
+        f_h5_inputs = hdf5_file.create_group("inputs")
 
     # fill general attributes from inp file
     f_h5_inputs.attrs["RUNNR"] = int(inp_dict["RUNNR"][0])
@@ -136,8 +140,12 @@ def read_reas_file(hdf5_file, reas_file): #IRRELEVANT
     tmp2 = io.StringIO(tmp)
     configParser.read_file(tmp2)
     items = configParser.items("CoREAS")
-
-    f_h5_reas = hdf5_file.create_group("CoREAS")
+    
+    if "CoREAS" not in hdf5_file:
+        f_h5_reas = hdf5_file.create_group("CoREAS")
+    else:
+        del hdf5_file["CoREAS"]
+        f_h5_reas = hdf5_file.create_group("CoREAS")
 
     # store content of reas file as attributes
     for key, value in items:
@@ -186,8 +194,13 @@ def read_longitudinal_profile(hdf5_file, long_file): #IRRELEVANT
 
     if not isinstance(long_file, io.IOBase):
         long_file = io.open(long_file, "r", encoding="UTF-8")
+        
+    if "atmosphere" not in hdf5_file:
+        f_h5_long = hdf5_file.create_group("atmosphere")
+    else:
+        del hdf5_file["atmosphere"]
+        f_h5_long = hdf5_file.create_group("atmosphere")
 
-    f_h5_long = hdf5_file.create_group("atmosphere")
 
     lines = long_file.readlines()
     n_steps = int(lines[0].rstrip().split()[3])
@@ -207,12 +220,15 @@ def read_longitudinal_profile(hdf5_file, long_file): #IRRELEVANT
     dE_data_str.writelines(lines[(n_steps + 4) : (2 * n_steps + 4)])
     dE_data_str.seek(0)
     dE_data = np.genfromtxt(dE_data_str)
+    if "NumberOfParticles" in f_h5_long:
+        del f_h5_long["NumberOfParticles"]
     data_set = f_h5_long.create_dataset("NumberOfParticles", n_data.shape, dtype="f")
     data_set[...] = n_data
     data_set.attrs[
         "comment"
     ] = "The collumns of the data set are: DEPTH, GAMMAS, POSITRONS, ELECTRONS, MU+, MU-, HADRONS, CHARGED, NUCLEI, CHERENKOV"
-
+    if "EnergyDeposit" in f_h5_long:
+        del f_h5_long["EnergyDeposit"]
     data_set = f_h5_long.create_dataset("EnergyDeposit", dE_data.shape, dtype="f")
     data_set[...] = dE_data
     data_set.attrs[
@@ -283,27 +299,73 @@ def get_ref_index(h):
 def correct_geomag_Eem_density(f_h5): #THIS ALL IS ALMOST LAST CODE AFTER HIGHLEVEL
     traces = f_h5["highlevel/traces"]
     traces_ge_ce = f_h5["highlevel/traces/ge_ce"] #GETS WRITTEN under this in write_ge_ce
-    trace_scaled = traces.create_group("scaled")
+    
+    if "scaled" not in traces:
+        trace_scaled = traces.create_group("scaled")
+    else:
+        del traces["scaled"]
+        trace_scaled = traces.create_group("scaled")
+    
     for index, label in enumerate(traces_ge_ce):
         trace = traces_ge_ce[label]
         trace /= np.sin(f_h5["highlevel"].attrs["geomagnetic_angle"])
         trace /= f_h5["highlevel"].attrs["Eem"] # GETS WRITTEN LATER ON IN ENERGY
+        if label in trace_scaled:
+            del trace_scaled[label]
         data_set = trace_scaled.create_dataset(label, trace.shape, dtype=float)
         data_set[...] = trace
     return f_h5
 
 
 def calculate_and_write_ge_ce(f_h5):
+    
     antennas = f_h5["CoREAS"]["observers"]
     antennas_time = f_h5["/highlevel/obsplane_na_na_vB_vvB"]["times_filtered"] #THIS ALL IS DOWN IN WRITE HIGHLEVEL
     antennas_trace = f_h5["/highlevel/obsplane_na_na_vB_vvB"]["traces_filtered"]
     antennas_pos = f_h5["/highlevel/obsplane_na_na_vB_vvB"]["antenna_position_vBvvB"]
-    traces = f_h5["highlevel"].create_group("traces")
-    traces_vb_vvb = traces.create_group("vB_vvB")
-    traces_ge = traces.create_group("ge_ce")
-    positions = f_h5["highlevel"].create_group("positions")
-    pos_vb_vvb = positions.create_group("vB_vvB")
-    pos_ge = positions.create_group("ge_ce")
+    
+    
+    f_h5_hl = f_h5["highlevel"]
+
+    # Traces group
+    if "traces" not in f_h5_hl:
+        traces = f_h5_hl.create_group("traces")
+    else:
+        del f_h5_hl["traces"]
+        traces = f_h5_hl.create_group("traces")
+
+    if "vB_vvB" not in traces:
+        traces_vb_vvb = traces.create_group("vB_vvB")
+    else:
+        del traces["vB_vvB"]
+        traces_vb_vvb = traces.create_group("vB_vvB")
+
+    if "ge_ce" not in traces:
+        traces_ge = traces.create_group("ge_ce")
+    else:
+        del traces["ge_ce"]
+        traces_ge = traces.create_group("ge_ce")
+
+    # Positions group
+    if "positions" not in f_h5_hl:
+        positions = f_h5_hl.create_group("positions")
+    else:
+        del f_h5_hl["positions"]
+        positions = f_h5_hl.create_group("positions")
+
+    if "vB_vvB" not in positions:
+        pos_vb_vvb = positions.create_group("vB_vvB")
+    else:
+        del positions["vB_vvB"]
+        pos_vb_vvb = positions.create_group("vB_vvB")
+
+    if "ge_ce" not in positions:
+        pos_ge = positions.create_group("ge_ce")
+    else:
+        del positions["ge_ce"]
+        pos_ge = positions.create_group("ge_ce")
+    
+    
     for index, label in enumerate(antennas):
         pos = antennas_pos[index]
         dmax = f_h5["CoREAS"].attrs["DistanceOfShowerMaximum"] / 100
@@ -328,20 +390,30 @@ def calculate_and_write_ge_ce(f_h5):
             ]
         )  # 0,1,2, 3: t, geo, ce, zeros
 
+        if label in traces_ge:
+            del traces_ge[label]
         data_set = traces_ge.create_dataset(label, trace_geo_ce.T.shape, dtype=float)
+
         data_set[...] = trace_geo_ce.T
         data_set.attrs["comment"] = "Geomagnetic and Charge excess traces"
 
         # ----
+        if label in pos_ge:
+            del pos_ge[label]
         data_set = pos_ge.create_dataset(label, antennas_pos[0].shape, dtype=float)
         data_set[...] = antennas_pos[index] / c_el
         data_set.attrs["comment"] = "Position after corrections"
         # ----
+        
         trace_vB = np.concatenate(([time_tr], trace_vB.T), axis=0)
+        if label in traces_vb_vvb:
+            del traces_vb_vvb[label]
         data_set = traces_vb_vvb.create_dataset(label, trace_vB.T.shape, dtype=float)
         data_set[...] = trace_vB.T * c_el
         data_set.attrs["comment"] = "vB vvB traces"
         # ----
+        if label in pos_vb_vvb:
+            del pos_vb_vvb[label]
         data_set = pos_vb_vvb.create_dataset(label, antennas_pos[0].shape, dtype=float)
         data_set[...] = antennas_pos[index]
         data_set.attrs["comment"] = "Position in vB vvB"
@@ -405,6 +477,8 @@ def read_height2X_from_C7log(f_h5): #WHATS GOING ON HERE???
     shower_dev = np.array(shower_dev)
     
     atmos = f_h5["atmosphere"]
+    if "Atmosphere" in atmos:
+        del atmos["Atmosphere"]
     data_set = atmos.create_dataset("Atmosphere", shower_dev.shape, dtype=float)
     data_set[...] = shower_dev
     data_set.attrs["comment"] = "Shower development to convert height to " "grammage"
@@ -422,7 +496,12 @@ def read_antenna_data(hdf5_file, list_file, antenna_folder): #UNINTERESTING
     )  # skip comments
     list_file.close()
 
-    observers = hdf5_file.create_group("observers")
+    if "observers" not in hdf5_file:
+        observers = hdf5_file.create_group("observers")
+    else:
+        del hdf5_file["observers"]
+        observers = hdf5_file.create_group("observers")
+
 
     for line in lines:
         ll = line.strip().split()
@@ -431,6 +510,8 @@ def read_antenna_data(hdf5_file, list_file, antenna_folder): #UNINTERESTING
         antenna_file = os.path.join(antenna_folder, "raw_%s.dat" % antenna_label)
 
         data = np.genfromtxt(antenna_file)
+        if antenna_label in observers:
+            del observers[antenna_label]
         data_set = observers.create_dataset(antenna_label, data.shape, dtype=float)
         data_set[...] = data
 
@@ -452,6 +533,8 @@ def write_density_n_refindex_from_gdas(f_h5): #IMPORTNAT, but where MODELL
     ref_in = get_ref_index(h) #refractive index
     #print(f'REFRACTIVE INDEX {ref_in}')
     atmos = f_h5["atmosphere"]
+    if "Ref Index" in atmos:
+        del atmos["Ref Index"]
     data_set = atmos.create_dataset("Ref Index", shape = ref_in.shape, dtype=float)
     data_set[...] = ref_in
     data_set.attrs["comment"] = (
@@ -459,6 +542,8 @@ def write_density_n_refindex_from_gdas(f_h5): #IMPORTNAT, but where MODELL
     )
 
     density = get_density(h, atm_model)
+    if "Density" in atmos:
+        del atmos["Density"]
     data_set = atmos.create_dataset("Density", density.shape, dtype=float)
     data_set[...] = density
     data_set.attrs["comment"] = "Density at height of the Grammage steps"
@@ -576,7 +661,12 @@ def write_highlevel_attributes(f_h5_hl , f_h5): #writes energy highlevel VERY US
 def write_coreas_highlevel_info(f_h5, args): #writes traces highlevel VERY IMPORTANT
 
     # create file
-    f_h5_hl = f_h5.create_group("highlevel")
+    if "highlevel" not in f_h5:
+        f_h5_hl = f_h5.create_group("highlevel")
+    else:
+        del f_h5["highlevel"]
+        f_h5_hl = f_h5.create_group("highlevel")
+        
     write_highlevel_attributes(f_h5_hl, f_h5)
     f_h5_inputs = f_h5["inputs"]
     Bx, Bz = f_h5_inputs.attrs["MAGNET"]
@@ -956,7 +1046,13 @@ def write_coreas_highlevel_info(f_h5, args): #writes traces highlevel VERY IMPOR
             polarisation = "x_y"
 
         obsplanename = "obsplane_%s_%s" % (plane, polarisation)
-        f_h5_obsplane = f_h5_hl.create_group(obsplanename)
+        
+        if f"{obsplanename}" not in f_h5_hl:
+            f_h5_obsplane = f_h5_hl.create_group(obsplanename)
+        else:
+            del f_h5_hl[f"{obsplanename}"]
+            f_h5_obsplane = f_h5_hl.create_group(obsplanename)
+        
 
         az = rdhelp.get_normalized_angle(
             np.round(np.rad2deg(np.arctan2(yy, xx))), degree=True
@@ -1263,7 +1359,7 @@ def FilesTransformHdf5ToHdf5(SIM_path):
             f_h5 = h5py.File(f'{SIM_path}', "a")
             
            
-            if check_for_coreas_highlevel_info(f_h5) == False:
+            if False == False:   #check_for_coreas_highlevel_info(f_h5)
                 
                 if check_for_crucial_information(f_h5):
                     
@@ -1273,7 +1369,7 @@ def FilesTransformHdf5ToHdf5(SIM_path):
                 else:
                     return False
                     
-            if check_atmosphere(f_h5) == False:
+            if False == False: #check_atmosphere(f_h5)
                 
                 if check_for_crucial_information(f_h5):
                     

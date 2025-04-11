@@ -354,14 +354,10 @@ def converting_one_dataset(MEMMAP_file_path,in_memmap_folder_path,proton_iron_pa
             if os.path.isdir(chosen_SIM):
                 f_h5.close()
                 continue
-            elif check_for_coreas_highlevel_info(f_h5) == False:
-                if check_for_crucial_information(f_h5) == False:
-                    f_h5.close()
-                    continue
-            elif check_atmosphere(f_h5) == False:
-                if check_for_crucial_information(f_h5) == False:
-                    f_h5.close()
-                    continue
+            
+            if check_for_crucial_information(f_h5) == False:
+                f_h5.close()
+                continue
                 
             f_h5.close()
             
@@ -379,12 +375,12 @@ def converting_one_dataset(MEMMAP_file_path,in_memmap_folder_path,proton_iron_pa
             if os.path.isdir(chosen_SIM):
                 continue
             
-            if proton_or_iron:
-                create_folder(MEMMAP_file_path,'csv')
-                write_csv_file('Proton_SIM_vs_Index',f'{MEMMAP_file_path}/csv',chosen_SIM,idx)
-            else:
-                create_folder(MEMMAP_file_path,'csv')
-                write_csv_file('Iron_SIM_vs_Index',f'{MEMMAP_file_path}/csv',chosen_SIM,idx)
+            #if proton_or_iron:
+            #    create_folder(MEMMAP_file_path,'csv')
+            #    write_csv_file('Proton_SIM_vs_Index',f'{MEMMAP_file_path}/csv',chosen_SIM,idx)
+            #else:
+            #    create_folder(MEMMAP_file_path,'csv')
+            #    write_csv_file('Iron_SIM_vs_Index',f'{MEMMAP_file_path}/csv',chosen_SIM,idx)
                 
             
             close_hdf5_if_locked(chosen_SIM)
