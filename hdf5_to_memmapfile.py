@@ -168,6 +168,7 @@ def flush_antenna_pos(output_path,f_h5, index, dtypeInit,csv_file_path):
     antenna_pos[index][:] = 0
     assert np.all(np.abs(antenna_pos[index, :]) == 0)
     antennas_pos_f_h5_1 = f_h5[f"/highlevel/positions/vB_vvB"]
+    
     antennas_pos_f_h5_2 = np.array(f_h5['highlevel/obsplane_na_na_vB_vvB/antenna_position_vBvvB'])
     
     label_index = 0
