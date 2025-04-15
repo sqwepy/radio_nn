@@ -17,10 +17,10 @@ from radiotools import helper as rdhelp
 from radiotools import coordinatesystems
 from radiotools.atmosphere.models import atm_models
 from radiotools.atmosphere.models import Atmosphere
+from radiotools.atmosphere.models import add_gdas_model,add_refractive_index_profile
 import fnmatch
 import units
 from scipy import constants
-atmo = Atmosphere()
 
 
 conversion_factor_integrated_signal = (
@@ -1532,7 +1532,7 @@ def check_for_crucial_information(f_h5):
     return all(Boolean_array)
     
 
-def FilesTransformHdf5ToHdf5(SIM_path):
+def FilesTransformHdf5ToHdf5(SIM_path,atmo_file_path):
         
             parser = argparse.ArgumentParser(description="coreas hdf5 converter")
     
@@ -1628,19 +1628,10 @@ def FilesTransformHdf5ToHdf5(SIM_path):
                     write_coreas_highlevel_info(f_h5,args)
                     calculate_and_write_ge_ce(f_h5)
                     correct_geomag_Eem_density(f_h5)
+                    change_atmo_data(f_h5, atmo_file_path)
                 else:
                     return False
                     
-            if False == False: #check_atmosphere(f_h5)
-                
-                if check_for_crucial_information(f_h5):
-                    
-                    read_height2X_from_C7log(f_h5)
-
-                    write_density_n_refindex_from_gdas(f_h5)
-                    
-                else:
-                    return False
 
                 if not args.store_full_simulation_in_hdf5:
                     # make file empty (so that writing to disc does not cost a lot of i/o), write it to disc and remove it.
@@ -1656,8 +1647,72 @@ def FilesTransformHdf5ToHdf5(SIM_path):
                 return True
 
                 #print('HDF5 written')
-            else:
-                return False
+        
+def change_atmo_data(f_h5, atmo_file_path):
+    
+    atmo = Atmosphere(gdas_file=atmo_file_path,curved=False)
+    
+    output = add_refractive_index_profile(atmo_file_path)
+    
+    h_all = output[:,0]
+    n_all = output[:,1]
+    
+    h_all = np.array(h_all)
+    n_all = np.array(n_all)
+        
+    x = f_h5["atmosphere"]["NumberOfParticles"][:, 0]
+    
+    x = np.array(x)
+    
+    h = []
+    ref_in = []
+    density = []
+    shower_dev = []
+    
+    for x_i in x:
+        
+        density_i = atmo.get_density(zenith=np.deg2rad(float(f_h5['CoREAS'].attrs["ShowerZenithAngle"])),xmax = x_i,observation_level=(f_h5['inputs'].attrs['OBSLEV']*1e-2))
+    
+        h_i = atmo.get_vertical_height(zenith=np.deg2rad(float(f_h5['CoREAS'].attrs["ShowerZenithAngle"])),xmax = x_i,observation_level=(f_h5['inputs'].attrs['OBSLEV']*1e-2))
+        
+        min_ref_in = np.array([np.nanargmin(np.abs(h_all - h_i))])
+        ref_in_i = n_all[min_ref_in]
+        
+        h.append(h_i)
+        density.append(density_i)
+        ref_in.append(ref_in_i[0])
+        shower_dev.append([x_i,h_i])
+    
+    density = np.array(density)
+    h = np.array(h)  
+    ref_in = np.array(ref_in)
+    shower_dev = np.array(shower_dev)
+    
+    atmos = f_h5["atmosphere"]
+    
+    if "Atmosphere" in atmos:
+        del atmos["Atmosphere"]
+    data_set = atmos.create_dataset("Atmosphere", shower_dev.shape, dtype=float)
+    
+    data_set[...] = shower_dev
+    data_set.attrs["comment"] = "Shower development to convert height to " "grammage"
+    
+    if "Ref Index" in atmos:
+        del atmos["Ref Index"]
+    data_set = atmos.create_dataset("Ref Index", shape = ref_in.shape, dtype=float)
+    
+    data_set[...] = ref_in
+    data_set.attrs["comment"] = (
+        "Refractive Index at height closest to the " "grammage steps"
+    )
+    
+    if "Density" in atmos:
+        del atmos["Density"]
+    data_set = atmos.create_dataset("Density", density.shape, dtype=float)
+    
+    data_set[...] = density
+    data_set.attrs["comment"] = "Density at height of the Grammage steps"
+    
 
 
 if __name__ == "__main__":    #PLAYING CODE

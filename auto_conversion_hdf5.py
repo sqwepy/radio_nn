@@ -2,6 +2,8 @@ import re
 import h5py
 import os
 import fnmatch
+import traceback
+from radiotools.atmosphere.models import Atmosphere
 import csv
 import sys
 import subprocess
@@ -16,7 +18,9 @@ from init_npy import _init_
 from coreas_to_hdf5 import FilesTransformHdf5ToHdf5, check_for_crucial_information, check_for_coreas_highlevel_info, check_atmosphere
 from hdf5_to_memmapfile import write_memmapfile, write_csv_file
 
+
 from init_npy import parameters, event_level_parameters, number_of_antennas, time_bins, dimensions_antenna_positions_vB_vvB, dimensions_antenna_traces_vB_vvB,dimensions_antenna_traces_ge_ce,time_ge_ce_and_vB_vvB
+
 
 def sorting_files(files):
     sorted_files = sorted(files, key=lambda x: int(re.search(r'\d+', x).group()))
@@ -310,7 +314,7 @@ def initializing(MEMMAP_file_path,memmap_folder_name,DATA_file_path):
 
 
 
-def converting_one_dataset(MEMMAP_file_path,in_memmap_folder_path,proton_iron_path,proton_or_iron = True,j=0):
+def converting_one_dataset(MEMMAP_file_path,in_memmap_folder_path,proton_iron_path,atmo_file_path,proton_or_iron = True,j=0):
     
     start_datetime = datetime.now() 
     
@@ -387,7 +391,7 @@ def converting_one_dataset(MEMMAP_file_path,in_memmap_folder_path,proton_iron_pa
             
             is_file_locked(chosen_SIM)
             
-            FilesTransformHdf5ToHdf5(chosen_SIM)
+            FilesTransformHdf5ToHdf5(chosen_SIM,atmo_file_path)
             
             
             #f_h5 = h5py.File(chosen_SIM, "r")
@@ -418,9 +422,13 @@ def converting_one_dataset(MEMMAP_file_path,in_memmap_folder_path,proton_iron_pa
     
     return j
 
-def running(DATA_file_path,MEMMAP_file_path,in_memmap_folder_path,folders):
+def running(DATA_file_path,MEMMAP_file_path,in_memmap_folder_path,folders,atmodata_path):
+    
     folder_paths = f'{DATA_file_path}/{folders}'
-        
+    
+    atmo_file_path = f'{atmodata_path}/ATMOSPHERE_{folders}.DAT'
+    
+    #ATMOSPHERE_294461454.DAT
     if not os.path.isdir(folder_paths):
         return
     elif os.path.isdir(folder_paths) and folders.startswith('.'):
@@ -435,13 +443,13 @@ def running(DATA_file_path,MEMMAP_file_path,in_memmap_folder_path,folders):
         elif os.path.isdir(Proton_Iron_paths) and folders2.startswith('.'):
             continue
         
-        converting_one_dataset(MEMMAP_file_path,in_memmap_folder_path,Proton_Iron_paths)
+        converting_one_dataset(MEMMAP_file_path,in_memmap_folder_path,Proton_Iron_paths,atmo_file_path)
 
-def run_auto(MEMMAP_file_path,DATA_file_path,n_jobs):
+def run_auto(MEMMAP_file_path,DATA_file_path,atmo_data_path,n_jobs):
     
     in_memmap_folder_path = initializing(MEMMAP_file_path,'memmap',DATA_file_path)
     
-    Parallel(n_jobs=n_jobs)(delayed(running)(DATA_file_path,MEMMAP_file_path,in_memmap_folder_path,folders) for folders in os.listdir(f'{DATA_file_path}'))
+    Parallel(n_jobs=n_jobs)(delayed(running)(DATA_file_path,MEMMAP_file_path,in_memmap_folder_path,folders,atmo_data_path) for folders in os.listdir(f'{DATA_file_path}'))
 
 if __name__ == "__main__":
     
@@ -450,6 +458,7 @@ if __name__ == "__main__":
     
     MEMMAP_file_path = '/Users/denis/Desktop/BachelorThesis/memmap5'
     DATA_file_path = '/Users/denis/Desktop/BachelorThesis/data'
+    atmo_data_path = '/Volumes/DenisDRIVE/BACHELORTHESIS/atmospheric_data/atmosphere_files'
     n_jobs = 1
 
-    run_auto(MEMMAP_file_path,DATA_file_path,n_jobs)
+    run_auto(MEMMAP_file_path,DATA_file_path,atmo_data_path,n_jobs)
