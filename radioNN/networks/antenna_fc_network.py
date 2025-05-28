@@ -12,7 +12,7 @@ class AntennaNetworkFC(nn.Module):
         self.output_channels = output_channels
 
         self.fc_layers_encode = nn.Sequential(
-            nn.Linear(10, 64),
+            nn.Linear(11, 64),
             nn.LeakyReLU(),
             nn.Linear(64, 128),
             nn.LeakyReLU(),
@@ -62,7 +62,7 @@ class AntennaNetworkFC(nn.Module):
             #    8, #"B declination"
             #    9, #"B strength"
             #    10, #"primary particle"
-            # 11,  # "primary energy"
+            11,  # "primary energy"
             12,  # "Azimuthal angle"
         ]
         event_data = event_data.reshape(event_data.size(0), -1)

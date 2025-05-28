@@ -456,9 +456,9 @@ if __name__ == "__main__":
     #MEMMAP_file_path = '/cr/work/stiben'
     #DATA_file_path = '/cr/radio/lofar/hdf5_sims'
     
-    MEMMAP_file_path = '/Users/denis/Desktop/BachelorThesis/memmap5'
-    DATA_file_path = '/Users/denis/Desktop/BachelorThesis/data'
-    atmo_data_path = '/Volumes/DenisDRIVE/BACHELORTHESIS/atmospheric_data/atmosphere_files'
-    n_jobs = 1
+    MEMMAP_file_path = '/home/denis/memmap_2'
+    DATA_file_path = '/home/denis/lofar_hdf5_sims_batch2'
+    atmo_data_path = '/home/denis/atmosphere_files'
+    n_jobs = 6
 
     run_auto(MEMMAP_file_path,DATA_file_path,atmo_data_path,n_jobs)

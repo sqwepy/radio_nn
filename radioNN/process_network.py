@@ -14,7 +14,7 @@ from radioNN.data.filters import LOFARFilter
 from radioNN.networks.antenna_fc_network import AntennaNetworkFC
 from RadioPlotter.radio_plotter import plot_pulses_interactive
 
-n_sims = 21524
+n_sims = 23927
 class CustomWeightedLoss(torch.nn.Module):
     """
     L1 loss with different weights for different polarizations.
@@ -75,12 +75,12 @@ class NetworkProcess:
 
     def __init__(
         self,
-        percentage=100,
+        percentage=1,
         one_shower=None,
         model_class=AntennaNetworkFC,
         batch_size=4,
         n_epochs=10,
-        lr=1e-3,
+        lr=1e-5,
         weight_decay=1e-6,
         lr_scale=100,
         lr_decay=0.5,
@@ -106,7 +106,7 @@ class NetworkProcess:
 
         """
         self.wandb = wb
-        radio_data_path = "/cr/radio/lofar/memmap_files/memmap"
+        radio_data_path = "/home/denis/memmap_files/memmap"
         memmap_mode = "r"
         if not os.path.exists(radio_data_path):
             radio_data_path = "/home/pranav/work-stuff-unsynced/radio_data"
@@ -115,7 +115,8 @@ class NetworkProcess:
             radio_data_path = "/cr/work/sampathkumar/radio_data"
             memmap_mode = "r"
         assert os.path.exists(radio_data_path)
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        #self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = 'cpu'
         if one_shower is not None:
             print(
                 f"Using the data from {radio_data_path} in {self.device} with "
@@ -147,19 +148,30 @@ class NetworkProcess:
             device=self.device,
             filter=LOFARFilter,
         )
-        self.output_channels = 2 #self.dataset.output.shape[-1]
+        self.output_channels = 3 #self.dataset.output.shape[-1]
         print(self.output_channels)
         assert 2 <= self.output_channels <= 3
         print(f"Using {model_class}")
         self.run_name = datetime.now().strftime("%y%m%b%d%a_%H%M%S")
         self.base_path = base_path
         self.log_dir = f"{self.base_path}/{self.run_name}"
-        self.model = model_class(self.output_channels).to(self.device)
+        
+        #self.model = model_class(self.output_channels).to(self.device)
+        
+        self.model = AntennaNetworkFC(self.output_channels).to(self.device)
+        
+        state_checkpoint = torch.load(
+        f"/home/denis/NetworkModels/2405May24Fri_145354/SavedState",
+        )
+        
+        self.model.load_state_dict(state_checkpoint['model_state_dict'])
+        self.model.train()
+        
         # self.criterion = nn.L1Loss()
         self.criterion = CustomWeightedLoss(fluence_weight=flu_weight)
         self.optimizer = optim.Adam(
             self.model.parameters(),
-            lr=1e-3,
+            lr=1e-5,
             weight_decay=1e-6,
         )
         if self.wandb:
@@ -211,7 +223,7 @@ class NetworkProcess:
                 batch_size=wandb.config.batch_size,
                 shuffle=True,
                 collate_fn=custom_collate_fn,
-                num_workers=32
+                num_workers=16
             )
         except:
             self.dataloader = DataLoader(
@@ -219,7 +231,7 @@ class NetworkProcess:
                 batch_size=8,
                 shuffle=True,
                 collate_fn=custom_collate_fn,
-                num_workers=32
+                num_workers=16
             )
 
     def send_wandb_data(

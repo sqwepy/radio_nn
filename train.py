@@ -19,7 +19,7 @@ def main(
     base_path="./runs/",
     batch_size=8,
     n_epochs=500,
-    lr=1e-3,
+    lr=1e-7,
     weight_decay=1e-7,
     lr_scale=300,
     lr_decay=0.1,
@@ -94,7 +94,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-p",
         "--percentage",
-        default=80, 
+        default=100,  #was 80
         type=float,
         help="Percentage of dataset to use",
     )
@@ -118,25 +118,25 @@ if __name__ == "__main__":
         help="number of epochs of training",
     )
     parser.add_argument(
-        "--batch_size", type=int, default=64, help="size of the batches" #Try 32 or 48 if 64 doesn't work
+        "--batch_size", type=int, default=4, help="size of the batches" #Try 32 or 48 if 64 doesn't work
     )
     parser.add_argument(
         "--flu_weight", type=float, default=0, help="loss: fluence weight"
     )
-    parser.add_argument("--lr", type=float, default=0.0001, help="adam: learning rate") #0.0001 is nice
+    parser.add_argument("--lr", type=float, default=0.0000001, help="adam: learning rate") #0.0001 is nice
     parser.add_argument(
         "--weight_decay", type=float, default=0.00005, help="adam: weight decay" #0.00005 is nice
     )
     parser.add_argument(
         "--lr_scale", #lr keeping high
         type=int,
-        default=100, #100 is nice
+        default=2, #100 is nice #2 for pranav
         help="learning rate scheduler scale",
     )
     parser.add_argument(
         "--lr_decay",
         type=float,
-        default=0.22, #0.2 is nice
+        default=0.33, #0.2 is nice #0.33 for pranav
         help="learning rate scheduler scale",
     )
     parser.add_argument(
