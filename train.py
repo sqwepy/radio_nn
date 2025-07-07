@@ -19,8 +19,8 @@ def main(
     base_path="./runs/",
     batch_size=8,
     n_epochs=500,
-    lr=1e-7,
-    weight_decay=1e-7,
+    lr=1e-5,
+    weight_decay=1e-6,
     lr_scale=300,
     lr_decay=0.1,
     flu_weight=0,
@@ -94,7 +94,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-p",
         "--percentage",
-        default=100,  #was 80
+        default=80,  #was 80
         type=float,
         help="Percentage of dataset to use",
     )
@@ -123,7 +123,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--flu_weight", type=float, default=0, help="loss: fluence weight"
     )
-    parser.add_argument("--lr", type=float, default=0.0000001, help="adam: learning rate") #0.0001 is nice
+    parser.add_argument("--lr", type=float, default=0.00001, help="adam: learning rate") #0.0001 is nice
     parser.add_argument(
         "--weight_decay", type=float, default=0.00005, help="adam: weight decay" #0.00005 is nice
     )
